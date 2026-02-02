@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "652785365500",
+    "project_id": "mow-event",
+    "storage_bucket": "mow-event.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:652785365500:android:2f5784ad0f0189b8e20279",
+        "android_client_info": {
+          "package_name": "com.example.mow_events"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBp7QCk0DLNAG6lwMQv2zKNw5WwIK2jn2I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

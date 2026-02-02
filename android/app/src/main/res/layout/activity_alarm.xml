@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp"
+    android:background="#0F172A">
+
+    <!-- أيقونة -->
+  <ImageView
+    android:layout_width="96dp"
+    android:layout_height="96dp"
+    android:src="@drawable/logo_alarm"
+    android:layout_marginBottom="24dp"
+ />
+
+    <!-- عنوان -->
+  <TextView
+    android:id="@+id/txtEventTitle"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="⏰ تذكير الحدث"
+    android:textSize="26sp"
+    android:textStyle="bold"
+    android:textColor="#FFFFFF"
+    android:layout_marginBottom="8dp"
+    android:textAlignment="center"/>
+<TextView
+    android:id="@+id/txtEventLocation"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="مكان الحدث"
+    android:textSize="16sp"
+    android:textColor="#CBD5E1"
+    android:layout_marginBottom="8dp"
+    android:textAlignment="center"/>
+<TextView
+    android:id="@+id/txtEventStartTime"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="وقت البدء"
+    android:textSize="16sp"
+    android:textColor="#CBD5E1"
+    android:layout_marginBottom="32dp"
+    android:textAlignment="center"/>
+    <!-- وصف -->
+    <TextView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="سيبدأ الحدث قريبًا"
+    android:textSize="16sp"
+    android:textColor="#CBD5E1"
+    android:layout_marginBottom="32dp"
+    android:textAlignment="center"/>
+
+
+    <!-- زر الغفوة -->
+    <Button
+        android:id="@+id/btnSnooze"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="غفوة 5 دقائق"
+        android:textSize="16sp"
+        android:textColor="#0F172A"
+        android:backgroundTint="#38BDF8"
+        android:layout_marginBottom="12dp"
+        android:elevation="6dp"/>
+
+    <!-- زر الإيقاف -->
+    <Button
+        android:id="@+id/btnStop"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="إيقاف التذكير"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#EF4444"
+        android:elevation="6dp"/>
+
+</LinearLayout>
