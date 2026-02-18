@@ -10,7 +10,6 @@ class YearController extends GetxController {
   RxInt currentYear = DateTime.now().year.obs;
   RxList<EventModel> events = <EventModel>[].obs;
 
-  /// Map key is `yyyy-M-d` -> list of events on that day
   final Map<String, List<EventModel>> eventsByDay = {};
   RxInt currentHijriYear = DateTime.now().year.obs;
 
@@ -36,8 +35,6 @@ class YearController extends GetxController {
 
     events.assignAll(yearEvents);
 
-    // Build quick lookup map for events by day to avoid repeated O(n)
-    // scans while rendering day cells in the year view.
     eventsByDay.clear();
     for (final e in yearEvents) {
       final dt = e.startDateTimeSafe;

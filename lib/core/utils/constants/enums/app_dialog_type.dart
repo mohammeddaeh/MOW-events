@@ -101,12 +101,12 @@ extension AppDialogTypeX on AppDialogType {
       case AppDialogType.imagePreview:
       case AppDialogType.delete:
       case AppDialogType.logout:
-        return false; // لا يغلق خارجياً
+        return false;
       case AppDialogType.warning:
       case AppDialogType.info:
-        return true; // يمكن الإغلاق
+        return true;
       case AppDialogType.deleteCategories:
-        return false; // لا يغلق خارجياً
+        return false;
     }
   }
 

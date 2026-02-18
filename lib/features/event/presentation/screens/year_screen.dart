@@ -14,7 +14,6 @@ import 'package:mow_events/features/event/presentation/controller/year_controlle
 class YearScreen extends StatelessWidget {
   YearScreen({super.key});
 
-  // final YearController controller = Get.put(YearController());
   final YearController controller = Get.find();
 
   @override
@@ -52,27 +51,7 @@ class YearScreen extends StatelessWidget {
 
                       hasEvents: controller.hasEventOnDay,
                       eventCount: controller.countEventsOnDay,
-                      // onMonthTap: (selectedMonth) {
-                      //   final monthEvents = controller.getEventsForMonth(
-                      //     selectedMonth,
-                      //   );
-                      //   if (monthEvents.isNotEmpty) {
-                      //     _showMonthEventsBottomSheet(
-                      //       context,
-                      //       monthEvents,
-                      //       DateLocalizationHelper.display(
-                      //         selectedMonth,
-                      //       ).displayMonth,
-                      //     );
-                      //   } else {
-                      //     Get.snackbar(
-                      //       AppTexts.noEvents,
-                      //       AppTexts.noEventsThisMonth,
-                      //       snackPosition: SnackPosition.BOTTOM,
-                      //       duration: const Duration(seconds: 2),
-                      //     );
-                      //   }
-                      // },
+
                       onMonthTap: (selectedMonth) {
                         debugPrint("🔥 Month tapped: $selectedMonth");
                         final monthEvents = controller.getEventsForMonth(

@@ -15,7 +15,6 @@ class EventDateTimeHelper {
       }
 
       if (t.contains('.')) t = t.split('.').first;
-      // strip timezone like +03:00 or Z
       t = t.split(RegExp(r'[Zz]|[+-]\d{2}:?\d{2}')).first;
 
       final dateParts = d.contains('-') ? d.split('-') : d.split('/');

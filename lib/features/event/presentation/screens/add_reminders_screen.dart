@@ -87,7 +87,7 @@ class AddRemindersScreen extends GetView<ReminderController> {
     bool applyToAllEvents = false;
 
     final formKey = GlobalKey<FormState>();
-    final valueController = TextEditingController(); // 👈 بدون قيمة افتراضية
+    final valueController = TextEditingController();
 
     showDialog(
       context: context,
@@ -319,89 +319,4 @@ class AddRemindersScreen extends GetView<ReminderController> {
       ),
     );
   }
-
-  // void _deleteDefaultReminder(
-  //   BuildContext context,
-  //   int index,
-  //   DefaultReminder r,
-  // ) {
-  //   bool applyToAllEvents = false;
-
-  //   showDialog(
-  //     context: context,
-  //     builder: (_) => StatefulBuilder(
-  //       builder: (context, setState) {
-  //         return AlertDialog(
-  //           title: Text(AppTexts.deleteReminder),
-  //           content: Column(
-  //             mainAxisSize: MainAxisSize.min,
-  //             children: [
-  //               Text(AppTexts.applyDeletionTo),
-  //               RadioListTile<bool>(
-  //                 value: false,
-  //                 groupValue: applyToAllEvents,
-  //                 title: Text(AppTexts.futureEventsOnly),
-  //                 onChanged: (v) => setState(() => applyToAllEvents = v!),
-  //               ),
-  //               RadioListTile<bool>(
-  //                 value: true,
-  //                 groupValue: applyToAllEvents,
-  //                 title: Text(AppTexts.allEventsContainingThisReminder),
-  //                 onChanged: (v) => setState(() => applyToAllEvents = v!),
-  //               ),
-  //             ],
-  //           ),
-  //           actions: [
-  //             TextButton(onPressed: Get.back, child: Text(AppTexts.cancel)),
-  //             ElevatedButton(
-  //               onPressed: () async {
-  //                 final confirmed =
-  //                     await showDialog<bool>(
-  //                       context: context,
-  //                       builder: (_) => AlertDialog(
-  //                         title: Text(AppTexts.confirmDeletion),
-  //                         content: Text(
-  //                           AppTexts.confirmDeletionReminder(
-  //                             scope: applyToAllEvents
-  //                                 ? 'all events containing this reminder'
-  //                                 : 'future events only',
-  //                           ),
-  //                         ),
-
-  //                         actions: [
-  //                           TextButton(
-  //                             onPressed: () => Get.back(result: false),
-  //                             child: Text(AppTexts.cancel),
-  //                           ),
-  //                           ElevatedButton(
-  //                             onPressed: () => Get.back(result: true),
-  //                             child: Text(AppTexts.delete),
-  //                           ),
-  //                         ],
-  //                       ),
-  //                     ) ??
-  //                     false;
-
-  //                 if (confirmed) {
-  //                   ReminderController.to.removeDefaultReminder(
-  //                     index,
-  //                     applyToAllEvents: applyToAllEvents,
-  //                   );
-
-  //                   Get.back();
-  //                   Get.snackbar(
-  //                     AppTexts.success,
-  //                     AppTexts.reminderDeletedSuccessfully,
-  //                     snackPosition: SnackPosition.BOTTOM,
-  //                   );
-  //                 }
-  //               },
-  //               child: Text(AppTexts.delete),
-  //             ),
-  //           ],
-  //         );
-  //       },
-  //     ),
-  //   );
-  // }
 }

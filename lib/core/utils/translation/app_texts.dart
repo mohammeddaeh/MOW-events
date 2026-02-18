@@ -305,7 +305,7 @@ class AppTexts {
   static String get m => 'm'.tr;
   static String get notifications => 'notifications'.tr;
   static String get category => 'category'.tr;
-  ///////////////////////////////////////
+
   static String get manageCategories => 'manageCategories'.tr;
   static String get reminders => 'reminders'.tr;
   static String get editReminder => 'editReminder'.tr;
@@ -332,7 +332,6 @@ class AppTexts {
   static String get reminderAddedSuccessfully => 'reminderAddedSuccessfully'.tr;
   static String get add => 'add'.tr;
   static String get value => 'value'.tr;
-  ////
   static String get requiredField => 'requiredField'.tr;
   static String get invalidNumber => 'invalidNumber'.tr;
   static String get mustBeGreaterThanZero => 'mustBeGreaterThanZero'.tr;

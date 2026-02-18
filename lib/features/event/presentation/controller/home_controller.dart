@@ -127,8 +127,6 @@ class HomeController extends GetxController
       .where((e) => e.name.isNotEmpty && e.description.isNotEmpty)
       .toList();
 
-  // final AppLocalStorage storage = AppLocalStorage.instance;
-  // static const String eventsKey = 'all_events';
   @override
   void onInit() {
     super.onInit();

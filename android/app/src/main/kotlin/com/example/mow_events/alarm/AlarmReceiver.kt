@@ -11,7 +11,7 @@ val eventId = intent.getStringExtra("eventId") ?: ""
         val requestCode = intent.getIntExtra("requestCode", 0)
 
        val isLast = intent.getBooleanExtra("isLast", false)
-        val eventStartTime = intent.getLongExtra("eventStartTime", 0L) // تم إضافة هذا السطر
+        val eventStartTime = intent.getLongExtra("eventStartTime", 0L)  
   val title = intent.getStringExtra("title") ?: "⏰ تذكير الحدث"
     val location = intent.getStringExtra("location") ?: "غير محدد"
     val startTime = intent.getStringExtra("startTime") ?: "غير معروف"

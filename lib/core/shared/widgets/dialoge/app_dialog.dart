@@ -20,7 +20,7 @@ class AppDialog extends StatelessWidget {
   final AppDialogType type;
   final VoidCallback onConfirm;
   final VoidCallback? onCancel;
-  final String? extraDescription; // نص إضافي اختياري
+  final String? extraDescription;
 
   const AppDialog({
     super.key,
@@ -36,9 +36,9 @@ class AppDialog extends StatelessWidget {
       onWillPop: () async {
         if (type.barrierDismissible) {
           onCancel?.call();
-          return true; // يسمح بالإغلاق
+          return true;
         }
-        return false; // يمنع الإغلاق
+        return false;
       },
       child: Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

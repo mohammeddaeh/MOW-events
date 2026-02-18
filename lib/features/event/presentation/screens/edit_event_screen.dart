@@ -137,38 +137,4 @@ class EditEventScreen extends GetView<EditEventController> {
       ),
     );
   }
-
-  // Widget _dateTile({
-  //   required IconData icon,
-  //   required String title,
-  //   required DateTime value,
-  //   required VoidCallback onTap,
-  // }) {
-  //   return ListTile(
-  //     contentPadding: EdgeInsets.zero,
-  //     leading: Icon(icon),
-  //     title: Text(title),
-  //     subtitle: Text(
-  //       "${value.year}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}",
-  //     ),
-  //     trailing: const Icon(Icons.chevron_right),
-  //     onTap: onTap,
-  //   );
-  // }
-
-  // Widget _timeTile({
-  //   required IconData icon,
-  //   required String title,
-  //   required String value,
-  //   required VoidCallback onTap,
-  // }) {
-  //   return ListTile(
-  //     contentPadding: EdgeInsets.zero,
-  //     leading: Icon(icon),
-  //     title: Text(title),
-  //     subtitle: Text(value),
-  //     trailing: const Icon(Icons.chevron_right),
-  //     onTap: onTap,
-  //   );
-  // }
 }

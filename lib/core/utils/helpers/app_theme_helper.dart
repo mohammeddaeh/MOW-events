@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import 'package:mow_events/core/utils/constants/app_colors.dart';
 import 'package:mow_events/core/utils/theme/theme_controller.dart';
@@ -93,7 +91,7 @@ class AppThemeHelper {
       currentBrightness(context) == Brightness.dark
       ? AppColors.grey
       : Colors.grey.shade400;
-  /// Bottom bar & system nav bar: نفس اللون عشان يتوافقوا (دارك رمادي، لايت أبيض).
+
   static Color bottomNav(BuildContext context) =>
       currentBrightness(context) == Brightness.dark
       ? AppColors.darkBottomBar

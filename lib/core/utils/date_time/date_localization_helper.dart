@@ -256,7 +256,6 @@ class DateLocalizationHelper {
     final difference = now.difference(date);
 
     if (difference.inDays == 0) {
-      // نفس اليوم
       if (difference.inHours > 0) {
         return '${AppTexts.ago} ${difference.inHours} ${difference.inHours == 1 ? AppTexts.hour : AppTexts.hours}';
       } else if (difference.inMinutes > 0) {

@@ -42,10 +42,9 @@ class _AppDatePickerState extends State<AppDatePicker> {
       selectedHijri = HijriCalendar.fromDate(selectedGregorian);
       _updateDisplayText();
     } else {
-      // نحط قيمة افتراضية داخلية فقط للـ picker
       selectedGregorian = DateTime.now();
       selectedHijri = HijriCalendar.fromDate(selectedGregorian);
-      displayText = null; // ما نعرض شي
+      displayText = null;
     }
 
     dayController = FixedExtentScrollController(
@@ -88,7 +87,6 @@ class _AppDatePickerState extends State<AppDatePicker> {
     final isDark = AppThemeHelper.currentBrightness(context) == Brightness.dark;
 
     if (!useHijriPicker) {
-      // الميلادي أو كلاهما
       final picked = await showDatePicker(
         context: context,
         initialDate: selectedGregorian,
@@ -128,7 +126,6 @@ class _AppDatePickerState extends State<AppDatePicker> {
         widget.onDatePicked(picked);
       }
     } else {
-      // هجري
       int tempDay = selectedHijri.hDay;
       int tempMonth = selectedHijri.hMonth;
       int tempYear = selectedHijri.hYear;

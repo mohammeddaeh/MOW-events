@@ -21,7 +21,6 @@ class CategoriesPage extends StatelessWidget {
     return PopScope(
       canPop: true,
       onPopInvoked: (didPop) {
-        // عند الرجوع من الصفحة، التأكد من إخفاء أي توستات مفتوحة
         if (didPop) {
           AppSnackBars.hideSnackBar();
         }
@@ -29,84 +28,84 @@ class CategoriesPage extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(title: Text(AppTexts.manageCategories)),
         body: Obx(() {
-        if (controller.isLoading.value) {
-          return Center(child: CircularProgressIndicator());
-        }
-
-        if (controller.categories.isEmpty) {
-          return Center(child: Text(AppTexts.noCategoriesFound));
-        }
-
-        return ListView.builder(
-          itemCount: controller.categories.length,
-          itemBuilder: (context, index) {
-            final cat = controller.categories[index];
-            return Card(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: HexColor.fromHex(cat.color),
-                ),
-                title: Text(cat.name),
-                subtitle: Text(cat.description),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.edit),
-                      onPressed: () async {
-                        final success = await showCategoryDialog(
-                          category: cat,
-                          controller: controller,
-                          isEditing: true,
-                        );
-                        if (success == true && context.mounted) {
-                          AppSnackBars.successSnackBar(
-                            title: AppTexts.success,
-                            message: AppTexts.categoryUpdatedSuccessfully,
-                          );
-                        }
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () {
-                        if (!InternetGuard.ensureOnline()) {
-                          return;
-                        }
-                        showAppDialog(
-                          context: context,
-                          type: AppDialogType.deleteCategories,
-
-                          onConfirm: () {
-                            controller.deleteCategories([cat.id!]);
-                          },
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      }),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final success = await showCategoryDialog(controller: controller);
-          if (success == true && context.mounted) {
-            AppSnackBars.successSnackBar(
-              title: AppTexts.success,
-              message: AppTexts.categoryAddedSuccessfully,
-            );
+          if (controller.isLoading.value) {
+            return Center(child: CircularProgressIndicator());
           }
-        },
-        backgroundColor: AppThemeHelper.whitePrimary(context),
-        foregroundColor: Get.isDarkMode ? Colors.black : Colors.white,
-        elevation: 6,
-        child: const Icon(Icons.add, size: 28),
+
+          if (controller.categories.isEmpty) {
+            return Center(child: Text(AppTexts.noCategoriesFound));
+          }
+
+          return ListView.builder(
+            itemCount: controller.categories.length,
+            itemBuilder: (context, index) {
+              final cat = controller.categories[index];
+              return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: HexColor.fromHex(cat.color),
+                  ),
+                  title: Text(cat.name),
+                  subtitle: Text(cat.description),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.edit),
+                        onPressed: () async {
+                          final success = await showCategoryDialog(
+                            category: cat,
+                            controller: controller,
+                            isEditing: true,
+                          );
+                          if (success == true && context.mounted) {
+                            AppSnackBars.successSnackBar(
+                              title: AppTexts.success,
+                              message: AppTexts.categoryUpdatedSuccessfully,
+                            );
+                          }
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () {
+                          if (!InternetGuard.ensureOnline()) {
+                            return;
+                          }
+                          showAppDialog(
+                            context: context,
+                            type: AppDialogType.deleteCategories,
+
+                            onConfirm: () {
+                              controller.deleteCategories([cat.id!]);
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        }),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            final success = await showCategoryDialog(controller: controller);
+            if (success == true && context.mounted) {
+              AppSnackBars.successSnackBar(
+                title: AppTexts.success,
+                message: AppTexts.categoryAddedSuccessfully,
+              );
+            }
+          },
+          backgroundColor: AppThemeHelper.whitePrimary(context),
+          foregroundColor: Get.isDarkMode ? Colors.black : Colors.white,
+          elevation: 6,
+          child: const Icon(Icons.add, size: 28),
+        ),
       ),
-    ),
     );
   }
 }

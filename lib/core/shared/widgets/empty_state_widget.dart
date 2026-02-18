@@ -21,7 +21,6 @@ class EmptyStateWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // 🧠 حساب حجم الأنيميشن حسب المساحة
         final availableHeight = constraints.maxHeight;
         final animationSize = (availableHeight * 0.35).clamp(
           120.0,
@@ -34,7 +33,6 @@ class EmptyStateWidget extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // 🎬 Lottie
                 Lottie.asset(
                   lottieAsset,
                   height: animationSize,
@@ -43,7 +41,6 @@ class EmptyStateWidget extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // 📝 العنوان
                 Text(
                   title,
                   textAlign: TextAlign.center,

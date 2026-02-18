@@ -211,7 +211,7 @@ class ReminderController extends GetxController {
       final event = _events.firstWhereOrNull((e) => e.id.toString() == eventId);
 
       if (event == null || event.startDateTimeSafe == null) {
-        continue; // 👈 يمنع الكراش
+        continue;
       }
 
       final eventStart = event.startDateTimeSafe!;

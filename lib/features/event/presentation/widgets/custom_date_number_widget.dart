@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
 import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
-// file: widgets/custom_date_number_widget.dart
 
-// -------------------- CustomDateNumberWidget --------------------
 class CustomDateNumberWidget extends StatelessWidget {
   final DateTime date;
   final bool isToday;

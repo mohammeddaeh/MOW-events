@@ -9,7 +9,6 @@ import 'package:mow_events/core/shared/snack_bar/app_snack_bars.dart';
 class ErrorHandler {
   static String getErrorMessage(dynamic error) {
     if (error is ValidationException) {
-      // رسائل الحقول المفصلة
       if (error.fieldErrors != null && error.fieldErrors!.isNotEmpty) {
         final fieldMessages = error.fieldErrors!.entries
             .map((e) => '${e.key}: ${e.value.join(', ')}')

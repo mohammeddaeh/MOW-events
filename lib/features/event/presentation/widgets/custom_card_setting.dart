@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import 'package:get/get_utils/get_utils.dart';
 import 'package:mow_events/core/utils/constants/app_colors.dart';
@@ -12,7 +10,7 @@ class CustomCardSetting extends StatelessWidget {
   final void Function(String)? onSelected;
   final Widget? trailing;
   final IconData? iconData;
-  final VoidCallback? onTap; // <- اضفنا هنا
+  final VoidCallback? onTap;
 
   const CustomCardSetting({
     super.key,
@@ -22,7 +20,7 @@ class CustomCardSetting extends StatelessWidget {
     this.onSelected,
     this.trailing,
     this.iconData,
-    this.onTap, // <- اضفنا هنا
+    this.onTap,
   });
 
   @override
@@ -30,7 +28,7 @@ class CustomCardSetting extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 24.0),
       child: InkWell(
-        onTap: onTap, // <- اضفنا هنا
+        onTap: onTap,
         borderRadius: BorderRadius.circular(8),
         child: Container(
           padding: const EdgeInsets.all(16),

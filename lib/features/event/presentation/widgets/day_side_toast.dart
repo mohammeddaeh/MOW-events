@@ -3,7 +3,7 @@ import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
 
 class DaySideToast extends StatefulWidget {
   final Widget child;
-  final bool fromRight; // true: يظهر من اليمين
+  final bool fromRight;
 
   const DaySideToast({super.key, required this.child, this.fromRight = true});
 

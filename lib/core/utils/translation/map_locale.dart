@@ -354,8 +354,10 @@ class AppLocale implements Translations {
       "mustBeGreaterThanZero": "Must be greater than zero",
       "internetRequired": "Internet connection is required",
       "internetRequiredToLogout": "Internet connection is required to logout",
-      "internetRequiredToDeleteCategory": "Internet connection is required to delete category",
-      "internetRequiredToEditCategory": "Internet connection is required to edit category",
+      "internetRequiredToDeleteCategory":
+          "Internet connection is required to delete category",
+      "internetRequiredToEditCategory":
+          "Internet connection is required to edit category",
       "noCategoriesFound": "No categories found",
     },
 

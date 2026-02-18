@@ -30,7 +30,6 @@ class ProfileController extends GetxController {
     super.onInit();
     _loadFromLocal();
     fetchProfileIfOnline();
-    // fetchProfile();
   }
 
   void _loadFromLocal() {

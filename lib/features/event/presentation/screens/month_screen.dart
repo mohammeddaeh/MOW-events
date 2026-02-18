@@ -1,5 +1,3 @@
-// ignore_for_file: must_be_immutable
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/shared/widgets/calendar_grid_view.dart';
@@ -56,7 +54,6 @@ class MonthScreen extends StatelessWidget {
             final startWeekday = firstDay.weekday % 7;
             final totalCells = startWeekday + lastDay.day;
             final totalWeeks = (totalCells / 7).ceil();
-            // Responsive: cell size from screen width (min 36 so text stays readable)
             final width = MediaQuery.sizeOf(context).width;
             final cellSize = (width / 7).clamp(36.0, double.infinity);
             final weekHeaderHeight = cellSize * 0.7;

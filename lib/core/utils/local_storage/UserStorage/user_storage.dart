@@ -6,11 +6,11 @@ import 'package:mow_events/features/auth/services/auth_service.dart';
 class UserStorage {
   final _storage = Get.find<AppLocalStorage>();
 
-  int? get uid => AuthService.currentUser?.id; // 👈 الآن آمنة
+  int? get uid => AuthService.currentUser?.id;
 
   Future<void> saveCategories(List data) async {
     final id = uid;
-    if (id == null) return; // لا تفعل شيئاً إذا المستخدم غير موجود
+    if (id == null) return;
     await _storage.write(StorageKeys.categories(id), data);
   }
 

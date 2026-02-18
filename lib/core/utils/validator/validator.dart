@@ -1,5 +1,3 @@
-// lib/core/utils/app_validator.dart
-
 import 'package:get/get.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
 

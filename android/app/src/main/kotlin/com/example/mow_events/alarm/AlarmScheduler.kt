@@ -25,7 +25,7 @@ fun schedule(
             putExtra("eventId", eventId)
             putExtra("requestCode", requestCode)
             putExtra("isLast", isLast)
-                        putExtra("eventStartTime", eventStartTime) // تم تمرير الـ eventStartTime هنا
+                        putExtra("eventStartTime", eventStartTime)   
 
   putExtra("title", title)
         putExtra("location", location)

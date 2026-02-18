@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -24,7 +22,6 @@ class CustomBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     SizeConfig.init(context);
-    // Get bottom padding for gesture/button navigation compatibility
     final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
     final baseHeight = 70.h;
 

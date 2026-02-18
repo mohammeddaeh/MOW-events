@@ -20,10 +20,8 @@ class EventsBackend {
     }
 
     final url = '${ApiEndpoints.alluser}?${queryParams.join('&')}';
-    // print('[EventsBackend] GET: $url');
 
     final res = await HttpHelper.get(url);
-    // print('[EventsBackend] Response: $res');
 
     final List<dynamic> items = res['data']?['users'] as List<dynamic>? ?? [];
 
@@ -92,15 +90,6 @@ class EventsBackend {
     final members = res['data']?['members'] as List<dynamic>? ?? [];
     return members.map((e) => (e as num).toInt()).toList();
   }
-
-  // Future<List<CategoryModel>> getCategories() async {
-  //   final url = ApiEndpoints.showCategories;
-
-  //   final res = await HttpHelper.get(url);
-
-  //   final items = res['data']?['categories']?['items'] as List<dynamic>? ?? [];
-  //   return items.map((e) => CategoryModel.fromJson(e)).toList();
-  // }
 
   Future<EventModel> getEventDetails(int id) async {
     if (id <= 0) throw ArgumentError('Invalid event ID');

@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mow_events/core/utils/constants/app_colors.dart';
 
-/// Custom Class for Light & Dark Text Themes
 class AppCheckboxTheme {
-  AppCheckboxTheme._(); // To avoid creating instances
+  AppCheckboxTheme._();
 
-  /// Customizable Light Text Theme
   static CheckboxThemeData lightCheckboxTheme = CheckboxThemeData(
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     checkColor: WidgetStateProperty.resolveWith((states) {
@@ -24,7 +22,6 @@ class AppCheckboxTheme {
     }),
   );
 
-  /// Customizable Dark Text Theme
   static CheckboxThemeData darkCheckboxTheme = CheckboxThemeData(
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     checkColor: WidgetStateProperty.resolveWith((states) {

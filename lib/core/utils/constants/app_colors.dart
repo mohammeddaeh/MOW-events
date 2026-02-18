@@ -21,7 +21,6 @@ class AppColors {
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF232323);
 
-  /// Dark mode bottom bar / system nav bar (matches white.withOpacity(0.1) on black)
   static const Color darkBottomBar = Color(0xFF2E2E2E);
   static const Color grey = Color(0xFFE0E0E0);
   static const Color darkGrey = Color(0xFF939393);

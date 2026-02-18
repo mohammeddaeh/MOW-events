@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/utils/constants/app_colors.dart';
@@ -300,7 +298,6 @@ class CardEvent extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      // backgroundColor: Colors.transparent,
       builder: (_) => FractionallySizedBox(
         heightFactor: 0.85,
         child: Container(
@@ -315,7 +312,6 @@ class CardEvent extends StatelessWidget {
                 width: 50,
                 height: 5,
                 decoration: BoxDecoration(
-                  // color: Colors.grey[400],
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),

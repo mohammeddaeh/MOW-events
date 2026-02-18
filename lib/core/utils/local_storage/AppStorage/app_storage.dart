@@ -3,7 +3,7 @@ import 'package:mow_events/core/utils/local_storage/app_local_storage.dart';
 import 'package:mow_events/core/utils/local_storage/storage_keys.dart';
 
 class AppStorage {
-  final AppLocalStorage _storage = Get.find(); // تأكد من التسجيل قبل الاستخدام
+  final AppLocalStorage _storage = Get.find();
 
   String get theme => _storage.read(StorageKeys.theme) ?? 'system';
 

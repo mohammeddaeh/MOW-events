@@ -1,7 +1,6 @@
 class ApiEndpoints {
   static const String dashboardBase = 'api/v1/dashboard';
   static const String eventsBase = '$dashboardBase/events';
-  //----
   static const String login = '$dashboardBase/login';
   static const String logout = '$dashboardBase/logout';
 
@@ -10,21 +9,17 @@ class ApiEndpoints {
       '$dashboardBase/forget-password/check/code';
   static const String resetPassword = '$dashboardBase/reset-password';
   static const String editProfile = '$dashboardBase/profile/edit';
-  //------
 
   static const String alluser = '$dashboardBase/users/index';
 
-  ///---
   static const String eventsIndex = '$eventsBase/index';
   static const String eventsStore = '$eventsBase/store';
   static String eventsShow(int id) => '$eventsBase/show/$id';
   static String eventsUpdate(int id) => '$eventsBase/update/$id';
   static const String eventsDelete = '$eventsBase/delete';
   static String eventShowMembers(int id) => '$eventsBase/show/$id/members';
-  // static const String showCategories = '$dashboardBase/show/categories';
   static const String profile = '$dashboardBase/profile';
 
-  // Notifications
   static const String fcmSetToken =
       '$dashboardBase/notifications/fcm/set-token';
   static const String notificationsAll = '$dashboardBase/notifications/all';
@@ -42,7 +37,6 @@ class ApiEndpoints {
 
   static const String notificationsClear = '$dashboardBase/notifications/clear';
 
-  // Categories
   static const String categoriesIndex = '$dashboardBase/categories/index';
   static const String categoriesStore = '$dashboardBase/categories/store';
   static String categoriesShow(int id) => '$dashboardBase/categories/show/$id';

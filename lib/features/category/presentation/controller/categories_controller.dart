@@ -77,7 +77,6 @@ class CategoriesController extends GetxController {
     }
   }
 
-  /// تحقق محلي للبيانات قبل الإرسال
   Map<String, String?> validateCategoryData({
     required String name,
     required String description,
@@ -85,16 +84,15 @@ class CategoriesController extends GetxController {
   }) {
     final errors = <String, String?>{};
     if (name.trim().isEmpty) errors['name'] = AppTexts.requiredField;
-    if (description.trim().isEmpty)
+    if (description.trim().isEmpty) {
       errors['description'] = AppTexts.requiredField;
+    }
     if (!RegExp(r'^#[0-9A-Fa-f]{6}$').hasMatch(colorHex)) {
       errors['color'] = AppTexts.requiredField;
     }
     return errors;
   }
 
-  /// تحقق من تكرار الاسم أو اللون (للإضافة أو التعديل)
-  /// excludeId: عند التعديل نستثني الفئة الحالية
   Map<String, List<String>>? validateDuplicateNameAndColor({
     required String name,
     required String colorHex,
@@ -177,7 +175,7 @@ class CategoriesController extends GetxController {
         return fieldErrors.map((k, v) => MapEntry(k, List<String>.from(v)));
       }
     } catch (_) {}
-    return {}; // ← فارغ بدل general عند عدم وجود أخطاء حقيقية
+    return {};
   }
 
   Future<void> deleteCategories(List<int> ids) async {
@@ -192,7 +190,6 @@ class CategoriesController extends GetxController {
       final homeController = Get.find<HomeController>();
       await homeController.refreshAllEvents();
 
-      // استخدام AppSnackBars بدلاً من Get.snackbar مباشرة
       AppSnackBars.successSnackBar(
         title: AppTexts.success,
         message: AppTexts.categoriesDeletedSuccessfully,

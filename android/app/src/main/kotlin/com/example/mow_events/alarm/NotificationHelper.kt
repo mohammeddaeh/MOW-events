@@ -28,8 +28,7 @@ object NotificationHelper {
 
         createChannel(context)
 
-        // Full screen intent
-       val fullIntent = Intent(context, AlarmActivity::class.java).apply {
+        val fullIntent = Intent(context, AlarmActivity::class.java).apply {
         putExtra("eventId", eventId)
         putExtra("requestCode", requestCode)
         putExtra("eventStartTime", eventStartTime)

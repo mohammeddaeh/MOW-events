@@ -8,7 +8,6 @@ import 'package:mow_events/core/general/bindings.dart';
 import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
 import 'package:mow_events/core/utils/local_storage/app_local_storage.dart';
 import 'package:permission_handler/permission_handler.dart';
-// عند اضافة كاتجوري ما عم يتم عرض اشعار الخطا
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -93,18 +93,14 @@ class NotificationItem extends StatelessWidget {
     );
   }
 
-  /// دالة لترجمة النص حسب نوع الإشعار
-  /// دالة لترجمة النص حسب نوع الإشعار
   String _translateNotification(NotificationModel notification) {
     final title = notification.title;
 
-    // مكان الحدث
     final location = notification.data['location'];
     final locationText = (location != null && location.isNotEmpty)
         ? '📍 المكان: $location'
         : '';
 
-    // تاريخ ووقت الحدث
     final dateTimeText =
         notification.data['start_time'] != null &&
             notification.data['start_time'] != ''

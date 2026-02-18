@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:get/get.dart';
@@ -7,7 +6,6 @@ import 'package:mow_events/core/utils/translation/app_texts.dart';
 import 'package:mow_events/features/category/data/models/category_model.dart';
 import 'package:mow_events/features/category/presentation/controller/categories_controller.dart';
 
-/// true = نجاح، false = خطأ، null = إلغاء
 Future<bool?> showCategoryDialog({
   required CategoriesController controller,
   CategoryModel? category,
@@ -35,20 +33,6 @@ Future<bool?> showCategoryDialog({
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // عرض الأخطاء العامة أعلى الـ dialog
-              // if (errors['general'] != null)
-              //   Container(
-              //     width: double.infinity,
-              //     padding: EdgeInsets.all(8),
-              //     margin: EdgeInsets.only(bottom: 12),
-              //     color: Colors.red[50],
-              //     child: Text(
-              //       errors['general']!,
-              //       style: TextStyle(color: Colors.red),
-              //     ),
-              //   ),
-
-              // اسم الفئة
               TextField(
                 controller: nameCtrl,
                 decoration: InputDecoration(
@@ -59,7 +43,6 @@ Future<bool?> showCategoryDialog({
               ),
               const SizedBox(height: 12),
 
-              // وصف الفئة
               TextField(
                 controller: descCtrl,
                 decoration: InputDecoration(
@@ -70,7 +53,6 @@ Future<bool?> showCategoryDialog({
               ),
               const SizedBox(height: 12),
 
-              // اختيار اللون
               Row(
                 children: [
                   Text(AppTexts.chooseColor),
@@ -109,7 +91,6 @@ Future<bool?> showCategoryDialog({
                       final hexColor =
                           '#${color.value.value.toRadixString(16).padLeft(8, '0').substring(2)}';
 
-                      // تحقق محلي
                       final validation = controller.validateCategoryData(
                         name: nameCtrl.text,
                         description: descCtrl.text,
@@ -122,7 +103,6 @@ Future<bool?> showCategoryDialog({
 
                       if (validation.values.any((e) => e != null)) return;
 
-                      // تحقق من تكرار الاسم أو اللون
                       final duplicate = controller
                           .validateDuplicateNameAndColor(
                             name: nameCtrl.text,

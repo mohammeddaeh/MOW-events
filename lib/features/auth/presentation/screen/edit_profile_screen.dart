@@ -63,8 +63,6 @@ class EditProfileScreen extends GetView<ProfileController> {
                       ChangeProfileImageSheet(),
                       isScrollControlled: true,
                     ),
-                    // borderRadius: 16,
-                    // shadow: true,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -76,8 +74,6 @@ class EditProfileScreen extends GetView<ProfileController> {
                   prefixIcon: const Icon(Icons.person_outline),
                   validator: AppValidator.required,
                   borderColor: borderColor,
-                  // fillColor: bgColor,
-                  // textColor: textColor,
                 ),
                 const SizedBox(height: 16),
                 AdaptiveFormField(
@@ -87,8 +83,6 @@ class EditProfileScreen extends GetView<ProfileController> {
                   prefixIcon: const Icon(Icons.person),
                   validator: AppValidator.required,
                   borderColor: borderColor,
-                  // : bgColor,
-                  //     textColor: textColor,
                 ),
                 const SizedBox(height: 16),
                 AdaptiveFormField(
@@ -97,8 +91,6 @@ class EditProfileScreen extends GetView<ProfileController> {
                   label: AppTexts.phoneNumber,
                   prefixIcon: const Icon(Icons.phone_android),
                   borderColor: borderColor,
-                  // fillColor: bgColor,
-                  // textColor: textColor,
                 ),
                 const SizedBox(height: 16),
                 AdaptiveFormField(
@@ -107,8 +99,6 @@ class EditProfileScreen extends GetView<ProfileController> {
                   label: AppTexts.addresse,
                   prefixIcon: const Icon(Icons.location_on_outlined),
                   borderColor: borderColor,
-                  // fillColor: bgColor,
-                  // textColor: textColor,
                 ),
                 const SizedBox(height: 32),
                 Obx(

@@ -1,5 +1,3 @@
-// ignore_for_file: curly_braces_in_flow_control_structures
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
@@ -25,7 +23,7 @@ class AddEventController extends GetxController {
 
   late final UserEntity currentUser;
   late final EventBuilderBase strategy;
-  CategoriesController? categoriesController; // ✅ nullable
+  CategoriesController? categoriesController;
 
   final adminEventType = AdminEventType.private.obs;
   final visibility = EventVisibility.private.obs;
@@ -112,7 +110,6 @@ class AddEventController extends GetxController {
   }
 
   List<UserEntity> get selectableMembers {
-    // إذا المستخدم عادي → ارجع قائمة فارغة
     if (!currentUser.isAdmin && currentUser.department?.isManager != true)
       return [];
 
@@ -120,7 +117,7 @@ class AddEventController extends GetxController {
   }
 
   void toggleMember(int id) {
-    if (!canSelectMembers) return; // حماية إضافية
+    if (!canSelectMembers) return;
     members.contains(id) ? members.remove(id) : members.add(id);
   }
 

@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:mow_events/core/utils/constants/app_colors.dart';
 
-/* -- Light & Dark Outlined Button Themes -- */
-class AppOutlinedButtonTheme {
-  AppOutlinedButtonTheme._(); //To avoid creating instances
+ class AppOutlinedButtonTheme {
+  AppOutlinedButtonTheme._();  
 
-  /* -- Light Theme -- */
-  static final lightOutlinedButtonTheme = OutlinedButtonThemeData(
+   static final lightOutlinedButtonTheme = OutlinedButtonThemeData(
     style: OutlinedButton.styleFrom(
       elevation: 0,
       foregroundColor: AppColors.dark,
@@ -21,8 +19,7 @@ class AppOutlinedButtonTheme {
     ),
   );
 
-  /* -- Dark Theme -- */
-  static final darkOutlinedButtonTheme = OutlinedButtonThemeData(
+   static final darkOutlinedButtonTheme = OutlinedButtonThemeData(
     style: OutlinedButton.styleFrom(
       foregroundColor: AppColors.light,
       side: const BorderSide(color: AppColors.primary),

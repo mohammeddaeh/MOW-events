@@ -24,8 +24,7 @@ class AlarmActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_alarm)
 
-        // ✨ استلام البيانات من Intent
-        val eventTitle = intent.getStringExtra("title") ?: "⏰ تذكير الحدث"
+         val eventTitle = intent.getStringExtra("title") ?: "⏰ تذكير الحدث"
         val eventLocation = intent.getStringExtra("location") ?: ""
         val eventStartTimeStr = intent.getStringExtra("startTime") ?: ""
 
@@ -33,13 +32,11 @@ class AlarmActivity : Activity() {
         requestCode = intent.getIntExtra("requestCode", 0)
         eventStartTime = intent.getLongExtra("eventStartTime", 0L)
 
-        // ✨ إعداد TextViews
-        findViewById<TextView>(R.id.txtEventTitle).text = eventTitle
+         findViewById<TextView>(R.id.txtEventTitle).text = eventTitle
         findViewById<TextView>(R.id.txtEventLocation).text = eventLocation
         findViewById<TextView>(R.id.txtEventStartTime).text = eventStartTimeStr
 
-        // ✨ إظهار الشاشة عند القفل
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
             setTurnScreenOn(true)
         }
@@ -49,19 +46,16 @@ class AlarmActivity : Activity() {
             WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
         )
 
-        // ✨ التحكم في زر الغفوة
-        val remainingTime = eventStartTime - System.currentTimeMillis()
+         val remainingTime = eventStartTime - System.currentTimeMillis()
         val canSnooze = remainingTime > SNOOZE_MINUTES * 60 * 1000
         findViewById<Button>(R.id.btnSnooze).visibility =
             if (canSnooze) View.VISIBLE else View.GONE
 
-        // ✨ تشغيل الصوت
-        mediaPlayer = MediaPlayer.create(this, R.raw.alarm_sound)
+         mediaPlayer = MediaPlayer.create(this, R.raw.alarm_sound)
         mediaPlayer.isLooping = true
         mediaPlayer.start()
 
-        // ✨ الاهتزاز
-        val vibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator
+         val vibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator
         if (vibrator.hasVibrator()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 vibrator.vibrate(
@@ -73,14 +67,12 @@ class AlarmActivity : Activity() {
             }
         }
 
-        // ✨ زر الإيقاف
-        findViewById<Button>(R.id.btnStop).setOnClickListener {
+         findViewById<Button>(R.id.btnStop).setOnClickListener {
             AlarmScheduler.cancel(this, requestCode)
             stopAlarm()
         }
 
-        // ✨ زر الغفوة
-        findViewById<Button>(R.id.btnSnooze).setOnClickListener {
+         findViewById<Button>(R.id.btnSnooze).setOnClickListener {
             handleSnooze()
         }
     }

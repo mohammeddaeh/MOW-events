@@ -98,15 +98,6 @@ class EventRepositoryImpl implements EventsRepository {
     );
   }
 
-  // @override
-  // Future<List<CategoryModel>> getCategories() {
-  //   return _safe(
-  //     backend.getCategories(),
-  //     timeoutMsg: 'Fetching categories timed out',
-  //     duration: const Duration(seconds: 10),
-  //   );
-  // }
-
   @override
   Future<List<UserEntity>> getAllUsers({int? departmentId}) {
     return _safe(
