@@ -100,7 +100,7 @@ class EditEventController extends GetxController {
 
       return true;
     } catch (e) {
-      Get.snackbar("خطأ", e.toString());
+      Get.snackbar(AppTexts.error, e.toString());
       return false;
     }
   }

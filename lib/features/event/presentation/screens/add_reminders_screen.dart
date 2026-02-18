@@ -49,26 +49,29 @@ class AddRemindersScreen extends GetView<ReminderController> {
                   },
                 ),
               ),
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton.icon(
-                  onPressed: () => _addDefaultReminder(context),
-                  icon: const Icon(Icons.add_circle_outline),
-                  label: Text(
-                    AppTexts.addReminder,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+              Padding(
+                padding: const EdgeInsets.only(bottom: 20.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _addDefaultReminder(context),
+                    icon: const Icon(Icons.add_circle_outline),
+                    label: Text(
+                      AppTexts.addReminder,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: AppColors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: AppColors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 4,
                     ),
-                    elevation: 4,
                   ),
                 ),
               ),

@@ -53,17 +53,15 @@ class MonthScreen extends StatelessWidget {
             final month = controller.currentMonth.value;
             final firstDay = DateTime(month.year, month.month, 1);
             final lastDay = DateTime(month.year, month.month + 1, 0);
-
             final startWeekday = firstDay.weekday % 7;
-
             final totalCells = startWeekday + lastDay.day;
-
             final totalWeeks = (totalCells / 7).ceil();
-
-            final dayHeight = 50.0;
-
-            final calendarHeight = totalWeeks * dayHeight + 30;
-
+            // Responsive: cell size from screen width (min 36 so text stays readable)
+            final width = MediaQuery.sizeOf(context).width;
+            final cellSize = (width / 7).clamp(36.0, double.infinity);
+            final weekHeaderHeight = cellSize * 0.7;
+            final calendarHeight =
+                (totalWeeks * cellSize) + weekHeaderHeight + 8;
             return SizedBox(
               height: calendarHeight,
               child: UniversalCalendarGrid(
@@ -75,9 +73,7 @@ class MonthScreen extends StatelessWidget {
                 eventCount: controller.getTasksCount,
                 onDayTap: (day) {
                   controller.selectDay(day);
-
                   final display = DateLocalizationHelper.display(day);
-
                   showDayToast(context, display);
                 },
               ),

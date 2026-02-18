@@ -93,9 +93,10 @@ class AppThemeHelper {
       currentBrightness(context) == Brightness.dark
       ? AppColors.grey
       : Colors.grey.shade400;
+  /// Bottom bar & system nav bar: نفس اللون عشان يتوافقوا (دارك رمادي، لايت أبيض).
   static Color bottomNav(BuildContext context) =>
       currentBrightness(context) == Brightness.dark
-      ? AppColors.white.withOpacity(0.1)
+      ? AppColors.darkBottomBar
       : AppColors.white;
   static Color red(BuildContext context) =>
       currentBrightness(context) == Brightness.dark

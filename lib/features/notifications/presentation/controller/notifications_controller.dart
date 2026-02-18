@@ -43,14 +43,12 @@ class NotificationsController extends GetxController {
   Future<void> _initFirebaseMessaging() async {
     final messaging = FirebaseMessaging.instance;
     FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-      print('🔄 FCM TOKEN REFRESHED => $newToken');
       await repository.setFcmToken(newToken);
     });
 
     await messaging.requestPermission(alert: true, badge: true, sound: true);
 
     final token = await messaging.getToken();
-    print('🔥 FCM TOKEN => $token');
 
     if (token != null) {
       await repository.setFcmToken(token);
@@ -115,8 +113,7 @@ class NotificationsController extends GetxController {
 
       if (clicked) {}
     } catch (e, s) {
-      print('❌ FCM HANDLE ERROR: $e');
-      print(s);
+      print('Error handling FCM message: $e\n$s');
     }
   }
 

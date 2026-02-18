@@ -52,17 +52,31 @@ class _EventBasicInfoSection extends GetView<AddEventController> {
       children: [
         TextField(
           controller: controller.nameController,
-          decoration: InputDecoration(labelText: AppTexts.eventName),
+          decoration: InputDecoration(
+            labelText: AppTexts.eventName,
+            labelStyle: TextStyle(color: Colors.grey.shade600),
+          ),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppThemeHelper.whiteBlack(context),
+          ),
         ),
         const SizedBox(height: 16),
         TextField(
           controller: controller.locationController,
-          decoration: InputDecoration(labelText: AppTexts.addresse),
+          decoration: InputDecoration(
+            labelText: AppTexts.addresse,
+            labelStyle: TextStyle(color: Colors.grey.shade600),
+          ),
         ),
         const SizedBox(height: 16),
         TextField(
           controller: controller.descriptionController,
-          decoration: InputDecoration(labelText: AppTexts.description),
+          decoration: InputDecoration(
+            labelText: AppTexts.description,
+            labelStyle: TextStyle(color: Colors.grey.shade600),
+          ),
         ),
       ],
     );
@@ -77,19 +91,16 @@ class _CategorySection extends GetView<AddEventController> {
     final isAdmin = controller.currentUser.isAdmin;
     final isManager = controller.currentUser.department?.isManager == true;
 
-    // ❌ لا أدمن ولا مدير → لا Obx
     if (!isAdmin && !isManager) {
       return const SizedBox.shrink();
     }
 
-    // ✅ أدمن أو مدير → نستخدم Obx
     return Obx(() {
       bool visible;
 
       if (isAdmin) {
         visible = controller.adminEventType.value != AdminEventType.private;
       } else {
-        // Manager
         visible = controller.visibility.value == EventVisibility.included;
       }
 
@@ -103,7 +114,6 @@ class _CategorySection extends GetView<AddEventController> {
 class _CategoryDropdown extends GetView<AddEventController> {
   @override
   Widget build(BuildContext context) {
-    // إذا ما في categoriesController → لا نعرض شيء
     final categoriesCtrl = controller.categoriesController;
     if (categoriesCtrl == null) return const SizedBox.shrink();
 
@@ -118,12 +128,6 @@ class _CategoryDropdown extends GetView<AddEventController> {
             if (categories.isNotEmpty) {
               controller.selectedCategoryId.value = categories.last.id;
             }
-
-            // await showCategoryDialog(controller: categoriesCtrl);
-
-            // if (categories.isNotEmpty) {
-            //   controller.selectedCategoryId.value = categories.last.id;
-            // }
           },
           child: Container(
             padding: const EdgeInsets.all(12),

@@ -274,12 +274,16 @@ class CardEvent extends StatelessWidget {
 
             Row(
               children: [
+                SizedBox(width: 24),
                 Expanded(
                   child: Text(
                     event.description,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: AppColors.grey, fontSize: 16),
+                    style: TextStyle(
+                      color: AppThemeHelper.textSecondary(context),
+                      fontSize: 16,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 4),
@@ -388,8 +392,7 @@ class CardEvent extends StatelessWidget {
                             ),
                           ],
                         ),
-                        // value:
-                        //     '${formatEventDateTime(event.startDateTimeSafe ?? DateTime.now(), showTime: true)} / ${formatEventDateTime(event.endDateTimeSafe ?? DateTime.now(), showTime: true)}',
+
                         iconColor: AppColors.blue,
                       ),
 
@@ -429,7 +432,11 @@ class CardEvent extends StatelessWidget {
                       const SizedBox(height: 6),
                       Text(
                         event.description,
-                        style: const TextStyle(fontSize: 15, height: 1.5),
+                        style: TextStyle(
+                          fontSize: 15,
+                          height: 1.5,
+                          color: AppThemeHelper.whiteBlack(context),
+                        ),
                       ),
 
                       const SizedBox(height: 16),

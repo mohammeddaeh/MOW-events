@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mow_events/core/utils/translation/app_texts.dart';
 import 'package:mow_events/core/utils/validator/event_validator.dart';
 import 'package:mow_events/features/auth/data/models/department.dart';
 import 'package:mow_events/features/auth/domin/entities/user_entity.dart';
@@ -56,7 +57,6 @@ class AddEventController extends GetxController {
     super.onInit();
 
     currentUser = AuthService.currentUser!.toEntity();
-    // لو أدمن أو مدير → احصل على CategoriesController
     if (currentUser.isAdmin || currentUser.department?.isManager == true) {
       if (Get.isRegistered<CategoriesController>()) {
         categoriesController = Get.find<CategoriesController>();
@@ -154,7 +154,7 @@ class AddEventController extends GetxController {
       strategy.validate(this);
       return true;
     } catch (e) {
-      Get.snackbar("خطأ", e.toString());
+      Get.snackbar(AppTexts.error, e.toString());
       return false;
     }
   }

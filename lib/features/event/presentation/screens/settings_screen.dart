@@ -61,32 +61,27 @@ class SettingsScreen extends StatelessWidget {
                         child: GradientText(title: AppTexts.copy),
                       ),
                       SizedBox(width: 8),
-                      InkWell(
-                        onTap: () => Get.toNamed(AppRouter.profile),
-                        child: Icon(
-                          Icons.arrow_forward_ios,
-                          size: 18,
-                          color: AppThemeHelper.blackBblack(context),
-                        ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 18,
+                        color: AppThemeHelper.blackBblack(context),
                       ),
                     ],
                   ),
+                  onTap: () => Get.toNamed(AppRouter.profile),
                 ),
                 if (currentUser.isAdmin == true ||
                     currentUser.department?.isManager == true)
                   CustomCardSetting(
                     title: AppTexts.manageCategories,
-                    trailing: InkWell(
-                      onTap: () {
-                        Get.toNamed(AppRouter.categoriesPage);
-                      },
-
-                      child: Icon(
-                        Icons.arrow_forward_ios,
-                        size: 18,
-                        color: AppThemeHelper.blackBblack(context),
-                      ),
+                    trailing: Icon(
+                      Icons.arrow_forward_ios,
+                      size: 18,
+                      color: AppThemeHelper.blackBblack(context),
                     ),
+                    onTap: () {
+                      Get.toNamed(AppRouter.categoriesPage);
+                    },
                   ),
 
                 Obx(() {
@@ -129,16 +124,14 @@ class SettingsScreen extends StatelessWidget {
                 CustomCardSetting(
                   iconData: Icons.alarm,
                   title: AppTexts.reminders,
-                  trailing: InkWell(
-                    onTap: () {
-                      Get.to(() => const AddRemindersScreen());
-                    },
-                    child: Icon(
-                      Icons.arrow_forward_ios,
-                      size: 18,
-                      color: AppThemeHelper.blackBblack(context),
-                    ),
+                  trailing: Icon(
+                    Icons.arrow_forward_ios,
+                    size: 18,
+                    color: AppThemeHelper.blackBblack(context),
                   ),
+                  onTap: () {
+                    Get.to(() => const AddRemindersScreen());
+                  },
                 ),
 
                 const SizedBox(height: 20),

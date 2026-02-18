@@ -24,40 +24,55 @@ class CustomBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     SizeConfig.init(context);
+    // Get bottom padding for gesture/button navigation compatibility
+    final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
+    final baseHeight = 70.h;
+
     return Container(
-      height: 85.h,
+      height: baseHeight + bottomPadding,
       decoration: BoxDecoration(
         color: AppThemeHelper.bottomNav(context),
-
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withAlpha(40),
-            blurRadius: 10.r,
-            offset: const Offset(0, 0),
+            color: AppColors.black.withAlpha(50),
+            blurRadius: 15.r,
+            offset: const Offset(0, -2),
+            spreadRadius: 0,
           ),
         ],
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Padding(
-        padding: const EdgeInsets.only(top: 8.0),
+        padding: EdgeInsets.only(
+          top: 12.0,
+          bottom: bottomPadding + 8.0,
+          left: 20.0,
+          right: 20.0,
+        ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildNavItem(
-              icon: AppImages.calendar,
-              isSelected: currentIndex == 0,
-              label: AppTexts.home,
-              onTap: () => onTap(0),
+            Expanded(
+              child: _buildNavItem(
+                icon: AppImages.calendar,
+                isSelected: currentIndex == 0,
+                label: AppTexts.home,
+                onTap: () => onTap(0),
+              ),
             ),
 
+            const SizedBox(width: 12),
             _buildAddButton(),
+            const SizedBox(width: 12),
 
-            _buildNavItem(
-              icon: AppImages.settings,
-              isSelected: currentIndex == 1,
-              label: AppTexts.settings,
-              onTap: () => onTap(1),
+            Expanded(
+              child: _buildNavItem(
+                icon: AppImages.settings,
+                isSelected: currentIndex == 1,
+                label: AppTexts.settings,
+                onTap: () => onTap(1),
+              ),
             ),
           ],
         ),
@@ -76,7 +91,7 @@ class CustomBottomNav extends StatelessWidget {
         double scale = 1.0;
 
         return GestureDetector(
-          onTapDown: (_) => setState(() => scale = 0.85),
+          onTapDown: (_) => setState(() => scale = 0.9),
           onTapUp: (_) {
             setState(() => scale = 1.0);
             onTap();
@@ -84,27 +99,35 @@ class CustomBottomNav extends StatelessWidget {
           onTapCancel: () => setState(() => scale = 1.0),
           child: AnimatedScale(
             scale: scale,
-            duration: const Duration(milliseconds: 120),
+            duration: const Duration(milliseconds: 150),
             curve: Curves.easeOut,
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SvgPicture.asset(
                   icon,
-                  color: isSelected
-                      ? AppThemeHelper.whitePrimary(context)
-                      : AppColors.textGray,
+                  width: 24,
+                  height: 24,
+                  colorFilter: ColorFilter.mode(
+                    isSelected
+                        ? AppThemeHelper.whitePrimary(context)
+                        : AppColors.textGray,
+                    BlendMode.srcIn,
+                  ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  label,
+                const SizedBox(height: 6),
+                AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 200),
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: isSelected ? FontWeight.w800 : FontWeight.w400,
                     color: isSelected
                         ? AppThemeHelper.whitePrimary(context)
                         : AppColors.textGray,
+                    letterSpacing: 0.2,
                   ),
+                  child: Text(label),
                 ),
               ],
             ),
@@ -115,22 +138,40 @@ class CustomBottomNav extends StatelessWidget {
   }
 
   Widget _buildAddButton() {
-    return Container(
-      height: 50,
-      width: 50,
-      decoration: const BoxDecoration(
-        color: AppColors.primary,
-        shape: BoxShape.circle,
-      ),
-      child: IconButton(
-        icon: const Icon(Icons.add, color: Colors.white, size: 30),
-        onPressed: () {
-          if (!InternetGuard.ensureOnline()) return;
+    return StatefulBuilder(
+      builder: (context, setState) {
+        double scale = 1.0;
 
-          // Get.to(() => AddEventPagسسe());
-          Get.toNamed(AppRouter.addEventScreen);
-        },
-      ),
+        return GestureDetector(
+          onTapDown: (_) => setState(() => scale = 0.9),
+          onTapUp: (_) {
+            setState(() => scale = 1.0);
+            if (!InternetGuard.ensureOnline()) return;
+            Get.toNamed(AppRouter.addEventScreen);
+          },
+          onTapCancel: () => setState(() => scale = 1.0),
+          child: AnimatedScale(
+            scale: scale,
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeOut,
+            child: Container(
+              height: 56,
+              width: 56,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.4),
+                    blurRadius: 8,
+                  ),
+                ],
+              ),
+              child: const Icon(Icons.add, color: Colors.white, size: 28),
+            ),
+          ),
+        );
+      },
     );
   }
 }

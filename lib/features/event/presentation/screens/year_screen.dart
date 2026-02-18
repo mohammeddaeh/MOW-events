@@ -12,12 +12,13 @@ import 'package:mow_events/features/event/data/models/event_model.dart';
 import 'package:mow_events/features/event/presentation/controller/year_controller.dart';
 
 class YearScreen extends StatelessWidget {
-  const YearScreen({super.key});
+  YearScreen({super.key});
+
+  // final YearController controller = Get.put(YearController());
+  final YearController controller = Get.find();
 
   @override
   Widget build(BuildContext context) {
-    final YearController controller = Get.put(YearController());
-
     return Scaffold(
       body: Obx(() {
         final months = controller.yearMonths;
@@ -51,10 +52,35 @@ class YearScreen extends StatelessWidget {
 
                       hasEvents: controller.hasEventOnDay,
                       eventCount: controller.countEventsOnDay,
+                      // onMonthTap: (selectedMonth) {
+                      //   final monthEvents = controller.getEventsForMonth(
+                      //     selectedMonth,
+                      //   );
+                      //   if (monthEvents.isNotEmpty) {
+                      //     _showMonthEventsBottomSheet(
+                      //       context,
+                      //       monthEvents,
+                      //       DateLocalizationHelper.display(
+                      //         selectedMonth,
+                      //       ).displayMonth,
+                      //     );
+                      //   } else {
+                      //     Get.snackbar(
+                      //       AppTexts.noEvents,
+                      //       AppTexts.noEventsThisMonth,
+                      //       snackPosition: SnackPosition.BOTTOM,
+                      //       duration: const Duration(seconds: 2),
+                      //     );
+                      //   }
+                      // },
                       onMonthTap: (selectedMonth) {
+                        debugPrint("🔥 Month tapped: $selectedMonth");
                         final monthEvents = controller.getEventsForMonth(
                           selectedMonth,
                         );
+
+                        debugPrint("📦 Events count: ${monthEvents.length}");
+
                         if (monthEvents.isNotEmpty) {
                           _showMonthEventsBottomSheet(
                             context,
@@ -64,6 +90,8 @@ class YearScreen extends StatelessWidget {
                             ).displayMonth,
                           );
                         } else {
+                          if (Get.isSnackbarOpen ?? false) return;
+
                           Get.snackbar(
                             AppTexts.noEvents,
                             AppTexts.noEventsThisMonth,
@@ -123,6 +151,8 @@ class YearScreen extends StatelessWidget {
     List<EventModel> events,
     String monthTitle,
   ) {
+    if (Get.isBottomSheetOpen ?? false) return;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

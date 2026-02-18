@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:hijri/hijri_calendar.dart';
 import 'package:mow_events/core/utils/local_storage/AppStorage/app_storage.dart';
+import 'package:mow_events/core/utils/translation/app_texts.dart';
 
 class DateLocalizationHelper {
   static RxString userCalendar = 'gregorian'.obs;
@@ -248,6 +249,25 @@ class DateLocalizationHelper {
   static int getHijriMonthForDate(DateTime date) {
     final hijri = HijriCalendar.fromDate(date);
     return hijri.hMonth;
+  }
+
+  static String formatNotificationDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays == 0) {
+      // نفس اليوم
+      if (difference.inHours > 0) {
+        return '${AppTexts.ago} ${difference.inHours} ${difference.inHours == 1 ? AppTexts.hour : AppTexts.hours}';
+      } else if (difference.inMinutes > 0) {
+        return '${AppTexts.ago} ${difference.inMinutes} ${difference.inMinutes == 1 ? AppTexts.minute : AppTexts.minutes}';
+      } else {
+        return AppTexts.now;
+      }
+    } else {
+      final formattedDate = DateFormat('yyyy/MM/dd – HH:mm', 'ar').format(date);
+      return formattedDate;
+    }
   }
 }
 

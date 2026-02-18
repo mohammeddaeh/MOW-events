@@ -8,8 +8,7 @@ import 'package:mow_events/core/general/bindings.dart';
 import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
 import 'package:mow_events/core/utils/local_storage/app_local_storage.dart';
 import 'package:permission_handler/permission_handler.dart';
-
-// التشغيل بالخلفية مشان و التذكيرات
+// عند اضافة كاتجوري ما عم يتم عرض اشعار الخطا
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,7 +23,9 @@ void main() async {
   await initializeDateFormatting('ar', null);
   DateLocalizationHelper.init();
   DateLocalizationHelper.startTodayUpdater();
+
   await Firebase.initializeApp();
+
   runApp(const App());
 }
 

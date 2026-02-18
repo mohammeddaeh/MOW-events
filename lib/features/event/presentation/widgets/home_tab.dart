@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mow_events/core/utils/constants/app_colors.dart';
 import 'package:mow_events/core/utils/constants/app_images.dart';
+import 'package:mow_events/core/utils/constants/app_size.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
 import 'package:mow_events/features/event/presentation/controller/home_controller.dart';
 import 'package:mow_events/features/event/presentation/screens/day_screen.dart';
@@ -19,6 +20,7 @@ class HomeTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    SizeConfig.init(context);
     return SafeArea(
       child: Column(
         children: [
@@ -42,37 +44,55 @@ class HomeTab extends StatelessWidget {
   }
 
   Widget _buildSearchHeader(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
           const IconNotifications(),
-
-          const SizedBox(width: 12),
+          SizedBox(width: 14.w),
           Expanded(
-            child: Container(
-              height: 36,
-              decoration: BoxDecoration(
-                color: AppColors.backgroundGray,
-                borderRadius: BorderRadius.circular(12),
-              ),
+            child: SizedBox(
+              height: 40.h,
               child: TextField(
-                onChanged: (v) {
-                  controller.searchQuery.value = v;
-                },
+                onChanged: (v) => controller.searchQuery.value = v,
+                style: TextStyle(
+                  color: isDark ? Colors.white : Colors.black87,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
                 decoration: InputDecoration(
-                  hintText: AppTexts.search,
-                  prefixIcon: SvgPicture.asset(
-                    AppImages.search,
-                    fit: BoxFit.scaleDown,
-                    color: AppColors.primary,
+                  labelText: AppTexts.search,
+                  labelStyle: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? Colors.white70 : Colors.black54,
                   ),
-                  border: InputBorder.none,
+                  hintText: AppTexts.search,
+                  hintStyle: TextStyle(
+                    color: isDark ? Colors.white38 : Colors.black38,
+                  ),
+                  prefixIcon: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: SvgPicture.asset(
+                      AppImages.search,
+                      color: AppColors.gold,
+                    ),
+                  ),
+                  filled: true,
+
+                  fillColor: isDark
+                      ? Colors.grey.shade900
+                      : AppColors.backgroundGray,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 8),
+
           FilterButton(controller: controller),
         ],
       ),

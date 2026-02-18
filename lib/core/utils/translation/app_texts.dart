@@ -9,10 +9,10 @@ class AppTexts {
   static String get done => 'done'.tr;
   static String get submit => 'submit'.tr;
   static String get appName => 'appName'.tr;
-  static String get tContinue => 'Continue'.tr;
+  static String get tContinue => 'tContinue'.tr;
   static String get changeLang => 'changeLang'.tr;
   static String get copy => "copy".tr;
-  static String get soon => "Soon".tr;
+  static String get soon => "soon".tr;
   static String get success => "success".tr;
   static String get delete => "delete".tr;
   static String get cancel => "cancel".tr;
@@ -48,8 +48,8 @@ class AppTexts {
 
   static String get noInternetSnackBarTitle => 'noInternetSnackBarTitle'.tr;
   static String get noInternetSnackBarMessage => 'noInternetSnackBarMessage'.tr;
-  static String get internetRestoredTitle => 'internetRestoredTitle';
-  static String get internetRestoredMessage => 'internetRestoredMessage';
+  static String get internetRestoredTitle => 'internetRestoredTitle'.tr;
+  static String get internetRestoredMessage => 'internetRestoredMessage'.tr;
 
   static String get loginTitle => 'loginTitle'.tr;
   static String get loginSubTitle => 'loginSubTitle'.tr;
@@ -200,10 +200,10 @@ class AppTexts {
   static String get chooseCategory => 'chooseCategory'.tr;
   static String get privacyFilter => 'privacyFilter'.tr;
 
-  static String get imagePreviewTitle => 'imagePreview'.tr;
-  static String get deleteTitle => 'confirmDeletion'.tr;
-  static String get warningTitle => 'warning'.tr;
-  static String get infoTitle => 'information'.tr;
+  static String get imagePreviewTitle => 'imagePreviewTitle'.tr;
+  static String get deleteTitle => 'deleteTitle'.tr;
+  static String get warningTitle => 'warningTitle'.tr;
+  static String get infoTitle => 'infoTitle'.tr;
 
   static String get deleteDescription => 'deleteDescription'.tr;
   static String get logoutDescription => 'logoutDescription'.tr;
@@ -345,4 +345,20 @@ class AppTexts {
   static String get internetRequiredToEditCategory =>
       'internetRequiredToEditCategory'.tr;
   static String get noCategoriesFound => 'noCategoriesFound'.tr;
+  static String get failedToDeleteCategories => 'failedToDeleteCategories'.tr;
+  static String get categoriesDeletedSuccessfully =>
+      'categoriesDeletedSuccessfully'.tr;
+  static String get failedToAddCategory => 'failedToAddCategory'.tr;
+  static String get chooseColor => 'chooseColor'.tr;
+  static String get somethingWentWrong => 'somethingWentWrong'.tr;
+  static String get update => 'update'.tr;
+  static String get colorAlreadyTaken => 'colorAlreadyTaken'.tr;
+  static String get nameAlreadyTaken => 'nameAlreadyTaken'.tr;
+  static String get deleteCategoriesDescription =>
+      'deleteCategoriesDescription'.tr;
+  static String get deleteCategories => 'deleteCategories'.tr;
+  static String get now => 'now'.tr;
+  static String get ago => 'ago'.tr;
+  static String get hours => 'hours'.tr;
+  static String get minutes => 'minutes'.tr;
 }

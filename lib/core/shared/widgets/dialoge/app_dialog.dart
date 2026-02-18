@@ -20,12 +20,14 @@ class AppDialog extends StatelessWidget {
   final AppDialogType type;
   final VoidCallback onConfirm;
   final VoidCallback? onCancel;
+  final String? extraDescription; // نص إضافي اختياري
 
   const AppDialog({
     super.key,
     required this.type,
     required this.onConfirm,
     this.onCancel,
+    this.extraDescription,
   });
 
   @override
@@ -76,7 +78,7 @@ class AppDialog extends StatelessWidget {
               const SizedBox(height: 8),
 
               Text(
-                type.description,
+                extraDescription ?? type.description,
                 style: const TextStyle(fontSize: 14, color: Colors.grey),
                 textAlign: TextAlign.center,
               ),

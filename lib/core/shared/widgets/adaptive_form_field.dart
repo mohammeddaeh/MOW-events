@@ -199,12 +199,48 @@ class _AdaptiveFormFieldState<T> extends State<AdaptiveFormField<T>> {
         widget.onChanged?.call(_formatDate(picked));
       }
     } else if (widget.type == AdaptiveFieldType.time) {
+      final isDark =
+          AppThemeHelper.currentBrightness(context) == Brightness.dark;
+
       final picked = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.fromDateTime(
           widget.initialDate ?? DateTime.now(),
         ),
+        builder: (context, child) {
+          return Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: isDark
+                  ? ColorScheme.dark(
+                      primary: AppColors.gold,
+                      onPrimary: AppColors.black,
+                      onSurface: AppColors.white,
+                    )
+                  : ColorScheme.light(
+                      primary: AppColors.primary,
+                      onPrimary: Colors.white,
+                      onSurface: AppColors.textGray,
+                    ),
+              timePickerTheme: TimePickerThemeData(
+                backgroundColor: AppThemeHelper.background(context),
+                hourMinuteTextColor: AppThemeHelper.whiteBlack(context),
+                dialHandColor: isDark ? AppColors.gold : AppColors.primary,
+                dialBackgroundColor: isDark
+                    ? AppColors.black.withOpacity(0.3)
+                    : AppColors.primary.withOpacity(0.1),
+                entryModeIconColor: isDark ? AppColors.gold : AppColors.primary,
+              ),
+              textButtonTheme: TextButtonThemeData(
+                style: TextButton.styleFrom(
+                  foregroundColor: isDark ? AppColors.gold : AppColors.primary,
+                ),
+              ),
+            ),
+            child: child!,
+          );
+        },
       );
+
       if (picked != null) {
         final formatted = _formatTime(picked);
         _controller.text = formatted;

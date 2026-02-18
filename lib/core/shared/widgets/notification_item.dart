@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
 import 'package:mow_events/features/notifications/data/models/notification_model.dart';
 
@@ -14,57 +15,75 @@ class NotificationItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: notification.isRead
-              ? Colors.grey.shade100
-              : Colors.blue.shade50,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: notification.isRead
-                ? Colors.grey.shade300
-                : Colors.blue.shade200,
-          ),
-        ),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = notification.isRead
+        ? (isDark ? Colors.grey[900] : Colors.grey[100])
+        : (isDark ? Colors.blueGrey[900] : Colors.blue[50]);
+
+    final borderColor = notification.isRead
+        ? (isDark ? Colors.grey[700] : Colors.grey[300])
+        : (isDark ? Colors.blue[700] : Colors.blue[200]);
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor!),
+        boxShadow: [
+          if (!notification.isRead)
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+        ],
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _NotificationIcon(type: notification.type), // 🔥 هنا enum
+            _NotificationIcon(type: notification.type),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    notification.title,
+                    _translateNotification(notification),
                     style: TextStyle(
                       fontWeight: notification.isRead
                           ? FontWeight.w500
                           : FontWeight.bold,
+                      fontSize: 14,
+                      height: 1.4,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
-                    notification.body,
-                    style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
-                  ),
-                  Text(
-                    notification.createdAt ?? 'N/A',
-                    style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+                    DateLocalizationHelper.formatNotificationDate(
+                      DateTime.parse(notification.createdAt),
+                    ),
+                    style: TextStyle(
+                      color: isDark ? Colors.grey[500] : Colors.grey[600],
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
             ),
             if (!notification.isRead)
               Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: Colors.blue,
+                margin: const EdgeInsets.only(left: 8, top: 4),
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: Colors.blueAccent,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -72,6 +91,47 @@ class NotificationItem extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// دالة لترجمة النص حسب نوع الإشعار
+  /// دالة لترجمة النص حسب نوع الإشعار
+  String _translateNotification(NotificationModel notification) {
+    final title = notification.title;
+
+    // مكان الحدث
+    final location = notification.data['location'];
+    final locationText = (location != null && location.isNotEmpty)
+        ? '📍 المكان: $location'
+        : '';
+
+    // تاريخ ووقت الحدث
+    final dateTimeText =
+        notification.data['start_time'] != null &&
+            notification.data['start_time'] != ''
+        ? '${notification.data['start_date']}   ${notification.data['start_time']}'
+        : '';
+
+    switch (notification.type) {
+      case NotificationType.eventInvitation:
+        return [
+          'تم دعوتك لحضور: $title',
+          locationText,
+          dateTimeText,
+        ].where((e) => e.isNotEmpty).join('\n');
+
+      case NotificationType.updateEvent:
+        return [
+          '🔄 تم تحديث الحدث: $title',
+          locationText,
+          dateTimeText,
+        ].where((e) => e.isNotEmpty).join('\n');
+
+      case NotificationType.deleteEvent:
+        return [
+          '❌ تم إلغاء الحدث: $title',
+          locationText,
+        ].where((e) => e.isNotEmpty).join('\n');
+    }
   }
 }
 

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mow_events/core/shared/snack_bar/app_snack_bars.dart';
 import 'package:mow_events/core/shared/widgets/dialoge/app_dialog.dart';
+import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
 import 'package:mow_events/core/utils/network/internet_guard.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
+import 'package:mow_events/features/category/data/models/category_model.dart';
 import 'package:mow_events/features/category/presentation/controller/categories_controller.dart';
 import 'package:mow_events/features/category/presentation/widget/show_category_dialog.dart';
 
@@ -15,9 +18,17 @@ class CategoriesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(AppTexts.manageCategories)),
-      body: Obx(() {
+    return PopScope(
+      canPop: true,
+      onPopInvoked: (didPop) {
+        // عند الرجوع من الصفحة، التأكد من إخفاء أي توستات مفتوحة
+        if (didPop) {
+          AppSnackBars.hideSnackBar();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(title: Text(AppTexts.manageCategories)),
+        body: Obx(() {
         if (controller.isLoading.value) {
           return Center(child: CircularProgressIndicator());
         }
@@ -43,12 +54,18 @@ class CategoriesPage extends StatelessWidget {
                   children: [
                     IconButton(
                       icon: Icon(Icons.edit),
-                      onPressed: () {
-                        showCategoryDialog(
+                      onPressed: () async {
+                        final success = await showCategoryDialog(
                           category: cat,
                           controller: controller,
                           isEditing: true,
                         );
+                        if (success == true && context.mounted) {
+                          AppSnackBars.successSnackBar(
+                            title: AppTexts.success,
+                            message: AppTexts.categoryUpdatedSuccessfully,
+                          );
+                        }
                       },
                     ),
                     IconButton(
@@ -59,7 +76,7 @@ class CategoriesPage extends StatelessWidget {
                         }
                         showAppDialog(
                           context: context,
-                          type: AppDialogType.delete,
+                          type: AppDialogType.deleteCategories,
 
                           onConfirm: () {
                             controller.deleteCategories([cat.id!]);
@@ -75,9 +92,21 @@ class CategoriesPage extends StatelessWidget {
         );
       }),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => showCategoryDialog(controller: controller),
-        child: Icon(Icons.add),
+        onPressed: () async {
+          final success = await showCategoryDialog(controller: controller);
+          if (success == true && context.mounted) {
+            AppSnackBars.successSnackBar(
+              title: AppTexts.success,
+              message: AppTexts.categoryAddedSuccessfully,
+            );
+          }
+        },
+        backgroundColor: AppThemeHelper.whitePrimary(context),
+        foregroundColor: Get.isDarkMode ? Colors.black : Colors.white,
+        elevation: 6,
+        child: const Icon(Icons.add, size: 28),
       ),
+    ),
     );
   }
 }

@@ -65,9 +65,7 @@ class NotificationModel {
   final Map<String, dynamic> data;
   bool isRead;
 
-  final String? createdAt;
-
-  final String? createdAtAgo;
+  final String createdAt;
 
   NotificationModel({
     required this.id,
@@ -77,8 +75,7 @@ class NotificationModel {
     required this.eventId,
     required this.data,
     required this.isRead,
-    this.createdAt,
-    this.createdAtAgo,
+    required this.createdAt,
   });
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
@@ -90,6 +87,10 @@ class NotificationModel {
         parsedData = Map<String, dynamic>.from(json['data']);
       }
     }
+
+    print('Notification ID: ${json['id']}');
+    print('Raw JSON data: ${json['data']}');
+    print('Parsed data: $parsedData');
 
     final int eventId =
         int.tryParse(parsedData['event_id']?.toString() ?? '0') ?? 0;
@@ -103,7 +104,6 @@ class NotificationModel {
       data: parsedData,
       isRead: json['is_read'] ?? false,
       createdAt: json['created_at'],
-      createdAtAgo: json['created_at_ago'],
     );
   }
 
@@ -117,7 +117,6 @@ class NotificationModel {
       data: data,
       isRead: isRead ?? this.isRead,
       createdAt: createdAt,
-      createdAtAgo: createdAtAgo,
     );
   }
 }

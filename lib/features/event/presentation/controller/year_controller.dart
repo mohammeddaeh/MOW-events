@@ -9,6 +9,9 @@ class YearController extends GetxController {
   final HomeController home = Get.find();
   RxInt currentYear = DateTime.now().year.obs;
   RxList<EventModel> events = <EventModel>[].obs;
+
+  /// Map key is `yyyy-M-d` -> list of events on that day
+  final Map<String, List<EventModel>> eventsByDay = {};
   RxInt currentHijriYear = DateTime.now().year.obs;
 
   @override
@@ -32,6 +35,16 @@ class YearController extends GetxController {
     }).toList();
 
     events.assignAll(yearEvents);
+
+    // Build quick lookup map for events by day to avoid repeated O(n)
+    // scans while rendering day cells in the year view.
+    eventsByDay.clear();
+    for (final e in yearEvents) {
+      final dt = e.startDateTimeSafe;
+      if (dt == null) continue;
+      final key = _dayKey(dt);
+      eventsByDay.putIfAbsent(key, () => []).add(e);
+    }
   }
 
   List<EventModel> getEventsForMonth(DateTime month) {
@@ -43,20 +56,14 @@ class YearController extends GetxController {
   }
 
   bool hasEventOnDay(DateTime day) {
-    return events.any((e) {
-      final dt = e.startDateTimeSafe;
-      if (dt == null) return false;
-      return DateUtils.isSameDay(dt, day);
-    });
+    return eventsByDay[_dayKey(day)]?.isNotEmpty ?? false;
   }
 
   int countEventsOnDay(DateTime day) {
-    return events.where((e) {
-      final dt = e.startDateTimeSafe;
-      if (dt == null) return false;
-      return DateUtils.isSameDay(dt, day);
-    }).length;
+    return eventsByDay[_dayKey(day)]?.length ?? 0;
   }
+
+  String _dayKey(DateTime dt) => '${dt.year}-${dt.month}-${dt.day}';
 
   void nextYear() => currentYear.value++;
   void previousYear() => currentYear.value--;

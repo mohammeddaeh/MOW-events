@@ -23,6 +23,7 @@ class HomeFilterDialog {
     final HomeSettings tempSettings = controller.settings.value.copyWith();
 
     showDialog(
+      barrierColor: Colors.black87,
       context: context,
       builder: (_) => AlertDialog(
         title: Text(AppTexts.filteringAndSorting, textAlign: TextAlign.center),

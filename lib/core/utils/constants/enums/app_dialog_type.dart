@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
 
-enum AppDialogType { delete, logout, warning, info, imagePreview }
+enum AppDialogType {
+  delete,
+  logout,
+  warning,
+  info,
+  imagePreview,
+  deleteCategories,
+}
 
 extension AppDialogTypeX on AppDialogType {
   String get title {
@@ -16,6 +23,8 @@ extension AppDialogTypeX on AppDialogType {
         return AppTexts.warningTitle;
       case AppDialogType.info:
         return AppTexts.infoTitle;
+      case AppDialogType.deleteCategories:
+        return AppTexts.deleteCategories;
     }
   }
 
@@ -31,6 +40,8 @@ extension AppDialogTypeX on AppDialogType {
         return Colors.amber;
       case AppDialogType.info:
         return Colors.blue;
+      case AppDialogType.deleteCategories:
+        return Colors.redAccent;
     }
   }
 
@@ -46,6 +57,8 @@ extension AppDialogTypeX on AppDialogType {
         return AppTexts.warningDescription;
       case AppDialogType.info:
         return AppTexts.infoDescription;
+      case AppDialogType.deleteCategories:
+        return AppTexts.deleteCategoriesDescription;
     }
   }
 
@@ -61,6 +74,8 @@ extension AppDialogTypeX on AppDialogType {
         return AppTexts.tContinue;
       case AppDialogType.info:
         return AppTexts.oK;
+      case AppDialogType.deleteCategories:
+        return AppTexts.delete;
     }
   }
 
@@ -70,6 +85,8 @@ extension AppDialogTypeX on AppDialogType {
         return Colors.grey;
       case AppDialogType.delete:
         return Colors.red;
+      case AppDialogType.deleteCategories:
+        return Colors.redAccent;
       case AppDialogType.logout:
         return Colors.orange;
       case AppDialogType.warning:
@@ -88,6 +105,8 @@ extension AppDialogTypeX on AppDialogType {
       case AppDialogType.warning:
       case AppDialogType.info:
         return true; // يمكن الإغلاق
+      case AppDialogType.deleteCategories:
+        return false; // لا يغلق خارجياً
     }
   }
 
@@ -102,7 +121,9 @@ extension AppDialogTypeX on AppDialogType {
       case AppDialogType.warning:
         return "assets/images/animated/warning.json";
       case AppDialogType.info:
-        return null;
+        return "assets/images/animated/info .json";
+      case AppDialogType.deleteCategories:
+        return "assets/images/animated/delete.json";
     }
   }
 

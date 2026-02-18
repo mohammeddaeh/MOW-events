@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'package:get/get.dart';
+import 'package:mow_events/core/shared/snack_bar/app_snack_bars.dart';
 import 'package:mow_events/core/utils/local_storage/UserStorage/user_storage.dart';
 import 'package:mow_events/core/utils/network/internet_guard.dart';
+import 'package:mow_events/core/utils/translation/app_texts.dart';
 import 'package:mow_events/features/auth/services/auth_service.dart';
 import 'package:mow_events/features/category/data/models/category_model.dart';
 import 'package:mow_events/features/category/domin/repositories/categories_repository.dart';
@@ -9,7 +12,6 @@ import 'package:mow_events/features/event/presentation/controller/home_controlle
 
 class CategoriesController extends GetxController {
   final CategoriesRepository repository;
-
   CategoriesController({required this.repository});
 
   final RxList<CategoryModel> categories = <CategoryModel>[].obs;
@@ -20,7 +22,6 @@ class CategoriesController extends GetxController {
   void onInit() {
     super.onInit();
     final currentUser = AuthService.currentUser!;
-
     if (currentUser.isAdmin || currentUser.department?.isManager == true) {
       loadCategories();
     } else {
@@ -48,9 +49,8 @@ class CategoriesController extends GetxController {
 
   Future<void> loadCategories() async {
     final currentUser = AuthService.currentUser!;
-    if (!(currentUser.isAdmin || currentUser.department?.isManager == true)) {
+    if (!(currentUser.isAdmin || currentUser.department?.isManager == true))
       return;
-    }
 
     final cached = userStorage.categories;
     if (cached != null && cached.isNotEmpty) {
@@ -63,17 +63,12 @@ class CategoriesController extends GetxController {
   }
 
   Future<void> fetchCategories() async {
-    final currentUser = AuthService.currentUser!;
-    if (!(currentUser.isAdmin || currentUser.department?.isManager == true))
-      return;
-    if (!InternetGuard.ensureOnline()) {
-      return; // نكتفي بالكاش
-    }
+    if (!InternetGuard.ensureOnline()) return;
+
     try {
       isLoading.value = true;
       final data = await repository.getAll();
       categories.assignAll(data);
-
       await userStorage.saveCategories(
         categories.map((e) => e.toJson()).toList(),
       );
@@ -82,56 +77,114 @@ class CategoriesController extends GetxController {
     }
   }
 
-  Future<void> addCategory(CategoryModel category) async {
-    if (!InternetGuard.ensureOnline()) {
-      return;
+  /// تحقق محلي للبيانات قبل الإرسال
+  Map<String, String?> validateCategoryData({
+    required String name,
+    required String description,
+    required String colorHex,
+  }) {
+    final errors = <String, String?>{};
+    if (name.trim().isEmpty) errors['name'] = AppTexts.requiredField;
+    if (description.trim().isEmpty)
+      errors['description'] = AppTexts.requiredField;
+    if (!RegExp(r'^#[0-9A-Fa-f]{6}$').hasMatch(colorHex)) {
+      errors['color'] = AppTexts.requiredField;
     }
+    return errors;
+  }
+
+  /// تحقق من تكرار الاسم أو اللون (للإضافة أو التعديل)
+  /// excludeId: عند التعديل نستثني الفئة الحالية
+  Map<String, List<String>>? validateDuplicateNameAndColor({
+    required String name,
+    required String colorHex,
+    int? excludeId,
+  }) {
+    final nameTrim = name.trim().toLowerCase();
+    final colorLower = colorHex.trim().toLowerCase();
+    final nameTaken = categories.any((c) {
+      if (excludeId != null && c.id == excludeId) return false;
+      return c.name.trim().toLowerCase() == nameTrim;
+    });
+    final colorTaken = categories.any((c) {
+      if (excludeId != null && c.id == excludeId) return false;
+      return (c.color.trim().toLowerCase()) == colorLower;
+    });
+    if (!nameTaken && !colorTaken) return null;
+    final err = <String, List<String>>{};
+    if (nameTaken) err['name'] = [AppTexts.nameAlreadyTaken];
+    if (colorTaken) err['color'] = [AppTexts.colorAlreadyTaken];
+    return err;
+  }
+
+  Future<Map<String, List<String>>?> addCategory(CategoryModel category) async {
+    if (!InternetGuard.ensureOnline())
+      return {
+        'general': [AppTexts.noInternet],
+      };
     try {
       final newCategory = await repository.create(category.toJson());
       categories.add(newCategory);
-
       await userStorage.saveCategories(
         categories.map((e) => e.toJson()).toList(),
       );
 
-      Get.back();
       final addEventCtrl = Get.find<AddEventController>();
       addEventCtrl.selectedCategoryId.value = newCategory.id;
 
-      Get.snackbar("نجاح", "تم إضافة الفئة بنجاح");
+      return null;
     } catch (e) {
-      Get.snackbar("خطأ", "فشل إضافة الفئة");
+      return _parseServerErrors(e.toString(), AppTexts.failedToAddCategory);
     }
   }
 
-  Future<void> updateCategory(CategoryModel category) async {
+  Future<Map<String, List<String>>?> updateCategory(
+    CategoryModel category,
+  ) async {
     if (!InternetGuard.ensureOnline()) {
-      return;
+      return {
+        'general': [AppTexts.noInternet],
+      };
     }
     try {
       final updated = await repository.update(category.id!, category.toJson());
       final index = categories.indexWhere((c) => c.id == category.id);
       if (index != -1) categories[index] = updated;
-
       await userStorage.saveCategories(
         categories.map((e) => e.toJson()).toList(),
       );
 
-      Get.back();
-      Get.snackbar("نجاح", "تم تحديث الفئة بنجاح");
+      return null;
     } catch (e) {
-      Get.snackbar("خطأ", "فشل تحديث الفئة");
+      return _parseServerErrors(e.toString(), AppTexts.failedToUpdateCategory);
     }
   }
 
+  Map<String, List<String>> _parseServerErrors(
+    String errStr,
+    String fallbackMessage,
+  ) {
+    try {
+      final jsonErr = errStr.contains('{')
+          ? Map<String, dynamic>.from(
+              jsonDecode(errStr.replaceAll(RegExp(r"^[^\{]*"), '')),
+            )
+          : {};
+      if (jsonErr.containsKey('error')) {
+        final Map<String, dynamic> fieldErrors = Map<String, dynamic>.from(
+          jsonErr['error'],
+        );
+        return fieldErrors.map((k, v) => MapEntry(k, List<String>.from(v)));
+      }
+    } catch (_) {}
+    return {}; // ← فارغ بدل general عند عدم وجود أخطاء حقيقية
+  }
+
   Future<void> deleteCategories(List<int> ids) async {
-    if (!InternetGuard.ensureOnline()) {
-      return;
-    }
+    if (!InternetGuard.ensureOnline()) return;
     try {
       await repository.delete(ids);
       categories.removeWhere((c) => ids.contains(c.id));
-
       await userStorage.saveCategories(
         categories.map((e) => e.toJson()).toList(),
       );
@@ -139,9 +192,16 @@ class CategoriesController extends GetxController {
       final homeController = Get.find<HomeController>();
       await homeController.refreshAllEvents();
 
-      Get.snackbar("نجاح", "تم حذف الفئات بنجاح");
+      // استخدام AppSnackBars بدلاً من Get.snackbar مباشرة
+      AppSnackBars.successSnackBar(
+        title: AppTexts.success,
+        message: AppTexts.categoriesDeletedSuccessfully,
+      );
     } catch (e) {
-      Get.snackbar("خطأ", "فشل حذف الفئات");
+      AppSnackBars.errorSnackBar(
+        title: AppTexts.error,
+        message: AppTexts.failedToDeleteCategories,
+      );
     }
   }
 }

@@ -12,6 +12,7 @@ class CustomCardSetting extends StatelessWidget {
   final void Function(String)? onSelected;
   final Widget? trailing;
   final IconData? iconData;
+  final VoidCallback? onTap; // <- اضفنا هنا
 
   const CustomCardSetting({
     super.key,
@@ -21,95 +22,98 @@ class CustomCardSetting extends StatelessWidget {
     this.onSelected,
     this.trailing,
     this.iconData,
+    this.onTap, // <- اضفنا هنا
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 24),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24.0),
+      child: InkWell(
+        onTap: onTap, // <- اضفنا هنا
         borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 2,
-            offset: const Offset(0, 0),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          if (iconData != null)
-            Icon(iconData, color: AppColors.primary, size: 16),
-          if (iconData != null) const SizedBox(width: 8),
-
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: AppThemeHelper.blackBblack(context),
-            ),
-          ),
-
-          const Spacer(),
-
-          if (trailing != null)
-            trailing!
-          else if (options != null && currentValue != null)
-            PopupMenuButton<String>(
-              offset: const Offset(0, 40),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 2,
+                offset: const Offset(0, 0),
               ),
-              // color: AppColors.white,
-              elevation: 6,
-              onSelected: onSelected,
-              itemBuilder: (context) => options!.map((opt) {
-                return PopupMenuItem<String>(
-                  value: opt,
+            ],
+          ),
+          child: Row(
+            children: [
+              if (iconData != null)
+                Icon(iconData, color: AppColors.primary, size: 16),
+              if (iconData != null) const SizedBox(width: 8),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: AppThemeHelper.blackBblack(context),
+                ),
+              ),
+              const Spacer(),
+              if (trailing != null)
+                trailing!
+              else if (options != null && currentValue != null)
+                PopupMenuButton<String>(
+                  offset: const Offset(0, 40),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 6,
+                  onSelected: onSelected,
+                  itemBuilder: (context) => options!.map((opt) {
+                    return PopupMenuItem<String>(
+                      value: opt,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            opt.tr,
+                            style: TextStyle(
+                              color: AppThemeHelper.whiteBlack(context),
+                            ),
+                          ),
+                          if (opt == currentValue)
+                            Icon(
+                              Icons.check,
+                              color: AppThemeHelper.whiteBlack(context),
+                              size: 20,
+                            ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        opt.tr,
+                        currentValue!.tr,
                         style: TextStyle(
-                          color: AppThemeHelper.whiteBlack(context),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: AppThemeHelper.blackBblack(context),
                         ),
                       ),
-                      if (opt == currentValue)
-                        Icon(
-                          Icons.check,
-                          color: AppThemeHelper.whiteBlack(context),
-                          size: 20,
-                        ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 16,
+                        color: AppThemeHelper.blackBblack(context),
+                      ),
                     ],
                   ),
-                );
-              }).toList(),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    currentValue!.tr,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: AppThemeHelper.blackBblack(context),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    size: 16,
-                    color: AppThemeHelper.blackBblack(context),
-                  ),
-                ],
-              ),
-            ),
-        ],
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
