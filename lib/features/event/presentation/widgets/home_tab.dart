@@ -16,29 +16,47 @@ class HomeTab extends StatelessWidget {
   final HomeController controller;
   const HomeTab({super.key, required this.controller});
 
+  static final GlobalKey _searchHeaderKey = GlobalKey();
+
   @override
   Widget build(BuildContext context) {
     SizeConfig.init(context);
     return SafeArea(
-      child: Column(
-        children: [
-          _buildSearchHeader(context),
-          _buildTabBar(),
-          Expanded(
-            child: TabBarView(
-              physics: const NeverScrollableScrollPhysics(),
-              controller: controller.tabController,
-              children: [
-                DayScreen(),
-                WeekScreen(),
-                MonthScreen(),
-                YearScreen(),
-              ],
+      child: Listener(
+        onPointerDown: (e) => _unfocusIfOutsideSearch(context, e.position),
+        child: Column(
+          children: [
+            KeyedSubtree(
+              key: _searchHeaderKey,
+              child: _buildSearchHeader(context),
             ),
-          ),
-        ],
+            _buildTabBar(),
+            Expanded(
+              child: TabBarView(
+                physics: const NeverScrollableScrollPhysics(),
+                controller: controller.tabController,
+                children: [
+                  DayScreen(),
+                  WeekScreen(),
+                  MonthScreen(),
+                  YearScreen(),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  void _unfocusIfOutsideSearch(BuildContext context, Offset globalPosition) {
+    final box = _searchHeaderKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) return;
+    final topLeft = box.localToGlobal(Offset.zero);
+    final searchBounds = Rect.fromLTWH(topLeft.dx, topLeft.dy, box.size.width, box.size.height);
+    if (!searchBounds.contains(globalPosition)) {
+      FocusScope.of(context).unfocus();
+    }
   }
 
   Widget _buildSearchHeader(BuildContext context) {

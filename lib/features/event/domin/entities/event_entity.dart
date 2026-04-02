@@ -21,6 +21,7 @@ class EventEntity {
   final String createdAt;
   final bool userCurrentInMembers;
   final List<int> members;
+  final int? userId;
 
   EventEntity({
     required this.id,
@@ -41,5 +42,6 @@ class EventEntity {
     required this.createdAt,
     required this.userCurrentInMembers,
     required this.members,
+    this.userId,
   });
 }

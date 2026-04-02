@@ -88,10 +88,6 @@ class NotificationModel {
       }
     }
 
-    print('Notification ID: ${json['id']}');
-    print('Raw JSON data: ${json['data']}');
-    print('Parsed data: $parsedData');
-
     final int eventId =
         int.tryParse(parsedData['event_id']?.toString() ?? '0') ?? 0;
 

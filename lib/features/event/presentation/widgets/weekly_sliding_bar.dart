@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:mow_events/core/shared/widgets/empty_state_widget.dart';
 import 'package:mow_events/core/utils/constants/app_colors.dart';
+import 'package:mow_events/core/utils/constants/app_images.dart';
 import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
 import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
@@ -174,14 +176,9 @@ class _WeeklyDaySliderState extends State<WeeklyDaySlider> {
                       children: [
                         SizedBox(
                           height: MediaQuery.of(context).size.height * 0.5,
-                          child: Center(
-                            child: Text(
-                              AppTexts.noEventsThisMonth,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey,
-                              ),
-                            ),
+                          child: EmptyStateWidget(
+                            lottieAsset: AppImages.noResult,
+                            title: AppTexts.noEventsThisDay,
                           ),
                         ),
                       ],

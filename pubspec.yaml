@@ -1,20 +1,18 @@
 name: mow_events
 description: "A new Flutter project."
 
-publish_to: 'none' 
+publish_to: "none"
 
-
-version: 1.0.0+1
+version: 1.0.2+3
 
 environment:
   sdk: ^3.8.1
 
-
 dependencies:
   flutter:
     sdk: flutter
-
- 
+  flutter_localizations:
+    sdk: flutter
 
   # Utility Packages
   http: ^1.2.1
@@ -27,10 +25,9 @@ dependencies:
   lottie: ^3.1.0
   table_calendar: ^3.2.0
   hijri: ^3.0.0
-  hijri_calendar: ^1.0.7+7   # أو أحدث إصدار
+  hijri_calendar: ^1.0.7+7 # أو أحدث إصدار
   image_picker: ^1.0.4
   photo_view: ^0.15.0
-
 
   # Icons
   iconsax: ^0.0.8
@@ -57,7 +54,7 @@ dependencies:
   firebase_messaging: ^15.1.0
   # pushy_flutter: ^2.0.40
   flutter_colorpicker: ^1.1.0
- 
+
   # android_alarm_manager_plus: ^5.0.0
   timezone: ^0.10.1
 
@@ -68,20 +65,19 @@ dev_dependencies:
   flutter_lints: ^5.0.0
 
 flutter:
-
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-   #--------------- LOCAL ASSETS ------------------#
+  #--------------- LOCAL ASSETS ------------------#
 
   assets:
-  - assets/
-  - assets/images/animated/
-  - assets/images/content/
-  - assets/images/logo/
-  - assets/images/icons/
+    - assets/
+    - assets/images/animated/
+    - assets/images/content/
+    - assets/images/logo/
+    - assets/images/icons/
 
- #--------------- LOCAL FONTS ------------------#
+  #--------------- LOCAL FONTS ------------------#
   fonts:
     - family: Arabic
       fonts:

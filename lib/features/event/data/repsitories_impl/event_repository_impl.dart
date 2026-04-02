@@ -6,6 +6,7 @@ import 'package:mow_events/core/shared/snack_bar/app_snack_bars.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
 import 'package:mow_events/features/auth/domin/entities/user_entity.dart';
 import 'package:mow_events/features/event/data/data_sources/events_backend.dart';
+import 'package:mow_events/features/event/data/models/event_member_display.dart';
 import 'package:mow_events/features/event/data/models/event_model.dart';
 import 'package:mow_events/features/event/domin/entities/event_entity.dart';
 import 'package:mow_events/features/event/domin/repositories/events_repository.dart';
@@ -94,6 +95,16 @@ class EventRepositoryImpl implements EventsRepository {
     if (id <= 0) throw ArgumentError('Invalid event ID');
     return _safe(
       backend.getMembersInEvent(id),
+      timeoutMsg: 'Fetching event members timed out',
+    );
+  }
+
+  /// جلب المشاركين عبر API عرض أعضاء الحدث فقط: [ApiEndpoints.eventShowMembers] = events/show/{id}/members
+  @override
+  Future<List<EventMemberDisplay>> getEventMembersWithDetails(int id) async {
+    if (id <= 0) throw ArgumentError('Invalid event ID');
+    return _safe(
+      backend.getEventMembersWithDetails(id),
       timeoutMsg: 'Fetching event members timed out',
     );
   }

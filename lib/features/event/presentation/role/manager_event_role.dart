@@ -24,8 +24,7 @@ class ManagerEventBuilder extends EventBuilderBase {
       c.visibility.value == EventVisibility.included;
 
   @override
-  bool showAttendance(AddEventController c) =>
-      c.visibility.value == EventVisibility.included;
+  bool showAttendance(AddEventController c) => false;
 
   @override
   bool showAdminType(AddEventController c) => false;
@@ -34,6 +33,18 @@ class ManagerEventBuilder extends EventBuilderBase {
   void validate(AddEventController c) {
     if (showMembers(c) && c.members.isEmpty) {
       throw Exception(AppTexts.chooseMembersForTheEvent);
+    }
+    if (showCategory(c)) {
+      final catId = c.selectedCategoryId.value;
+      if (catId == null) {
+        throw Exception(AppTexts.selectCategory);
+      }
+      final hasMatch = Get.find<CategoriesController>().categories.any(
+        (e) => e.id == catId,
+      );
+      if (!hasMatch) {
+        throw Exception(AppTexts.selectCategory);
+      }
     }
   }
 
@@ -63,16 +74,20 @@ class ManagerEventBuilder extends EventBuilderBase {
       endDate: EventDateTimeHelper.formatDate(c.selectedEndDate.value!),
       endTime: EventDateTimeHelper.formatTimeHhMm(c.selectedEndTime.value!),
       status: 'active',
-      category: showCategory(c)
-          ? Get.find<CategoriesController>().categories.firstWhere(
-              (e) => e.id == c.selectedCategoryId.value,
-            )
-          : null,
+      category: () {
+        if (!showCategory(c)) return null;
+        final list = Get.find<CategoriesController>().categories
+            .where((e) => e.id == c.selectedCategoryId.value)
+            .toList();
+        return list.isNotEmpty ? list.first : null;
+      }(),
 
       isPublic: 0,
       isPrivate: c.visibility.value == EventVisibility.private ? 1 : 0,
       members: getEffectiveMembers(c.currentUser, c),
-      userCurrentInMembers: c.userCurrentInMembers.value,
+      userCurrentInMembers: c.visibility.value == EventVisibility.included
+          ? true
+          : c.userCurrentInMembers.value,
       reminders: c.reminders.toList(),
       rawReminders: [],
       createdAt: DateTime.now().toString(),

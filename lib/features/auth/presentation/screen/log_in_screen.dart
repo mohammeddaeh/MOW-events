@@ -1,9 +1,9 @@
- 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/app_router/app_router.dart';
+import 'package:mow_events/core/utils/local_storage/storage_keys.dart';
 import 'package:mow_events/core/shared/widgets/adaptive_form_field.dart';
 import 'package:mow_events/core/utils/constants/app_colors.dart';
 import 'package:mow_events/core/utils/constants/app_images.dart';
@@ -137,7 +137,7 @@ class LogInScreen extends GetView<LoginController> {
                                 Obx(
                                   () => RememberMeCheckbox(
                                     initialValue: controller.rememberMe.value,
-                                    storageKey: 'remember_me',
+                                    storageKey: StorageKeys.rememberMe,
                                     onChanged: (v) =>
                                         controller.toggleRememberMe(v),
                                     title: Text(
@@ -206,6 +206,10 @@ class LogInScreen extends GetView<LoginController> {
                                                     fontSize: 18.sp,
                                                     fontWeight: FontWeight.bold,
                                                     color: Colors.white,
+                                                    height: 1.25,
+                                                    leadingDistribution:
+                                                        TextLeadingDistribution
+                                                            .even,
                                                   ),
                                                 ),
                                         ),
@@ -224,6 +228,9 @@ class LogInScreen extends GetView<LoginController> {
                                         color: AppColors.accent,
                                         fontSize: 12,
                                         fontWeight: FontWeight.w400,
+                                        height: 1.25,
+                                        leadingDistribution:
+                                            TextLeadingDistribution.even,
                                       ),
                                     ),
                                   ),

@@ -20,7 +20,7 @@ class PopupMenuOption {
   });
 }
 
-class ReusablePopupMenu extends StatelessWidget {
+class ReusablePopupMenu extends StatefulWidget {
   final List<PopupMenuOption> options;
   final IconData icon;
   final double? size;
@@ -36,14 +36,19 @@ class ReusablePopupMenu extends StatelessWidget {
   });
 
   @override
+  State<ReusablePopupMenu> createState() => _ReusablePopupMenuState();
+}
+
+class _ReusablePopupMenuState extends State<ReusablePopupMenu> {
+  final GlobalKey _menuKey = GlobalKey();
+
+  @override
   Widget build(BuildContext context) {
     SizeConfig.init(context);
-    final GlobalKey menuKey = GlobalKey();
-
     return GestureDetector(
-      key: menuKey,
-      onTap: () => _showCustomMenu(context, menuKey),
-      child: Icon(icon, size: size),
+      key: _menuKey,
+      onTap: () => _showCustomMenu(context, _menuKey),
+      child: Icon(widget.icon, size: widget.size),
     );
   }
 
@@ -55,10 +60,10 @@ class ReusablePopupMenu extends StatelessWidget {
 
     final Offset offset = button.localToGlobal(Offset.zero, ancestor: overlay);
 
-    final RelativeRect position = top
+    final RelativeRect position = widget.top
         ? RelativeRect.fromLTRB(
             offset.dx + button.size.width - 25,
-            offset.dy - (options.length * 48),
+            offset.dy - (widget.options.length * 48),
             overlay.size.width - offset.dx,
             overlay.size.height - offset.dy,
           )
@@ -70,15 +75,15 @@ class ReusablePopupMenu extends StatelessWidget {
           );
     final List<PopupMenuEntry<int>> menuItems = [];
 
-    for (int i = 0; i < options.length; i++) {
-      final item = options[i];
+    for (int i = 0; i < widget.options.length; i++) {
+      final item = widget.options[i];
 
       menuItems.add(
         PopupMenuItem<int>(
           value: i,
           padding: EdgeInsets.zero,
           child: Padding(
-            padding: contentPadding,
+            padding: widget.contentPadding,
             child: Row(
               children: [
                 if (item.icon != null)
@@ -105,7 +110,7 @@ class ReusablePopupMenu extends StatelessWidget {
         ),
       );
 
-      if (item.showDividerAfter && i < options.length - 1) {
+      if (item.showDividerAfter && i < widget.options.length - 1) {
         menuItems.add(
           PopupMenuItem<int>(
             enabled: false,
@@ -134,7 +139,7 @@ class ReusablePopupMenu extends StatelessWidget {
     );
 
     if (selected != null) {
-      options[selected].onTap();
+      widget.options[selected].onTap();
     }
   }
 }

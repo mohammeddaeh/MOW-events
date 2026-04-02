@@ -9,6 +9,7 @@ class ApiEndpoints {
       '$dashboardBase/forget-password/check/code';
   static const String resetPassword = '$dashboardBase/reset-password';
   static const String editProfile = '$dashboardBase/profile/edit';
+  static const String changePassword = '$dashboardBase/profile/change-password';
 
   static const String alluser = '$dashboardBase/users/index';
 

@@ -12,6 +12,7 @@ class UserEntity {
   final bool isActive;
   final bool isAdmin;
   final Department? department;
+  final bool isManager;
 
   const UserEntity({
     required this.id,
@@ -25,5 +26,6 @@ class UserEntity {
     required this.isActive,
     required this.isAdmin,
     this.department,
+    this.isManager = false,
   });
 }

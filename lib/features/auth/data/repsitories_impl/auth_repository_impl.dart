@@ -27,8 +27,9 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> logout() async {
-    await backend.logout();
-    await AuthService.logout();
+    try {
+      await backend.logout();
+    } catch (_) {}
   }
 
   @override
@@ -62,6 +63,22 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    final res = await backend.changePassword(
+      oldPassword: oldPassword,
+      newPassword: newPassword,
+    );
+    if (res['status'] != true) {
+      throw ApiException(
+        res['message'] ?? AppTexts.thePasswordHasNotBeenChanged,
+      );
+    }
+  }
+
+  @override
   Future<UserModel> getProfile() async {
     return await backend.getProfile();
   }
@@ -74,16 +91,20 @@ class AuthRepositoryImpl implements AuthRepository {
     required String phone,
     String? address,
     File? image,
+    bool removeImage = false,
   }) async {
-    final intPhone = int.tryParse(phone.replaceAll(RegExp(r'\D'), '')) ?? 0;
+    final normalizedPhone = phone.replaceAll(RegExp(r'\D'), '');
 
-    final dataToSend = {
+    final dataToSend = <String, dynamic>{
       'first_name': firstName,
       'last_name': lastName,
       'email': email,
-      'phone': intPhone,
+      'phone': normalizedPhone,
       'address': address,
     };
+    if (removeImage) {
+      dataToSend['image'] = null;
+    }
 
     final res = await backend.editProfile(dataToSend, image: image);
 

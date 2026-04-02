@@ -84,9 +84,9 @@ class _AppDatePickerState extends State<AppDatePicker> {
     final type = DateLocalizationHelper.userCalendar.value;
     final useHijriPicker = type == 'hijri';
 
-    final isDark = AppThemeHelper.currentBrightness(context) == Brightness.dark;
-
     if (!useHijriPicker) {
+      final isDark =
+          AppThemeHelper.currentBrightness(context) == Brightness.dark;
       final picked = await showDatePicker(
         context: context,
         initialDate: selectedGregorian,
@@ -104,11 +104,11 @@ class _AppDatePickerState extends State<AppDatePicker> {
                   : ColorScheme.light(
                       primary: AppColors.primary,
                       onPrimary: Colors.white,
-                      onSurface: AppColors.textGray,
+                      onSurface: AppThemeHelper.whiteBlack(context),
                     ),
               textButtonTheme: TextButtonThemeData(
                 style: TextButton.styleFrom(
-                  foregroundColor: isDark ? AppColors.gold : AppColors.primary,
+                  foregroundColor: AppThemeHelper.accent(context),
                 ),
               ),
             ),
@@ -156,7 +156,6 @@ class _AppDatePickerState extends State<AppDatePicker> {
                   ),
                   onSelectedItemChanged: (index) => tempDay = index + 1,
                   display: (i) => '${i + 1}',
-                  isDark: isDark,
                 ),
                 _buildCupertinoColumn(
                   controller: monthController,
@@ -165,14 +164,12 @@ class _AppDatePickerState extends State<AppDatePicker> {
                   display: (i) => DateLocalizationHelper.isArabic
                       ? DateLocalizationHelper.hijriMonthsAr[i]
                       : DateLocalizationHelper.hijriMonthsEn[i],
-                  isDark: isDark,
                 ),
                 _buildCupertinoColumn(
                   controller: yearController,
                   itemCount: 200,
                   onSelectedItemChanged: (index) => tempYear = 1400 + index,
                   display: (i) => '${1400 + i}',
-                  isDark: isDark,
                 ),
               ],
             ),
@@ -220,7 +217,6 @@ class _AppDatePickerState extends State<AppDatePicker> {
     required int itemCount,
     required Function(int) onSelectedItemChanged,
     required String Function(int) display,
-    required bool isDark,
   }) {
     return Expanded(
       child: CupertinoPicker(
@@ -229,9 +225,7 @@ class _AppDatePickerState extends State<AppDatePicker> {
         onSelectedItemChanged: onSelectedItemChanged,
         backgroundColor: AppThemeHelper.background(context),
         selectionOverlay: CupertinoPickerDefaultSelectionOverlay(
-          background: (isDark ? AppColors.gold : AppColors.primary).withOpacity(
-            0.2,
-          ),
+          background: AppThemeHelper.accent(context).withOpacity(0.2),
         ),
         children: List.generate(
           itemCount,
@@ -280,7 +274,7 @@ class _AppDatePickerState extends State<AppDatePicker> {
             Icon(
               Icons.calendar_today,
               size: 20,
-              color: AppThemeHelper.whiteBlack(context).withOpacity(0.6),
+              color: AppThemeHelper.whiteBlack(context).withOpacity(0.7),
             ),
           ],
         ),

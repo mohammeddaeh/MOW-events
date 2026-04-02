@@ -8,16 +8,43 @@ import 'package:mow_events/features/auth/presentation/controller/profile_control
 import 'package:mow_events/features/auth/presentation/widgets/change_profile_image_sheet.dart';
 import 'package:mow_events/features/auth/presentation/widgets/profile_image.dart';
 
-class EditProfileScreen extends GetView<ProfileController> {
+class EditProfileScreen extends StatefulWidget {
+  const EditProfileScreen({super.key});
+
+  @override
+  State<EditProfileScreen> createState() => _EditProfileScreenState();
+}
+
+class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
+  late final ProfileController controller;
+  late final TextEditingController firstNameCtrl;
+  late final TextEditingController lastNameCtrl;
+  late final TextEditingController emailCtrl;
+  late final TextEditingController phoneCtrl;
+  late final TextEditingController addressCtrl;
 
-  final firstNameCtrl = TextEditingController();
-  final lastNameCtrl = TextEditingController();
-  final emailCtrl = TextEditingController();
-  final phoneCtrl = TextEditingController();
-  final addressCtrl = TextEditingController();
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.find<ProfileController>();
+    firstNameCtrl = TextEditingController();
+    lastNameCtrl = TextEditingController();
+    emailCtrl = TextEditingController();
+    phoneCtrl = TextEditingController();
+    addressCtrl = TextEditingController();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fillUserData());
+  }
 
-  EditProfileScreen({super.key});
+  @override
+  void dispose() {
+    firstNameCtrl.dispose();
+    lastNameCtrl.dispose();
+    emailCtrl.dispose();
+    phoneCtrl.dispose();
+    addressCtrl.dispose();
+    super.dispose();
+  }
 
   void _fillUserData() {
     final user = controller.user.value;
@@ -25,14 +52,12 @@ class EditProfileScreen extends GetView<ProfileController> {
     firstNameCtrl.text = user.firstName;
     lastNameCtrl.text = user.lastName;
     emailCtrl.text = user.email;
-    phoneCtrl.text = user.phone;
+    phoneCtrl.text = AppValidator.normalizePhoneNumber(user.phone);
     addressCtrl.text = user.address ?? '';
   }
 
   @override
   Widget build(BuildContext context) {
-    _fillUserData();
-
     final bgColor = AppThemeHelper.background(context);
     final textColor = AppThemeHelper.whiteBlack(context);
     final borderColor = AppThemeHelper.border(context);
@@ -59,6 +84,7 @@ class EditProfileScreen extends GetView<ProfileController> {
                   () => ProfileImage(
                     text: AppTexts.updateYourPersonalInformation,
                     imageUrl: controller.user.value?.image,
+                    editable: true,
                     onChangeImage: () => Get.bottomSheet(
                       ChangeProfileImageSheet(),
                       isScrollControlled: true,
@@ -66,7 +92,6 @@ class EditProfileScreen extends GetView<ProfileController> {
                   ),
                 ),
                 const SizedBox(height: 24),
-
                 AdaptiveFormField(
                   controller: firstNameCtrl,
                   type: AdaptiveFieldType.text,
@@ -86,10 +111,20 @@ class EditProfileScreen extends GetView<ProfileController> {
                 ),
                 const SizedBox(height: 16),
                 AdaptiveFormField(
+                  controller: emailCtrl,
+                  type: AdaptiveFieldType.email,
+                  label: AppTexts.email,
+                  prefixIcon: const Icon(Icons.email_outlined),
+                  validator: AppValidator.required,
+                  borderColor: borderColor,
+                ),
+                const SizedBox(height: 16),
+                AdaptiveFormField(
                   controller: phoneCtrl,
-                  type: AdaptiveFieldType.text,
+                  type: AdaptiveFieldType.phone,
                   label: AppTexts.phoneNumber,
                   prefixIcon: const Icon(Icons.phone_android),
+                  validator: AppValidator.validatePhoneNumber,
                   borderColor: borderColor,
                 ),
                 const SizedBox(height: 16),
@@ -116,23 +151,23 @@ class EditProfileScreen extends GetView<ProfileController> {
                           ? null
                           : () async {
                               if (!_formKey.currentState!.validate()) return;
+                              final normalizedPhone =
+                                  AppValidator.normalizePhoneNumber(
+                                    phoneCtrl.text,
+                                  );
                               await controller.updateProfile(
                                 firstName: firstNameCtrl.text.trim(),
                                 lastName: lastNameCtrl.text.trim(),
                                 email: emailCtrl.text.trim(),
-                                phone: phoneCtrl.text.trim(),
-                                address: addressCtrl.text.trim(),
+                                phone: normalizedPhone,
+                                address: addressCtrl.text.trim().isEmpty
+                                    ? null
+                                    : addressCtrl.text.trim(),
                               );
                             },
                       child: controller.isLoading.value
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : Text(
-                              AppTexts.saveChanges,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                          : Text(AppTexts.saveChanges),
                     ),
                   ),
                 ),

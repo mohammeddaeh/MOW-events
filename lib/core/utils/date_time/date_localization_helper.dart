@@ -52,10 +52,13 @@ class DateLocalizationHelper {
   static String gYear(DateTime date) => DateFormat('yyyy').format(date);
 
   static String hDay(DateTime date) => toHijri(date).hDay.toString();
-  static String hMonth(DateTime date) => isArabic
-      ? hijriMonthsAr[toHijri(date).hMonth - 1]
-      : hijriMonthsEn[toHijri(date).hMonth - 1];
+  static String hMonth(DateTime date) => hijriMonthName(toHijri(date).hMonth);
   static String hYear(DateTime date) => toHijri(date).hYear.toString();
+
+  /// اسم الشهر الهجري حسب اللغة (1–12)
+  static String hijriMonthName(int hMonth) => isArabic
+      ? hijriMonthsAr[hMonth - 1]
+      : hijriMonthsEn[hMonth - 1];
 
   static List<DateTime> generateMonthDays(DateTime month) {
     if (userCalendar.value == 'hijri') {
@@ -254,17 +257,28 @@ class DateLocalizationHelper {
   static String formatNotificationDate(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
+    final isAr = isArabic;
 
     if (difference.inDays == 0) {
       if (difference.inHours > 0) {
-        return '${AppTexts.ago} ${difference.inHours} ${difference.inHours == 1 ? AppTexts.hour : AppTexts.hours}';
+        if (isAr) {
+          return 'مضى ${difference.inHours} ${difference.inHours == 1 ? AppTexts.hour : AppTexts.hours}';
+        } else {
+          return '${difference.inHours} ${difference.inHours == 1 ? AppTexts.hour : AppTexts.hours} ago';
+        }
       } else if (difference.inMinutes > 0) {
-        return '${AppTexts.ago} ${difference.inMinutes} ${difference.inMinutes == 1 ? AppTexts.minute : AppTexts.minutes}';
+        if (isAr) {
+          return 'مضى ${difference.inMinutes} ${difference.inMinutes == 1 ? AppTexts.minute : AppTexts.minutes}';
+        } else {
+          return '${difference.inMinutes} ${difference.inMinutes == 1 ? AppTexts.minute : AppTexts.minutes} ago';
+        }
       } else {
-        return AppTexts.now;
+        return isAr ? 'الآن' : 'now';
       }
     } else {
-      final formattedDate = DateFormat('yyyy/MM/dd – HH:mm', 'ar').format(date);
+      final formattedDate = isAr
+          ? DateFormat('yyyy/MM/dd – HH:mm', 'ar').format(date)
+          : DateFormat('yyyy/MM/dd – HH:mm', 'en').format(date);
       return formattedDate;
     }
   }

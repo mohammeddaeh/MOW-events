@@ -42,6 +42,16 @@ class BackEndLaravel {
     }, withAuth: false);
   }
 
+  Future<Json> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    return await HttpHelper.postMultipart(ApiEndpoints.changePassword, {
+      'old_password': oldPassword,
+      'new_password': newPassword,
+    }, null, withAuth: true);
+  }
+
   Future<Json> editProfile(
     Map<String, dynamic> updatedData, {
     File? image,
@@ -53,15 +63,12 @@ class BackEndLaravel {
         image,
         withAuth: true,
       );
-    } else {
-      updatedData['image'] = null;
-
-      return await HttpHelper.post(
-        ApiEndpoints.editProfile,
-        updatedData,
-        withAuth: true,
-      );
     }
+    return await HttpHelper.post(
+      ApiEndpoints.editProfile,
+      updatedData,
+      withAuth: true,
+    );
   }
 
   Future<UserModel> getProfile() async {

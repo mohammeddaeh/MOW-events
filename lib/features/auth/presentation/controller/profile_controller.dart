@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/shared/widgets/dialoge/app_image_preview_dialog.dart';
 import 'package:mow_events/core/shared/snack_bar/app_snack_bars.dart';
+import 'package:mow_events/core/utils/http/api_exceptions.dart';
 import 'package:mow_events/core/utils/network/internet_guard.dart';
 import 'package:mow_events/core/utils/network/network_manager.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
@@ -89,16 +90,18 @@ class ProfileController extends GetxController {
     required BuildContext context,
     required File image,
   }) async {
-    return await showDialog<bool>(
+    final result =
+        await showDialog<bool>(
           context: context,
-          barrierDismissible: true,
+          barrierDismissible: false,
           builder: (_) => AppImagePreviewDialog(
             image: image,
-            onConfirm: () => {},
-            onCancel: () => {},
+            onConfirm: () {},
+            onCancel: () {},
           ),
         ) ??
         false;
+    return result;
   }
 
   Future<void> updateProfileImage(File? image) async {
@@ -108,14 +111,18 @@ class ProfileController extends GetxController {
 
     isImageLoading.value = true;
     try {
-      final updatedUser = await _authRepo.updateProfile(
+      var updatedUser = await _authRepo.updateProfile(
         firstName: user.value!.firstName,
         lastName: user.value!.lastName,
         email: user.value!.email,
         phone: user.value!.phone,
         address: user.value!.address,
         image: image,
+        removeImage: image == null,
       );
+      if (image == null) {
+        updatedUser = updatedUser.copyWith(clearImage: true);
+      }
       _updateUser(updatedUser);
       AppSnackBars.successSnackBar(
         title: AppTexts.success,
@@ -159,15 +166,18 @@ class ProfileController extends GetxController {
       );
 
       _updateUser(updatedUser);
+      Get.back();
       AppSnackBars.successSnackBar(
         title: AppTexts.success,
         message: AppTexts.profileDataHasBeenSuccessfullyUpdated,
       );
-      Get.back();
     } catch (e) {
+      final message = e is ApiException
+          ? e.message
+          : AppTexts.theProfileHasNotBeenUpdated;
       AppSnackBars.errorSnackBar(
         title: AppTexts.errorOccurred,
-        message: AppTexts.theProfileHasNotBeenUpdated,
+        message: message,
       );
     } finally {
       isLoading.value = false;

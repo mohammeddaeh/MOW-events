@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mow_events/core/shared/snack_bar/app_snack_bars.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
 import 'package:mow_events/core/utils/validator/event_validator.dart';
 import 'package:mow_events/features/auth/data/models/department.dart';
@@ -45,6 +46,10 @@ class AddEventController extends GetxController {
   final nameController = TextEditingController();
   final locationController = TextEditingController();
   final descriptionController = TextEditingController();
+
+  final nameError = Rxn<String>();
+  final locationError = Rxn<String>();
+  final descriptionError = Rxn<String>();
   final startDateController = TextEditingController();
   final endDateController = TextEditingController();
   final startTimeController = TextEditingController();
@@ -77,8 +82,12 @@ class AddEventController extends GetxController {
         userCurrentInMembers.value = false;
       }
       updateVisibilityFlags();
+      if (strategy.showMembers(this)) _expandFirstDepartment();
     });
-    ever(visibility, (_) => updateVisibilityFlags());
+    ever(visibility, (_) {
+      updateVisibilityFlags();
+      if (strategy.showMembers(this)) _expandFirstDepartment();
+    });
   }
 
   final showCategoryRx = false.obs;
@@ -130,11 +139,27 @@ class AddEventController extends GetxController {
   }
 
   bool validate() {
+    nameError.value = null;
+    locationError.value = null;
+    descriptionError.value = null;
+
+    final name = nameController.text.trim();
+    final location = locationController.text.trim();
+    final description = descriptionController.text.trim();
+
+    if (name.isEmpty) nameError.value = AppTexts.eventNameRequired;
+    if (location.isEmpty) locationError.value = AppTexts.locationRequired;
+    if (description.isEmpty) descriptionError.value = AppTexts.descriptionRequired;
+
+    if (nameError.value != null || locationError.value != null || descriptionError.value != null) {
+      return false;
+    }
+
     try {
       EventValidator.validateRequiredFields(
-        name: nameController.text,
-        location: locationController.text,
-        description: descriptionController.text,
+        name: name,
+        location: location,
+        description: description,
         startDate: selectedStartDate.value,
         endDate: selectedEndDate.value,
         startTime: selectedStartTime.value,
@@ -151,7 +176,16 @@ class AddEventController extends GetxController {
       strategy.validate(this);
       return true;
     } catch (e) {
-      Get.snackbar(AppTexts.error, e.toString());
+      final message = e is Exception
+          ? e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '')
+          : e is ArgumentError
+              ? (e.message.isEmpty ? e.toString() : e.message)
+              : e.toString();
+      AppSnackBars.errorSnackBar(
+        title: AppTexts.errorOccurred,
+        message: message.trim().isEmpty ? AppTexts.theProfileHasNotBeenUpdated : message,
+        duration: 4,
+      );
       return false;
     }
   }
@@ -163,10 +197,71 @@ class AddEventController extends GetxController {
       final dept = user.department;
       if (dept == null) continue;
 
-      map.putIfAbsent(dept, () => []);
-      map[dept]!.add(user);
+      // Use department id equality to avoid duplicate Department instances
+      Department? keyDept;
+      for (final existing in map.keys) {
+        if (existing.id == dept.id) {
+          keyDept = existing;
+          break;
+        }
+      }
+
+      if (keyDept == null) {
+        map[dept] = [user];
+      } else {
+        map[keyDept]!.add(user);
+      }
     }
 
     return map;
+  }
+
+  final Map<int, RxBool> _deptExpanded = {};
+
+  bool isDeptExpanded(Department dept) {
+    return _deptExpanded[dept.id]?.value ?? false;
+  }
+
+  void toggleDeptExpanded(Department dept) {
+    final rx = _deptExpanded.putIfAbsent(dept.id, () => false.obs);
+    rx.value = !rx.value;
+  }
+
+  /// Return the RxBool for a department so widgets can observe it directly.
+  RxBool deptExpandedRx(Department dept) {
+    return _deptExpanded.putIfAbsent(dept.id, () => false.obs);
+  }
+
+  bool isDepartmentFullySelected(Department dept) {
+    final users = membersGroupedByDepartment[dept];
+    if (users == null || users.isEmpty) return false;
+    return users.every((u) => members.contains(u.id));
+  }
+
+  void _expandFirstDepartment() {
+    final grouped = membersGroupedByDepartment;
+    if (grouped.isNotEmpty) {
+      final firstDept = grouped.keys.first;
+      final rx = _deptExpanded.putIfAbsent(firstDept.id, () => true.obs);
+      rx.value = true;
+    }
+  }
+
+  void toggleDepartmentSelection(Department dept) {
+    final users = membersGroupedByDepartment[dept];
+    if (users == null || users.isEmpty) return;
+
+    final allSelected = isDepartmentFullySelected(dept);
+    if (allSelected) {
+      // remove all
+      for (final u in users) {
+        members.remove(u.id);
+      }
+    } else {
+      // add all
+      for (final u in users) {
+        if (!members.contains(u.id)) members.add(u.id);
+      }
+    }
   }
 }

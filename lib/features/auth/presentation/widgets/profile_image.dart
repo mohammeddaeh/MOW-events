@@ -8,13 +8,16 @@ import 'package:photo_view/photo_view.dart';
 class ProfileImage extends StatelessWidget {
   final String? text;
   final String? imageUrl;
-  final VoidCallback onChangeImage;
+  /// عند true تظهر أيقونة الكاميرا لتغيير/حذف الصورة. عند false تُعرض الصورة فقط (مثلاً في صفحة البروفايل).
+  final bool editable;
+  final VoidCallback? onChangeImage;
 
   const ProfileImage({
     super.key,
     this.imageUrl,
     required this.text,
-    required this.onChangeImage,
+    this.editable = true,
+    this.onChangeImage,
   });
 
   bool get hasImage => imageUrl != null && imageUrl!.isNotEmpty;
@@ -35,26 +38,27 @@ class ProfileImage extends StatelessWidget {
                 backgroundColor: AppColors.primary,
                 child: hasImage ? _userImage() : _logoImage(),
               ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: GestureDetector(
-                  onTap: onChangeImage,
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                    child: const Icon(
-                      Icons.camera_alt,
-                      size: 18,
-                      color: Colors.white,
+              if (editable && onChangeImage != null)
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: GestureDetector(
+                    onTap: onChangeImage,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt,
+                        size: 18,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
         ),

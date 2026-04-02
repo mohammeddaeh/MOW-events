@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/shared/widgets/dialoge/app_dialog.dart';
+import 'package:mow_events/core/shared/snack_bar/app_snack_bars.dart';
 import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
 import 'package:mow_events/features/auth/presentation/controller/profile_controller.dart';
@@ -47,15 +48,11 @@ class ChangeProfileImageSheet extends StatelessWidget {
             onTap: () async {
               Get.back();
 
-              if (controller.user.value?.image == null ||
-                  controller.user.value!.image!.isEmpty) {
-                Get.snackbar(
-                  AppTexts.alert,
-                  AppTexts.thereIsNoImageToDelete,
-                  backgroundColor: Colors.grey[900],
-                  colorText: Colors.white,
-                  snackPosition: SnackPosition.BOTTOM,
-                  margin: const EdgeInsets.all(16),
+              final currentImage = controller.user.value?.image;
+              if (currentImage == null || currentImage.isEmpty) {
+                AppSnackBars.warningSnackBar(
+                  title: AppTexts.alert,
+                  message: AppTexts.thereIsNoImageToDelete,
                 );
                 return;
               }

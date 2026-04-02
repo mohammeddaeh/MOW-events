@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/app_router/app_router.dart';
 import 'package:mow_events/core/general/bindings.dart';
@@ -13,21 +14,36 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(AppLocaleController(), permanent: true);
+    final localeController = Get.put(AppLocaleController(), permanent: true);
     Get.put(ThemeController(), permanent: true);
-    return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: AppTexts.appName,
 
-      themeMode: ThemeController.instance.currentThemeMode,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      initialBinding: GeneralBindings(),
-      locale: AppLocaleController.instance.initialLang,
-      translations: AppLocale(),
-      initialRoute: AppRouter.splash,
+    return Obx(
+      () => GetMaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: AppTexts.appName,
 
-      getPages: AppRouter.appPages,
+        themeMode: ThemeController.instance.currentThemeMode,
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+
+        initialBinding: GeneralBindings(),
+
+        locale: localeController.langCode(localeController.currentLang.value),
+
+        fallbackLocale: const Locale('ar'),
+        supportedLocales: const [Locale('ar'), Locale('en')],
+
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+
+        translations: AppLocale(),
+
+        initialRoute: AppRouter.splash,
+        getPages: AppRouter.appPages,
+      ),
     );
   }
 }

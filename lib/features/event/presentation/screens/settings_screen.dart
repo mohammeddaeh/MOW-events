@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/app_router/app_router.dart';
-import 'package:mow_events/core/shared/snack_bar/app_snack_bars.dart';
 import 'package:mow_events/core/utils/constants/app_colors.dart';
 import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
-import 'package:mow_events/core/utils/network/network_manager.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
 import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
 import 'package:mow_events/core/utils/translation/app_locale_controller.dart';
@@ -13,12 +10,10 @@ import 'package:mow_events/core/utils/theme/theme_controller.dart';
 import 'package:mow_events/features/auth/presentation/controller/auth_controller.dart';
 import 'package:mow_events/features/auth/services/auth_service.dart';
 import 'package:mow_events/features/event/presentation/widgets/custom_card_setting.dart';
-import 'package:mow_events/core/shared/widgets/gradient_text.dart';
 import 'package:mow_events/features/event/presentation/screens/add_reminders_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   SettingsScreen({super.key});
-  final network = Get.find<NetworkManager>();
 
   @override
   Widget build(BuildContext context) {
@@ -48,16 +43,16 @@ class SettingsScreen extends StatelessWidget {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      InkWell(
-                        onTap: () {
-                          Clipboard.setData(ClipboardData(text: userFullName));
-                          Get.snackbar(
-                            AppTexts.copied,
-                            AppTexts.theNameWasCopiedToTheClipboard,
-                          );
-                        },
-                        child: GradientText(title: AppTexts.copy),
-                      ),
+                      // InkWell(
+                      //   onTap: () {
+                      //     Clipboard.setData(ClipboardData(text: userFullName));
+                      //     Get.snackbar(
+                      //       AppTexts.copied,
+                      //       AppTexts.theNameWasCopiedToTheClipboard,
+                      //     );
+                      //   },
+                      //   child: GradientText(title: AppTexts.copy),
+                      // ),
                       SizedBox(width: 8),
                       Icon(
                         Icons.arrow_forward_ios,
@@ -134,7 +129,7 @@ class SettingsScreen extends StatelessWidget {
 
                 const SizedBox(height: 20),
 
-                const Text('v1', style: TextStyle(color: Colors.grey)),
+                const Text('v1.0.3', style: TextStyle(color: Colors.grey)),
                 const SizedBox(height: 30),
 
                 OutlinedButton.icon(
@@ -143,21 +138,15 @@ class SettingsScreen extends StatelessWidget {
                     color: AppColors.errorSecondary,
                     size: 22,
                   ),
-                  label: Text(
-                    AppTexts.logOut,
-                    style: TextStyle(
-                      color: AppColors.errorPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  label: Text(AppTexts.logOut),
                   style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.errorPrimary,
                     side: BorderSide(
                       color: AppColors.errorSecondary,
                       width: 1.2,
                     ),
                     padding: const EdgeInsets.symmetric(
-                      vertical: 14,
+                      vertical: 12,
                       horizontal: 18,
                     ),
                     minimumSize: const Size(double.infinity, 50),
@@ -167,20 +156,9 @@ class SettingsScreen extends StatelessWidget {
                     overlayColor: Theme.of(
                       context,
                     ).colorScheme.error.withOpacity(0.08),
-                    textStyle: const TextStyle(
-                      fontFamily: 'Cairo',
-                      letterSpacing: 0.3,
-                    ),
                   ),
                   iconAlignment: IconAlignment.start,
-                  onPressed: network.isOnline.value
-                      ? authController.logout
-                      : () {
-                          AppSnackBars.errorSnackBar(
-                            title: AppTexts.noInternet,
-                            message: AppTexts.internetRequiredToLogout,
-                          );
-                        },
+                  onPressed: authController.logout,
                 ),
               ],
             ),

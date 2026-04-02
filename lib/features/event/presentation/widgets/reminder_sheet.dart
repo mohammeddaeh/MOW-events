@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:mow_events/core/shared/snack_bar/app_snack_bars.dart';
+import 'package:mow_events/core/utils/constants/app_colors.dart';
+import 'package:mow_events/core/utils/constants/app_images.dart';
 import 'package:mow_events/core/utils/constants/enums/app_dialog_type.dart';
 import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
+import 'package:mow_events/core/shared/widgets/empty_state_widget.dart';
 import 'package:mow_events/features/event/data/models/event_model.dart';
 import 'package:mow_events/features/event/domin/entities/reminder_entity.dart';
 import 'package:mow_events/features/event/presentation/controller/reminder_controller.dart';
@@ -12,110 +16,232 @@ import '../../../../core/shared/widgets/dialoge/app_dialog.dart';
 
 class EventRemindersSheet extends StatelessWidget {
   final EventModel event;
-  final RxList<ReminderEntity> reminders;
   final DateTime now;
 
-  const EventRemindersSheet({
-    super.key,
-    required this.event,
-    required this.reminders,
-    required this.now,
-  });
+  const EventRemindersSheet({super.key, required this.event, required this.now})
+    : super();
 
   @override
   Widget build(BuildContext context) {
     final eventId = event.id.toString();
+    final isDark = AppThemeHelper.currentBrightness(context) == Brightness.dark;
 
     return FractionallySizedBox(
-      heightFactor: 0.7,
+      heightFactor: 0.75,
       child: Container(
         decoration: BoxDecoration(
-          color: AppThemeHelper.blackWhite(context),
+          color: AppThemeHelper.background(context),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.4 : 0.08),
+              blurRadius: 16,
+              offset: const Offset(0, -4),
+            ),
+          ],
         ),
         child: Column(
           children: [
+            _buildHeader(context),
             Expanded(
               child: Obx(() {
-                final reminders = this.reminders;
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: reminders.length,
-                  itemBuilder: (_, index) {
-                    final r = reminders[index];
-                    return StreamBuilder<DateTime>(
-                      stream: ReminderController.to.ticker,
-                      builder: (_, snapshot) {
-                        final now = snapshot.data ?? DateTime.now();
-                        return ListTile(
-                          leading: const Icon(Icons.alarm),
-                          title: Text(
-                            ReminderController.to.formatReminderLabel(r),
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                final rawList =
+                    ReminderController.to.remindersMap[eventId] ?? [];
+                final list = List<ReminderEntity>.from(rawList)
+                  ..sort((a, b) => a.reminderTime.compareTo(b.reminderTime));
+                final now = DateTime.now();
+                final past = list
+                    .where((r) => r.reminderTime.isBefore(now))
+                    .toList();
+                final upcoming = list
+                    .where((r) => !r.reminderTime.isBefore(now))
+                    .toList();
+
+                if (list.isEmpty) {
+                  return EmptyStateWidget(
+                    lottieAsset: AppImages.noResult,
+                    title: AppTexts.noReminder,
+                    subtitle: AppTexts.remindersWillBeSetForEvents,
+                  );
+                }
+                return ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                  children: [
+                    if (upcoming.isNotEmpty) ...[
+                      _sectionHeader(
+                        context,
+                        AppTexts.upcomingReminders,
+                        AppColors.green,
+                      ),
+                      ...upcoming.map(
+                        (r) => KeyedSubtree(
+                          key: ValueKey(
+                            'reminder_${r.id}_${r.reminderTime.millisecondsSinceEpoch}',
                           ),
-                          trailing: _buildActions(context, r),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 4),
-                              Text(
-                                ReminderController.to.formatRemainingCountdown(
-                                  r.reminderTime,
-                                  now: now,
-                                ),
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color: r.reminderTime.isBefore(now)
-                                      ? Colors.red
-                                      : Colors.green,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                DateFormat(
-                                  'dd MMM • HH:mm',
-                                ).format(r.reminderTime),
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                            ],
+                          child: _ReminderCard(
+                            reminder: r,
+                            event: event,
+                            onEdit: () => _editReminder(context, r),
+                            onDelete: () => _confirmDelete(context, r),
                           ),
-                        );
-                      },
-                    );
-                  },
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    if (past.isNotEmpty) ...[
+                      _sectionHeader(
+                        context,
+                        AppTexts.pastReminders,
+                        AppColors.red,
+                      ),
+                      ...past.map(
+                        (r) => KeyedSubtree(
+                          key: ValueKey(
+                            'reminder_${r.id}_${r.reminderTime.millisecondsSinceEpoch}',
+                          ),
+                          child: _ReminderCard(
+                            reminder: r,
+                            event: event,
+                            onEdit: () => _editReminder(context, r),
+                            onDelete: () => _confirmDelete(context, r),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 );
               }),
             ),
-            FloatingActionButton(
-              onPressed: () => _addCustomReminder(context, eventId),
-              child: const Icon(Icons.add),
-            ),
+            _buildAddButton(context, eventId),
           ],
         ),
       ),
     );
   }
 
-  Widget? _buildActions(BuildContext context, ReminderEntity r) {
-    if (r.isBackend) return null;
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (r.canEdit)
-          IconButton(
-            icon: const Icon(Icons.edit, color: Colors.blue),
-            onPressed: () => _editReminder(context, r),
+  Widget _buildHeader(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 16),
+      child: Column(
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppThemeHelper.border(context),
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
           ),
-
-        if (r.canDelete)
-          IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: () async {
-              await _confirmDelete(context, r);
-            },
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppThemeHelper.accent(context).withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.alarm_rounded,
+                  color: AppThemeHelper.accent(context),
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppTexts.reminders,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppThemeHelper.whiteBlack(context),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      event.name,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppThemeHelper.textSecondary(context),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () => Get.back(),
+                icon: Icon(
+                  Icons.close_rounded,
+                  color: AppThemeHelper.textSecondary(context),
+                ),
+                style: IconButton.styleFrom(
+                  backgroundColor: AppThemeHelper.border(
+                    context,
+                  ).withOpacity(0.5),
+                ),
+              ),
+            ],
           ),
-      ],
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionHeader(BuildContext context, String title, Color color) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8, top: 4),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 18,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppThemeHelper.textSecondary(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddButton(BuildContext context, String eventId) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      decoration: BoxDecoration(color: AppThemeHelper.background(context)),
+      child: SafeArea(
+        child: ElevatedButton.icon(
+          onPressed: () => _addCustomReminder(context, eventId),
+          icon: const Icon(Icons.add_rounded, size: 22),
+          label: Text(AppTexts.addReminder),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppThemeHelper.accent(context),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            elevation: 0,
+          ),
+        ),
+      ),
     );
   }
 
@@ -123,18 +249,25 @@ class EventRemindersSheet extends StatelessWidget {
     await showAppDialog(
       context: context,
       type: AppDialogType.delete,
-      onConfirm: () async {
-        final controller = ReminderController.to;
-
-        if (r.isDefault) {
-          controller.ignoreDefaultReminder(r.eventId, r);
-        } else {
-          controller.applyReminderChange(
-            action: ReminderAction.remove,
-            eventId: r.eventId,
-            reminder: r,
-          );
-        }
+      onConfirm: () {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          final controller = ReminderController.to;
+          if (r.isDefault) {
+            controller.ignoreDefaultReminder(r.eventId, r);
+          } else {
+            await controller.applyReminderChange(
+              action: ReminderAction.remove,
+              eventId: r.eventId,
+              reminder: r,
+            );
+          }
+          if (Get.context != null && Get.context!.mounted) {
+            AppSnackBars.successSnackBar(
+              title: AppTexts.success,
+              message: AppTexts.reminderDeletedSuccessfully,
+            );
+          }
+        });
       },
       onCancel: () {},
     );
@@ -145,52 +278,92 @@ class EventRemindersSheet extends StatelessWidget {
 
     ReminderType type = r.type;
     int value = r.value;
+    final valueCtrl = TextEditingController(text: value.toString());
 
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(AppTexts.editReminder),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            DropdownButton<ReminderType>(
-              value: type,
-              items: ReminderType.values
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
-                  .toList(),
-              onChanged: (v) => type = v!,
+      barrierDismissible: false,
+      builder: (ctx) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: AppThemeHelper.accent(ctx),
+            brightness: AppThemeHelper.currentBrightness(ctx),
+          ),
+        ),
+        child: AlertDialog(
+          title: Text(AppTexts.editReminder),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                DropdownButtonFormField<ReminderType>(
+                  value: type,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  items: ReminderType.values
+                      .map(
+                        (e) => DropdownMenuItem(value: e, child: Text(e.name)),
+                      )
+                      .toList(),
+                  onChanged: (v) => type = v ?? type,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: valueCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: '${AppTexts.before} (${type.name})',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onChanged: (v) => value = int.tryParse(v) ?? value,
+                ),
+              ],
             ),
-            TextFormField(
-              initialValue: value.toString(),
-              keyboardType: TextInputType.number,
-              onChanged: (v) => value = int.tryParse(v) ?? value,
+          ),
+          actions: [
+            TextButton(onPressed: Get.back, child: Text(AppTexts.cancel)),
+            FilledButton(
+              onPressed: () {
+                value = int.tryParse(valueCtrl.text) ?? value;
+                final updated = r.copyWith(
+                  type: type,
+                  value: value,
+                  reminderTime: ReminderEntity.calculateTime(
+                    event.startDateTimeSafe!,
+                    type,
+                    value,
+                  ),
+                );
+                Navigator.of(ctx).pop();
+                WidgetsBinding.instance.addPostFrameCallback((_) async {
+                  await ReminderController.to.applyReminderChange(
+                    action: ReminderAction.update,
+                    eventId: event.id.toString(),
+                    reminder: updated,
+                  );
+                  if (Get.context != null && Get.context!.mounted) {
+                    AppSnackBars.successSnackBar(
+                      title: AppTexts.success,
+                      message: AppTexts.reminderUpdatedSuccessfully,
+                    );
+                  }
+                });
+              },
+              child: Text(AppTexts.done),
             ),
           ],
         ),
-        actions: [
-          TextButton(onPressed: Get.back, child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              final updated = r.copyWith(
-                type: type,
-                value: value,
-                reminderTime: ReminderEntity.calculateTime(
-                  event.startDateTimeSafe!,
-                  type,
-                  value,
-                ),
-              );
-
-              ReminderController.to.applyReminderChange(
-                action: ReminderAction.update,
-                eventId: event.id.toString(),
-                reminder: updated,
-              );
-              Get.back();
-            },
-            child: const Text('Save'),
-          ),
-        ],
+      ),
+    ).then(
+      (_) => Future.delayed(
+        const Duration(milliseconds: 400),
+        () => valueCtrl.dispose(),
       ),
     );
   }
@@ -198,49 +371,534 @@ class EventRemindersSheet extends StatelessWidget {
   void _addCustomReminder(BuildContext context, String eventId) {
     ReminderType type = ReminderType.minute;
     int value = 5;
+    final valueCtrl = TextEditingController(text: '5');
 
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Add Reminder'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            DropdownButton<ReminderType>(
-              value: type,
-              items: ReminderType.values
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
-                  .toList(),
-              onChanged: (v) => type = v!,
+      barrierDismissible: false,
+      builder: (ctx) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: AppThemeHelper.accent(ctx),
+            brightness: AppThemeHelper.currentBrightness(ctx),
+          ),
+        ),
+        child: AlertDialog(
+          title: Text(AppTexts.addReminder),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                DropdownButtonFormField<ReminderType>(
+                  value: type,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  items: ReminderType.values
+                      .map(
+                        (e) => DropdownMenuItem(value: e, child: Text(e.name)),
+                      )
+                      .toList(),
+                  onChanged: (v) => type = v ?? type,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: valueCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: '${AppTexts.before} (${type.name})',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onChanged: (v) => value = int.tryParse(v) ?? value,
+                ),
+              ],
             ),
-            TextField(
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Value'),
-              onChanged: (v) => value = int.tryParse(v) ?? value,
+          ),
+          actions: [
+            TextButton(onPressed: Get.back, child: Text(AppTexts.cancel)),
+            FilledButton(
+              onPressed: () {
+                value = int.tryParse(valueCtrl.text) ?? value;
+                final newReminder = ReminderEntity.createCustom(
+                  eventId,
+                  type,
+                  value,
+                  event.startDateTimeSafe!,
+                );
+                Navigator.of(ctx).pop();
+                WidgetsBinding.instance.addPostFrameCallback((_) async {
+                  await ReminderController.to.applyReminderChange(
+                    action: ReminderAction.add,
+                    eventId: eventId,
+                    reminder: newReminder,
+                  );
+                  if (Get.context != null && Get.context!.mounted) {
+                    AppSnackBars.successSnackBar(
+                      title: AppTexts.success,
+                      message: AppTexts.reminderAddedSuccessfully,
+                    );
+                  }
+                });
+              },
+              child: Text(AppTexts.addReminder),
             ),
           ],
         ),
-        actions: [
-          TextButton(onPressed: Get.back, child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              final newReminder = ReminderEntity.createCustom(
-                eventId,
-                type,
-                value,
-                event.startDateTimeSafe!,
-              );
+      ),
+    ).then(
+      (_) => Future.delayed(
+        const Duration(milliseconds: 400),
+        () => valueCtrl.dispose(),
+      ),
+    );
+  }
+}
 
-              ReminderController.to.applyReminderChange(
-                action: ReminderAction.add,
-                eventId: eventId,
-                reminder: newReminder,
-              );
-              Get.back();
-            },
-            child: const Text('Add'),
+class _ReminderCard extends StatelessWidget {
+  final ReminderEntity reminder;
+  final EventModel event;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _ReminderCard({
+    required this.reminder,
+    required this.event,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = AppThemeHelper.currentBrightness(context) == Brightness.dark;
+    final isPast = reminder.reminderTime.isBefore(DateTime.now());
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: StreamBuilder<DateTime>(
+        stream: ReminderController.to.ticker,
+        builder: (_, snapshot) {
+          final now = snapshot.data ?? DateTime.now();
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppThemeHelper.whiteBlack(context).withOpacity(0.06)
+                  : AppThemeHelper.border(context).withOpacity(0.25),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: AppThemeHelper.border(context),
+                width: 0.5,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: (isPast ? AppColors.red : AppColors.green)
+                        .withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.schedule_rounded,
+                    size: 22,
+                    color: isPast ? AppColors.red : AppColors.green,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        ReminderController.to.formatReminderLabel(reminder),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          color: AppThemeHelper.whiteBlack(context),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        ReminderController.to.formatRemainingCountdown(
+                          reminder.reminderTime,
+                          now: now,
+                        ),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 13,
+                          color: isPast ? AppColors.red : AppColors.green,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        DateFormat(
+                          'dd MMM • HH:mm',
+                        ).format(reminder.reminderTime),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppThemeHelper.textSecondary(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (!reminder.isBackend) _buildActions(context),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildActions(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (reminder.canEdit)
+          IconButton(
+            icon: Icon(
+              Icons.edit_outlined,
+              size: 20,
+              color: AppThemeHelper.accent(context),
+            ),
+            onPressed: onEdit,
+            style: IconButton.styleFrom(
+              minimumSize: const Size(40, 40),
+              padding: EdgeInsets.zero,
+            ),
+          ),
+        if (reminder.canDelete)
+          IconButton(
+            icon: Icon(
+              Icons.delete_outline_rounded,
+              size: 20,
+              color: AppThemeHelper.red(context),
+            ),
+            onPressed: onDelete,
+            style: IconButton.styleFrom(
+              minimumSize: const Size(40, 40),
+              padding: EdgeInsets.zero,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// بوتوم شيت يعرض كل التنبيهات المجدولة لجميع الأحداث مع وقت الإطلاق وتفاصيل الحدث
+class ScheduledAlertsSheet extends StatelessWidget {
+  const ScheduledAlertsSheet({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = AppThemeHelper.currentBrightness(context) == Brightness.dark;
+    final ctrl = ReminderController.to;
+
+    return FractionallySizedBox(
+      heightFactor: 0.85,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppThemeHelper.background(context),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.4 : 0.08),
+              blurRadius: 16,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+              child: Column(
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppThemeHelper.border(context),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.schedule_rounded,
+                        color: AppThemeHelper.accent(context),
+                        size: 28,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          AppTexts.scheduledAlerts,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppThemeHelper.whiteBlack(context),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Get.back(),
+                        icon: Icon(
+                          Icons.close_rounded,
+                          color: AppThemeHelper.textSecondary(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${AppTexts.alertAt} • ${AppTexts.reminders}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppThemeHelper.textSecondary(context),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final ctrl = ReminderController.to;
+                        final ok = await ctrl.scheduleTestAlarm();
+                        if (context.mounted) {
+                          if (ok) {
+                            AppSnackBars.successSnackBar(
+                              title: AppTexts.testAlert,
+                              message: AppTexts.testAlertInSeconds.replaceFirst(
+                                '%s',
+                                '${ReminderController.testAlarmDelaySeconds}',
+                              ),
+                            );
+                          } else {
+                            AppSnackBars.warningSnackBar(
+                              title: AppTexts.testAlert,
+                              message: AppTexts.noEventToTestAlert,
+                            );
+                          }
+                        }
+                      },
+                      icon: Icon(
+                        Icons.notifications_active_rounded,
+                        size: 20,
+                        color: AppThemeHelper.accent(context),
+                      ),
+                      label: Text(AppTexts.testAlert),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppThemeHelper.accent(context),
+                        side: BorderSide(color: AppThemeHelper.accent(context)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Obx(() {
+                final all = ctrl.getAllScheduledRemindersSorted();
+                final now = DateTime.now();
+                final upcoming = all.where(
+                  (e) => !e.reminder.reminderTime.isBefore(now),
+                );
+                final past = all.where(
+                  (e) => e.reminder.reminderTime.isBefore(now),
+                );
+
+                if (all.isEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.notifications_none_rounded,
+                            size: 64,
+                            color: AppThemeHelper.textSecondary(context),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            AppTexts.noReminder,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: AppThemeHelper.textSecondary(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+                return ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  children: [
+                    if (upcoming.isNotEmpty) ...[
+                      _sectionTitle(
+                        context,
+                        AppTexts.upcomingReminders,
+                        upcoming.length,
+                        AppColors.green,
+                      ),
+                      ...upcoming.map((e) => _ScheduledAlertTile(info: e)),
+                      const SizedBox(height: 20),
+                    ],
+                    if (past.isNotEmpty) ...[
+                      _sectionTitle(
+                        context,
+                        AppTexts.pastReminders,
+                        past.length,
+                        AppColors.red,
+                      ),
+                      ...past.map((e) => _ScheduledAlertTile(info: e)),
+                    ],
+                  ],
+                );
+              }),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionTitle(
+    BuildContext context,
+    String title,
+    int count,
+    Color color,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8, top: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 20,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: AppThemeHelper.whiteBlack(context),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              '$count',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ScheduledAlertTile extends StatelessWidget {
+  final ScheduledReminderInfo info;
+
+  const _ScheduledAlertTile({required this.info});
+
+  @override
+  Widget build(BuildContext context) {
+    final r = info.reminder;
+    final event = info.event;
+    final isPast = r.reminderTime.isBefore(DateTime.now());
+    final isDark = AppThemeHelper.currentBrightness(context) == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: isDark
+              ? AppThemeHelper.whiteBlack(context).withOpacity(0.06)
+              : AppThemeHelper.border(context).withOpacity(0.25),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppThemeHelper.border(context), width: 0.5),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: (isPast ? AppColors.red : AppColors.green).withOpacity(
+                  0.15,
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                Icons.alarm_rounded,
+                size: 20,
+                color: isPast ? AppColors.red : AppColors.green,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    event?.name ?? '—',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: AppThemeHelper.whiteBlack(context),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    ReminderController.to.formatReminderLabel(r),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppThemeHelper.textSecondary(context),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${AppTexts.alertAt} ${DateFormat('dd/MM • HH:mm').format(r.reminderTime)}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppThemeHelper.textSecondary(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -14,7 +14,7 @@ class AppLocale implements Translations {
       'dark': 'Dark',
       'done': 'Done',
       'submit': 'Submit',
-      'appName': 'My App',
+      'appName': 'التقويم الوزاري',
       'tContinue': 'Continue',
       'changeLang': 'Change Language',
       'copy': 'Copy',
@@ -90,6 +90,8 @@ class AppLocale implements Translations {
       'emailNotFound': 'Email not found',
       'incorrectEmailOrPassword': 'Incorrect email or password',
       'noEvents': 'No events found',
+      'manager': 'Manager',
+      'managerOfDepartment': 'Manager of %s',
       'addNewEvent': 'Add new event',
       'eventName': 'Event name',
       'enterTheNameOfTheEvent': 'Enter the name of the event',
@@ -170,6 +172,11 @@ class AppLocale implements Translations {
       'enterTheVerificationCodeSentToYourEmail':
           'Enter the verification code sent to your email',
       'verification': 'Verification',
+      'currentPassword': 'Current password',
+      'newPassword': 'New password',
+      'confirmNewPassword': 'Confirm new password',
+      'changePasswordDescription':
+          'Enter your current password, then choose a new secure password.',
       'click': 'Click',
       'thereAreNoNotificationsAtTheMoment':
           'There are no notifications at the moment',
@@ -330,6 +337,14 @@ class AppLocale implements Translations {
       "applyTo": "Apply to",
       "allEvents": "All events",
       "reminderAddedSuccessfully": "Reminder added successfully",
+      "remindersWillBeSetForEvents": "Reminders will be set for your events",
+      "scheduledAlerts": "Scheduled alerts",
+      "upcomingReminders": "Upcoming",
+      "pastReminders": "Past",
+      "alertAt": "Alert at",
+      "testAlert": "Test alert",
+      "testAlertInSeconds": "Alert will fire in %s seconds",
+      "noEventToTestAlert": "Add an event first to test the alert",
       "add": "Add",
       "value": "Value",
       "ifyouAreSureAboutDeleting":
@@ -359,6 +374,8 @@ class AppLocale implements Translations {
       "internetRequiredToEditCategory":
           "Internet connection is required to edit category",
       "noCategoriesFound": "No categories found",
+      "eventCancelled": "Event cancelled",
+      "invitedToEvent": "Invited to event",
     },
 
     'ar': {
@@ -411,6 +428,8 @@ class AppLocale implements Translations {
       'click': 'اضغط',
       'thereAreNoNotificationsAtTheMoment': 'لا توجد إشعارات حالياً',
       'acceptance': 'موافقة',
+      'manager': 'المدير',
+      'managerOfDepartment': 'مدير قسم %s',
       'sortOptions': 'خيارات الفرز',
       'startTime': 'وقت البدء',
       'name': 'الاسم',
@@ -493,7 +512,7 @@ class AppLocale implements Translations {
       'dark': 'داكن',
       'done': 'تم',
       'submit': 'إرسال',
-      'appName': 'تطبيقي',
+      'appName': 'التقويم الوزاري',
       'tContinue': 'استمرار',
       'changeLang': 'تغيير اللغة',
       'copy': 'نسخ',
@@ -687,6 +706,14 @@ class AppLocale implements Translations {
       "applyTo": "تطبيق على",
       "allEvents": "كل الأحداث",
       "reminderAddedSuccessfully": "تم إضافة التذكير بنجاح",
+      "remindersWillBeSetForEvents": "سيتم إطلاق تنبيه للأحداث",
+      "scheduledAlerts": "التنبيهات المجدولة",
+      "upcomingReminders": "قادمة",
+      "pastReminders": "منتهية",
+      "alertAt": "تنبيه عند",
+      "testAlert": "اختبار التنبيه",
+      "testAlertInSeconds": "سيتم إطلاق التنبيه خلال %s ثانية",
+      "noEventToTestAlert": "أضف حدثاً أولاً لاختبار التنبيه",
       "add": "إضافة",
       "value": "القيمة",
       "thisActionRequiresInternetConnection":
@@ -714,6 +741,13 @@ class AppLocale implements Translations {
       "internetRequiredToDeleteCategory": "يتطلب اتصالاً بالإنترنت لحذف الفئة",
       "internetRequiredToEditCategory": "يتطلب اتصالاً بالإنترنت لتعديل الفئة",
       "noCategoriesFound": "لا توجد فئات",
+      "eventCancelled": "تم إلغاء الحدث",
+      "invitedToEvent": "تمت دعوتك إلى الحدث",
+      "currentPassword": "كلمة المرور الحالية",
+      "newPassword": "كلمة المرور الجديدة",
+      "confirmNewPassword": "تأكيد كلمة المرور الجديدة",
+      "changePasswordDescription":
+          "أدخل كلمة المرور الحالية ثم اختر كلمة مرور جديدة وآمنة.",
     },
   };
 }

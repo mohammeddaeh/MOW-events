@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/shared/widgets/adaptive_form_field.dart';
+import 'package:mow_events/core/utils/constants/app_colors.dart';
 import 'package:mow_events/core/utils/date_time/app_date_picker.dart';
 import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
@@ -20,21 +21,20 @@ class AddEventScreen extends GetView<AddEventController> {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             _EventBasicInfoSection(),
-            SizedBox(height: 16),
-            _CategorySection(),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             _AdminTypeSection(),
-            SizedBox(height: 16),
-            _DateTimeSection(),
-            SizedBox(height: 16),
-            _ManagerVisibilitySection(),
-            SizedBox(height: 16),
             _AttendanceSection(),
-            SizedBox(height: 16),
+            _ManagerVisibilitySection(),
+            const SizedBox(height: 16),
+            _CategorySection(),
+            const SizedBox(height: 16),
+            _DateTimeSection(),
+            const SizedBox(height: 16),
+            const SizedBox(height: 16),
             _MembersSection(),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             _SubmitButton(),
           ],
         ),
@@ -48,36 +48,125 @@ class _EventBasicInfoSection extends GetView<AddEventController> {
 
   @override
   Widget build(BuildContext context) {
+    final borderColor = AppThemeHelper.border(context);
+    final errorColor = AppThemeHelper.red(context);
+    final labelColor = AppThemeHelper.textSecondary(context);
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TextField(
-          controller: controller.nameController,
-          decoration: InputDecoration(
-            labelText: AppTexts.eventName,
-            labelStyle: TextStyle(color: Colors.grey.shade600),
-          ),
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: AppThemeHelper.whiteBlack(context),
-          ),
-        ),
+        Obx(() {
+          final error = controller.nameError.value;
+          return TextField(
+            controller: controller.nameController,
+            onChanged: (_) => controller.nameError.value = null,
+            decoration: InputDecoration(
+              labelText: AppTexts.eventName,
+              labelStyle: TextStyle(color: labelColor),
+              errorText: error,
+              errorStyle: TextStyle(color: errorColor, fontSize: 12),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: error != null ? errorColor : borderColor,
+                  width: error != null ? 1.5 : 1,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: error != null ? errorColor : borderColor,
+                  width: 1.5,
+                ),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: errorColor, width: 1.5),
+              ),
+            ),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppThemeHelper.whiteBlack(context),
+            ),
+          );
+        }),
         const SizedBox(height: 16),
-        TextField(
-          controller: controller.locationController,
-          decoration: InputDecoration(
-            labelText: AppTexts.addresse,
-            labelStyle: TextStyle(color: Colors.grey.shade600),
-          ),
-        ),
+        Obx(() {
+          final error = controller.locationError.value;
+          return TextField(
+            controller: controller.locationController,
+            onChanged: (_) => controller.locationError.value = null,
+            decoration: InputDecoration(
+              labelText: AppTexts.addresse,
+              labelStyle: TextStyle(color: labelColor),
+              errorText: error,
+              errorStyle: TextStyle(color: errorColor, fontSize: 12),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: error != null ? errorColor : borderColor,
+                  width: error != null ? 1.5 : 1,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: error != null ? errorColor : borderColor,
+                  width: 1.5,
+                ),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: errorColor, width: 1.5),
+              ),
+            ),
+            style: TextStyle(color: AppThemeHelper.whiteBlack(context)),
+          );
+        }),
         const SizedBox(height: 16),
-        TextField(
-          controller: controller.descriptionController,
-          decoration: InputDecoration(
-            labelText: AppTexts.description,
-            labelStyle: TextStyle(color: Colors.grey.shade600),
-          ),
-        ),
+        Obx(() {
+          final error = controller.descriptionError.value;
+          return TextField(
+            controller: controller.descriptionController,
+            onChanged: (_) => controller.descriptionError.value = null,
+            maxLines: 3,
+            decoration: InputDecoration(
+              labelText: AppTexts.description,
+              labelStyle: TextStyle(color: labelColor),
+              errorText: error,
+              errorStyle: TextStyle(color: errorColor, fontSize: 12),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: error != null ? errorColor : borderColor,
+                  width: error != null ? 1.5 : 1,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: error != null ? errorColor : borderColor,
+                  width: 1.5,
+                ),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: errorColor, width: 1.5),
+              ),
+            ),
+            style: TextStyle(color: AppThemeHelper.whiteBlack(context)),
+          );
+        }),
       ],
     );
   }
@@ -335,7 +424,11 @@ class _MembersSection extends GetView<AddEventController> {
         children: [
           Text(
             AppTexts.members,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppThemeHelper.whiteBlack(context),
+            ),
           ),
           const SizedBox(height: 12),
 
@@ -361,33 +454,130 @@ class _DepartmentGroup extends GetView<AddEventController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-          margin: const EdgeInsets.only(top: 12),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            departmentName.name,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: InkWell(
+            onTap: () => controller.toggleDeptExpanded(departmentName),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+              decoration: BoxDecoration(
+                color: AppThemeHelper.whiteBlack(context).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Row(
+                children: [
+                  Obx(() {
+                    if (!controller.canSelectMembers)
+                      return const SizedBox.shrink();
+                    final allSelected = controller.isDepartmentFullySelected(
+                      departmentName,
+                    );
+                    return Checkbox(
+                      value: allSelected,
+                      onChanged: (_) =>
+                          controller.toggleDepartmentSelection(departmentName),
+                    );
+                  }),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            departmentName.name,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: AppThemeHelper.whiteBlack(context),
+                            ),
+                          ),
+                        ),
+                        Obx(() {
+                          final expanded = controller
+                              .deptExpandedRx(departmentName)
+                              .value;
+                          return Icon(
+                            expanded ? Icons.expand_less : Icons.expand_more,
+                            size: 18,
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 4),
-        ...users.map((user) {
-          return Obx(() {
-            return CheckboxListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              title: Text("${user.firstName} ${user.lastName}"),
-              value: controller.members.contains(user.id),
-              onChanged: (_) => controller.toggleMember(user.id),
-            );
-          });
+        // Users list (visible only when expanded)
+        Obx(() {
+          final expanded = controller.deptExpandedRx(departmentName).value;
+          if (!expanded) return const SizedBox.shrink();
+
+          return Column(
+            children: _orderedUsers().map((user) {
+              return Obx(() {
+                return CheckboxListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Row(
+                    children: [
+                      Expanded(
+                        child: Text("${user.firstName} ${user.lastName}"),
+                      ),
+                      if (_isManagerUser(user))
+                        Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.gold,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            AppTexts.manager,
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ),
+                    ],
+                  ),
+                  value: controller.members.contains(user.id),
+                  onChanged: (_) => controller.toggleMember(user.id),
+                );
+              });
+            }).toList(),
+          );
         }),
       ],
     );
+  }
+
+  List<UserEntity> _orderedUsers() {
+    final List<UserEntity> list = List.from(users);
+    // Put manager(s) first, then the rest in alphabetical order
+    final managers = list
+        .where((u) => u.isManager == true || u.department?.isManager == true)
+        .toList();
+    final others = list
+        .where((u) => !(u.isManager == true || u.department?.isManager == true))
+        .toList();
+
+    others.sort(
+      (a, b) => a.fullName.toLowerCase().compareTo(b.fullName.toLowerCase()),
+    );
+
+    managers.sort(
+      (a, b) => a.fullName.toLowerCase().compareTo(b.fullName.toLowerCase()),
+    );
+
+    return [...managers, ...others];
+  }
+
+  bool _isManagerUser(UserEntity user) {
+    return user.isManager == true || user.department?.isManager == true;
   }
 }
 

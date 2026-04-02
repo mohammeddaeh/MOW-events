@@ -1,15 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:get/get.dart';
 import 'package:mow_events/core/utils/constants/app_config.dart';
 import 'package:mow_events/core/utils/error/api_exceptions.dart';
 import 'package:mow_events/core/utils/error/error_handler.dart';
 import 'package:mow_events/core/utils/error/network_exceptions.dart';
 import 'package:mow_events/core/utils/error/validation_exception.dart';
+import 'package:mow_events/core/app_router/app_router.dart';
+import 'package:mow_events/core/shared/snack_bar/app_snack_bars.dart';
 import 'package:mow_events/core/utils/network/network_manager.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
+import 'package:mow_events/features/auth/presentation/controller/auth_controller.dart';
 import 'package:mow_events/features/auth/services/auth_service.dart';
 
 typedef Json = Map<String, dynamic>;
@@ -44,7 +47,7 @@ class HttpHelper {
           .timeout(const Duration(seconds: 15));
 
       return _handleResponse(res);
-    });
+    }, withAuth: withAuth);
   }
 
   static Future<Json> post(
@@ -63,7 +66,7 @@ class HttpHelper {
           .timeout(const Duration(seconds: 15));
 
       return _handleResponse(res);
-    });
+    }, withAuth: withAuth);
   }
 
   static Future<Json> put(
@@ -82,7 +85,7 @@ class HttpHelper {
           .timeout(const Duration(seconds: 15));
 
       return _handleResponse(res);
-    });
+    }, withAuth: withAuth);
   }
 
   static Future<Json> delete(
@@ -99,7 +102,7 @@ class HttpHelper {
           .timeout(const Duration(seconds: 15));
 
       return _handleResponse(res);
-    });
+    }, withAuth: withAuth);
   }
 
   static Future<Json> postMultipart(
@@ -131,10 +134,13 @@ class HttpHelper {
       final res = await http.Response.fromStream(streamedRes);
 
       return _handleResponse(res);
-    });
+    }, withAuth: withAuth);
   }
 
-  static Future<T> _sendRequest<T>(Future<T> Function() requestFn) async {
+  static Future<T> _sendRequest<T>(
+    Future<T> Function() requestFn, {
+    required bool withAuth,
+  }) async {
     final isConnected = await NetworkManager.instance.isConnected();
     if (!isConnected) {
       NetworkManager.instance.showSnackBar(
@@ -161,6 +167,11 @@ class HttpHelper {
         isError: true,
       );
       throw NoInternetException();
+    } on UnauthorizedException catch (e) {
+      if (withAuth && AuthService.authenticated) {
+        await _handleUnauthorized(e.message);
+      }
+      rethrow;
     } catch (e) {
       final message = ErrorHandler.getErrorMessage(e);
       NetworkManager.instance.showSnackBar(
@@ -172,8 +183,43 @@ class HttpHelper {
     }
   }
 
+  static Future<void> _handleUnauthorized(String message) async {
+    if (AuthService.isLoggingOut || AuthService.isSessionExpiredHandling)
+      return;
+
+    if (Get.isRegistered<AuthController>()) {
+      await Get.find<AuthController>().logoutDueToUnauthorized(
+        message: message,
+      );
+      return;
+    }
+
+    AuthService.isLoggingOut = true;
+    AuthService.isSessionExpiredHandling = true;
+
+    try {
+      AppSnackBars.hideSnackBar();
+      await AuthService.logout();
+      Get.offAllNamed(AppRouter.logInScreen);
+      await Future.delayed(const Duration(milliseconds: 250));
+      final normalizedMessage = message.trim();
+      AppSnackBars.warningSnackBar(
+        title: AppTexts.warningTitle,
+        message:
+            normalizedMessage.isEmpty ||
+                normalizedMessage.toLowerCase() == 'unauthenticated.'
+            ? AppTexts.unauthorized
+            : normalizedMessage,
+        force: true,
+      );
+    } finally {
+      AuthService.isSessionExpiredHandling = false;
+      AuthService.isLoggingOut = false;
+    }
+  }
+
   static Json _handleResponse(http.Response res) {
-    log("⬅ Response (${res.statusCode}): ${res.body}");
+    if (res.statusCode != 200 && res.statusCode != 201) {}
 
     dynamic decoded;
     try {

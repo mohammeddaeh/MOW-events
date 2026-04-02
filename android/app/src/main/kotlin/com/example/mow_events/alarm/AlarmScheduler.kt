@@ -42,12 +42,10 @@ fun schedule(
         val alarmManager =
             context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                reminderTime,
-                pendingIntent
-            )
+        // setAlarmClock bypasses Doze and has highest priority - most reliable for reminders
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            val clockInfo = AlarmManager.AlarmClockInfo(reminderTime, pendingIntent)
+            alarmManager.setAlarmClock(clockInfo, pendingIntent)
         } else {
             alarmManager.setExact(
                 AlarmManager.RTC_WAKEUP,

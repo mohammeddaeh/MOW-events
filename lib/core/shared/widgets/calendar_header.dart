@@ -37,7 +37,8 @@ class CalendarHeader extends StatelessWidget {
 
     final hijriMonths =
         DateLocalizationHelper.getHijriMonthsRangeForGregorianMonth(date);
-    final hMonth = DateLocalizationHelper.hijriMonthsAr[hijriMonths.first - 1];
+    final hMonth =
+        DateLocalizationHelper.hijriMonthName(hijriMonths.first);
 
     final hYear = DateLocalizationHelper.hYear(date);
     if (userCalendar == 'both') {
@@ -126,7 +127,7 @@ class CalendarHeader extends StatelessWidget {
         if (userCalendar == 'hijri') {
           children.add(
             Text(
-              DateLocalizationHelper.hijriMonthsAr[hijriMonths.first - 1],
+              DateLocalizationHelper.hijriMonthName(hijriMonths.first),
               style: TextStyle(
                 fontSize: fontScale * 1.7,
                 fontWeight: FontWeight.w600,
@@ -140,7 +141,7 @@ class CalendarHeader extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  DateLocalizationHelper.hijriMonthsAr[hijriMonths.first - 1],
+                  DateLocalizationHelper.hijriMonthName(hijriMonths.first),
                   style: TextStyle(
                     fontSize: fontScale,
                     fontWeight: FontWeight.w700,
@@ -149,7 +150,7 @@ class CalendarHeader extends StatelessWidget {
                 ),
                 if (hijriMonths.length > 1)
                   Text(
-                    ' _ ${DateLocalizationHelper.hijriMonthsAr[hijriMonths.last - 1]}',
+                    ' _ ${DateLocalizationHelper.hijriMonthName(hijriMonths.last)}',
                     style: TextStyle(
                       fontSize: fontScale,
                       fontWeight: FontWeight.w400,
@@ -187,9 +188,10 @@ class CalendarHeader extends StatelessWidget {
 
     final hijriMonths =
         DateLocalizationHelper.getHijriMonthsRangeForGregorianMonth(date);
-    final hMonth = DateLocalizationHelper.hijriMonthsAr[hijriMonths.first - 1];
+    final hMonth =
+        DateLocalizationHelper.hijriMonthName(hijriMonths.first);
     final hMonth2 = hijriMonths.length > 1
-        ? DateLocalizationHelper.hijriMonthsAr[hijriMonths.last - 1]
+        ? DateLocalizationHelper.hijriMonthName(hijriMonths.last)
         : null;
 
     final hYear = DateLocalizationHelper.hYear(date);

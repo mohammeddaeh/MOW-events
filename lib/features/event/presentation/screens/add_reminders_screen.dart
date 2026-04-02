@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:mow_events/core/shared/snack_bar/app_snack_bars.dart';
 import 'package:mow_events/core/utils/constants/app_colors.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
 import 'package:mow_events/features/event/domin/entities/reminder_entity.dart';
@@ -57,13 +58,7 @@ class AddRemindersScreen extends GetView<ReminderController> {
                   child: ElevatedButton.icon(
                     onPressed: () => _addDefaultReminder(context),
                     icon: const Icon(Icons.add_circle_outline),
-                    label: Text(
-                      AppTexts.addReminder,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    label: Text(AppTexts.addReminder),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).colorScheme.primary,
                       foregroundColor: AppColors.white,
@@ -158,25 +153,29 @@ class AddRemindersScreen extends GetView<ReminderController> {
                   if (!formKey.currentState!.validate()) return;
 
                   final value = int.parse(valueController.text);
+                  final reminder = DefaultReminder(type: type, value: value);
+                  final applyToAll = applyToAllEvents;
 
-                  ReminderController.to.addDefaultReminder(
-                    DefaultReminder(type: type, value: value),
-                    applyToAllEvents: applyToAllEvents,
-                  );
-
-                  Get.back();
-                  Get.snackbar(
-                    AppTexts.success.tr,
-                    AppTexts.reminderAddedSuccessfully.tr,
-                    snackPosition: SnackPosition.BOTTOM,
-                  );
+                  Navigator.of(context).pop();
+                  WidgetsBinding.instance.addPostFrameCallback((_) async {
+                    await ReminderController.to.addDefaultReminder(
+                      reminder,
+                      applyToAllEvents: applyToAll,
+                    );
+                    if (Get.context != null && Get.context!.mounted) {
+                      AppSnackBars.successSnackBar(
+                        title: AppTexts.success.tr,
+                        message: AppTexts.reminderAddedSuccessfully.tr,
+                      );
+                    }
+                  });
                 },
               ),
             ],
           );
         },
       ),
-    );
+    ).then((_) => Future.delayed(const Duration(milliseconds: 400), () => valueController.dispose()));
   }
 
   void _editDefaultReminder(
@@ -243,10 +242,9 @@ class AddRemindersScreen extends GetView<ReminderController> {
                   );
 
                   Get.back();
-                  Get.snackbar(
-                    AppTexts.success,
-                    AppTexts.reminderUpdatedSuccessfully,
-                    snackPosition: SnackPosition.BOTTOM,
+                  AppSnackBars.successSnackBar(
+                    title: AppTexts.success,
+                    message: AppTexts.reminderUpdatedSuccessfully,
                   );
                 },
                 child: Text(AppTexts.save),
@@ -305,10 +303,9 @@ class AddRemindersScreen extends GetView<ReminderController> {
                   );
 
                   Get.back();
-                  Get.snackbar(
-                    AppTexts.success,
-                    AppTexts.reminderDeletedSuccessfully,
-                    snackPosition: SnackPosition.BOTTOM,
+                  AppSnackBars.successSnackBar(
+                    title: AppTexts.success,
+                    message: AppTexts.reminderDeletedSuccessfully,
                   );
                 },
                 child: Text(AppTexts.delete),

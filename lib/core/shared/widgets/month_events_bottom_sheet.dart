@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mow_events/core/shared/widgets/empty_state_widget.dart';
 import 'package:mow_events/core/utils/constants/app_colors.dart';
+import 'package:mow_events/core/utils/constants/app_images.dart';
 import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
 import 'package:mow_events/features/event/data/models/event_model.dart';
@@ -53,13 +55,9 @@ class MonthEventsBottomSheet extends StatelessWidget {
 
               Expanded(
                 child: events.isEmpty
-                    ? Center(
-                        child: Text(
-                          AppTexts.thereAreNoEventsThisMonth,
-                          style: TextStyle(
-                            color: AppThemeHelper.textSecondary(context),
-                          ),
-                        ),
+                    ? EmptyStateWidget(
+                        lottieAsset: AppImages.noResult,
+                        title: AppTexts.thereAreNoEventsThisMonth,
                       )
                     : ListView.separated(
                         itemCount: events.length,

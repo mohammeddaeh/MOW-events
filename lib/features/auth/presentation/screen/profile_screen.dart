@@ -6,7 +6,6 @@ import 'package:mow_events/core/utils/network/internet_guard.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
 
 import 'package:mow_events/features/auth/presentation/controller/profile_controller.dart';
-import 'package:mow_events/features/auth/presentation/widgets/change_profile_image_sheet.dart';
 import 'package:mow_events/features/auth/presentation/widgets/profile_image.dart';
 import 'package:mow_events/features/auth/presentation/widgets/profile_section.dart';
 
@@ -17,14 +16,12 @@ class ProfileScreen extends GetView<ProfileController> {
   Widget build(BuildContext context) {
     final bgColor = AppThemeHelper.background(context);
     final textColor = AppThemeHelper.whiteBlack(context);
-    final sectionColor = AppThemeHelper.blackWhite(context);
 
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
         title: Text(AppTexts.profile, style: TextStyle(color: textColor)),
         centerTitle: true,
-        backgroundColor: sectionColor,
         elevation: 1,
         iconTheme: IconThemeData(color: textColor),
       ),
@@ -32,7 +29,7 @@ class ProfileScreen extends GetView<ProfileController> {
         final user = controller.user.value;
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(10),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -40,16 +37,12 @@ class ProfileScreen extends GetView<ProfileController> {
                 ProfileImage(
                   text: user?.fullName,
                   imageUrl: user?.image,
-                  onChangeImage: () => Get.bottomSheet(
-                    ChangeProfileImageSheet(),
-                    isScrollControlled: true,
-                  ),
+                  editable: false,
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 8),
 
                 ProfileSection(
                   title: AppTexts.personalInformation,
-                  backgroundColor: sectionColor,
                   children: [
                     ProfileInfoTile(
                       label: AppTexts.firstName,
@@ -63,18 +56,20 @@ class ProfileScreen extends GetView<ProfileController> {
                 ),
                 ProfileSection(
                   title: AppTexts.contactInformation,
-                  backgroundColor: sectionColor,
                   children: [
                     ProfileInfoTile(label: AppTexts.email, value: user?.email),
                     ProfileInfoTile(
                       label: AppTexts.phoneNo,
                       value: user?.phone,
                     ),
+                    ProfileInfoTile(
+                      label: AppTexts.addresse,
+                      value: user?.address,
+                    ),
                   ],
                 ),
                 ProfileSection(
                   title: AppTexts.workInformation,
-                  backgroundColor: sectionColor,
                   children: [
                     ProfileInfoTile(
                       label: AppTexts.section,
@@ -82,30 +77,55 @@ class ProfileScreen extends GetView<ProfileController> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 30),
-                SizedBox(
-                  height: 52,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppThemeHelper.buttonPrimary(context),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: 14),
+                Column(
+                  children: [
+                    SizedBox(
+                      height: 52,
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppThemeHelper.buttonPrimary(
+                            context,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 4,
+                        ),
+                        onPressed: () {
+                          if (!InternetGuard.ensureOnline()) return;
+                          Get.toNamed(AppRouter.editProfile);
+                        },
+                        icon: const Icon(Icons.edit, size: 20),
+                        label: Text(AppTexts.editProfile),
                       ),
-                      elevation: 4,
                     ),
-                    onPressed: () {
-                      if (!InternetGuard.ensureOnline()) return;
-                      Get.toNamed(AppRouter.editProfile);
-                    },
-                    icon: const Icon(Icons.edit, size: 20),
-                    label: Text(
-                      AppTexts.editProfile,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 52,
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          if (!InternetGuard.ensureOnline()) return;
+                          Get.toNamed(AppRouter.changePassword);
+                        },
+                        icon: const Icon(Icons.lock_reset_rounded, size: 20),
+                        label: Text(AppTexts.changePassword),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppThemeHelper.buttonPrimary(
+                            context,
+                          ),
+                          side: BorderSide(
+                            color: AppThemeHelper.buttonPrimary(context),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),

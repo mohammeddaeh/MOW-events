@@ -4,6 +4,7 @@ import 'package:mow_events/core/utils/theme/widget_themes/bottom_sheet_theme.dar
 import 'package:mow_events/core/utils/theme/widget_themes/checkbox_theme.dart';
 import 'package:mow_events/core/utils/theme/widget_themes/chip_theme.dart';
 import 'package:mow_events/core/utils/theme/widget_themes/elevated_button_theme.dart';
+import 'package:mow_events/core/utils/theme/widget_themes/filled_button_theme.dart';
 import 'package:mow_events/core/utils/theme/widget_themes/outlined_button_theme.dart';
 import 'package:mow_events/core/utils/theme/widget_themes/text_field_theme.dart';
 import 'package:mow_events/core/utils/theme/widget_themes/text_theme.dart';
@@ -27,6 +28,7 @@ class AppTheme {
     checkboxTheme: AppCheckboxTheme.lightCheckboxTheme,
     bottomSheetTheme: AppBottomSheetTheme.lightBottomSheetTheme,
     elevatedButtonTheme: AppElevatedButtonTheme.lightElevatedButtonTheme,
+    filledButtonTheme: AppFilledButtonTheme.lightFilledButtonTheme,
     outlinedButtonTheme: AppOutlinedButtonTheme.lightOutlinedButtonTheme,
     inputDecorationTheme: AppTextFormFieldTheme.lightInputDecorationTheme,
   );
@@ -45,6 +47,7 @@ class AppTheme {
     checkboxTheme: AppCheckboxTheme.darkCheckboxTheme,
     bottomSheetTheme: AppBottomSheetTheme.darkBottomSheetTheme,
     elevatedButtonTheme: AppElevatedButtonTheme.darkElevatedButtonTheme,
+    filledButtonTheme: AppFilledButtonTheme.darkFilledButtonTheme,
     outlinedButtonTheme: AppOutlinedButtonTheme.darkOutlinedButtonTheme,
     inputDecorationTheme: AppTextFormFieldTheme.darkInputDecorationTheme,
   );

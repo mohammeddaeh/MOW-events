@@ -17,9 +17,9 @@ class AppTexts {
   static String get delete => "delete".tr;
   static String get cancel => "cancel".tr;
 
-  static const gregorian = "gregorian";
-  static const hijri = "hijri";
-  static const both = "both";
+  static String get gregorian => "gregorian".tr;
+  static String get hijri => "hijri".tr;
+  static String get both => "both".tr;
   static String get language => 'language'.tr;
   static String get theme => 'theme'.tr;
   static String get reminder => 'reminder'.tr;
@@ -156,6 +156,11 @@ class AppTexts {
   static String get resetPassword => 'resetPassword'.tr;
   static String get enterTheNewPassword => 'enterTheNewPassword'.tr;
   static String get changePassword => 'changePassword'.tr;
+  static String get currentPassword => 'currentPassword'.tr;
+  static String get newPassword => 'newPassword'.tr;
+  static String get confirmNewPassword => 'confirmNewPassword'.tr;
+  static String get changePasswordDescription =>
+      'changePasswordDescription'.tr;
   static String get confirmTheCode => 'confirmTheCode'.tr;
   static String get enterTheVerificationCodeSentToYourEmail =>
       'enterTheVerificationCodeSentToYourEmail'.tr;
@@ -184,6 +189,9 @@ class AppTexts {
       'thereAreNoNotificationsAtTheMoment'.tr;
   static String get acceptance => 'acceptance'.tr;
   static String get sortOptions => 'sortOptions'.tr;
+  static String get manager => 'manager'.tr;
+  /// "Manager of %s" — استبدل %s باسم القسم
+  static String get managerOfDepartment => 'managerOfDepartment'.tr;
   static String get startTime => 'startTime'.tr;
   static String get name => 'name'.tr;
   static String get ascending => 'ascending'.tr;
@@ -330,6 +338,15 @@ class AppTexts {
   static String get applyTo => 'applyTo'.tr;
   static String get allEvents => 'allEvents'.tr;
   static String get reminderAddedSuccessfully => 'reminderAddedSuccessfully'.tr;
+  static String get remindersWillBeSetForEvents =>
+      'remindersWillBeSetForEvents'.tr;
+  static String get scheduledAlerts => 'scheduledAlerts'.tr;
+  static String get upcomingReminders => 'upcomingReminders'.tr;
+  static String get pastReminders => 'pastReminders'.tr;
+  static String get alertAt => 'alertAt'.tr;
+  static String get testAlert => 'testAlert'.tr;
+  static String get testAlertInSeconds => 'testAlertInSeconds'.tr;
+  static String get noEventToTestAlert => 'noEventToTestAlert'.tr;
   static String get add => 'add'.tr;
   static String get value => 'value'.tr;
   static String get requiredField => 'requiredField'.tr;
@@ -360,4 +377,6 @@ class AppTexts {
   static String get ago => 'ago'.tr;
   static String get hours => 'hours'.tr;
   static String get minutes => 'minutes'.tr;
+  static String get invitedToEvent => 'invitedToEvent'.tr;
+  static String get eventCancelled => 'eventCancelled'.tr;
 }

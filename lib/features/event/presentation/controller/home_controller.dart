@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/shared/widgets/dialoge/app_dialog.dart';
@@ -99,6 +101,7 @@ class HomeController extends GetxController
   RxList<UserEntity> users = <UserEntity>[].obs;
 
   final currentIndex = 0.obs;
+  final currentTabIndex = 0.obs;
   bool _initialized = false;
   final Rx<EventModel?> _lastAddedEvent = Rx<EventModel?>(null);
   final Rx<EventModel?> _lastUpdatedEvent = Rx<EventModel?>(null);
@@ -120,6 +123,12 @@ class HomeController extends GetxController
   final int pageSize = 20;
   static const String settingsKey = 'home_settings';
 
+  /// آخر وقت تمت فيه مزامنة تلقائية (عند عودة النت) — لتجنب ضغط على السيرفر عند الانترنت المتقطع
+  DateTime? _lastAutoSyncTime;
+  Timer? _syncDebounceTimer;
+  static const Duration _minSyncInterval = Duration(minutes: 5);
+  static const Duration _syncDebounceDelay = Duration(seconds: 3);
+
   bool get isAdmin => currentUser?.isAdmin ?? false;
   bool get isManager => currentUser?.department?.isManager ?? false;
 
@@ -132,6 +141,11 @@ class HomeController extends GetxController
     super.onInit();
 
     tabController = TabController(length: 4, vsync: this);
+    tabController.addListener(() {
+      if (currentTabIndex.value != tabController.index) {
+        currentTabIndex.value = tabController.index;
+      }
+    });
     currentUser = AuthService.currentUser;
 
     ever(allEvents, (_) => applySettings());
@@ -143,30 +157,61 @@ class HomeController extends GetxController
   void onReady() {
     super.onReady();
     _init();
-    ever(network.isOnline, (online) {
-      if (online) {
-        syncWithServer();
-      }
+    ever(network.isOnline, _onConnectivityChanged);
+  }
+
+  @override
+  void onClose() {
+    _syncDebounceTimer?.cancel();
+    super.onClose();
+  }
+
+  /// عند تغير حالة النت: تأخير (debounce) وحد أدنى بين مزامنتين لتقليل الضغط على السيرفر عند الانترنت المتقطع
+  void _onConnectivityChanged(bool online) {
+    _syncDebounceTimer?.cancel();
+    if (!online) return;
+    _syncDebounceTimer = Timer(_syncDebounceDelay, () async {
+      _syncDebounceTimer = null;
+      if (!network.isOnline.value) return;
+      await _syncWhenOnlineIfNeeded();
     });
+  }
+
+  /// مزامنة تلقائية عند عودة النت فقط إذا مرّت الفترة الدنيا منذ آخر مزامنة (أو أول مرة)
+  Future<void> _syncWhenOnlineIfNeeded() async {
+    final now = DateTime.now();
+    if (_lastAutoSyncTime != null &&
+        now.difference(_lastAutoSyncTime!) < _minSyncInterval) {
+      return;
+    }
+    await syncWithServer();
+    _lastAutoSyncTime = DateTime.now();
   }
 
   Future<void> _init() async {
     await loadFromLocal();
 
     if (network.isOnline.value) {
-      syncWithServer();
+      await syncWithServer();
+      _lastAutoSyncTime = DateTime.now();
     }
   }
 
   Future<void> loadFromLocal() async {
     final data = userStorage.events;
-    if (data != null) {
+    if (data != null && data.isNotEmpty) {
       allEvents.assignAll(data.map((e) => EventModel.fromJson(e)));
+      ReminderController.to.cleanOrphanedReminders();
+      await ReminderController.to.onEventsLoaded(allEvents);
+      await ReminderController.to.rescheduleAllReminders();
       applySettings();
+    } else {
+      allEvents.clear();
     }
   }
 
   Future<void> syncWithServer() async {
+    if (isLoading.value) return;
     await refreshAllEvents();
   }
 
@@ -270,32 +315,38 @@ class HomeController extends GetxController
 
     _currentPage = 1;
     hasMoreEvents.value = true;
-
     isLoading.value = true;
 
     try {
-      final list = await eventRepo.getEvents(page: _currentPage);
-      final eventsPage = list.cast<EventModel>();
-
+      final allFromServer = await _fetchAllEventsFromServer();
       allEvents
         ..clear()
-        ..addAll(eventsPage);
+        ..addAll(allFromServer);
       ReminderController.to.onEventsLoaded(allEvents);
-
       applySettings();
-
       await saveEvents();
-
-      if (eventsPage.length < pageSize) {
-        hasMoreEvents.value = false;
-      }
-
-      _currentPage++;
+      hasMoreEvents.value = false;
+      _currentPage = (allFromServer.length / pageSize).ceil() + 1;
     } catch (e) {
       errorMessage.value = 'Failed to refresh events: $e';
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /// جلب كل الأحداث من السيرفر (جميع الصفحات) لضمان حفظ القائمة الكاملة في التخزين المحلي عند المزامنة
+  Future<List<EventModel>> _fetchAllEventsFromServer() async {
+    final result = <EventModel>[];
+    int page = 1;
+    while (true) {
+      final list = await eventRepo.getEvents(page: page);
+      final eventsPage = list.cast<EventModel>();
+      if (eventsPage.isEmpty) break;
+      result.addAll(eventsPage);
+      if (eventsPage.length < pageSize) break;
+      page++;
+    }
+    return result;
   }
 
   Future<void> loadInitialData({bool forceRefresh = false}) async {
@@ -343,6 +394,7 @@ class HomeController extends GetxController
       }
 
       allEvents.addAll(eventsPage);
+      await ReminderController.to.onEventsLoaded(eventsPage);
 
       applySettings();
 
@@ -386,22 +438,35 @@ class HomeController extends GetxController
       final updated = await eventRepo.updateEvent(id: id, event: updatedEvent);
       final index = allEvents.indexWhere((e) => e.id == id);
       if (index != -1) {
+        List<int> mergedMembers = updated.members;
+        if (mergedMembers.isEmpty && updatedEvent.members.isNotEmpty) {
+          mergedMembers = List.from(updatedEvent.members);
+          final currentUserId = AuthService.currentUser?.id;
+          if (currentUserId != null && !mergedMembers.contains(currentUserId)) {
+            mergedMembers = [...mergedMembers, currentUserId];
+          }
+        }
+        final merged =
+            updated.members.isEmpty && updatedEvent.members.isNotEmpty
+            ? updated.copyWith(members: mergedMembers)
+            : updated;
         allEvents
           ..removeAt(index)
-          ..insert(index, updated);
+          ..insert(index, merged);
 
         allEvents.refresh();
 
         applySettings();
 
-        ReminderController.to.onEventUpdated(updated);
+        ReminderController.to.onEventUpdated(merged);
 
         await saveEvents();
 
-        _lastUpdatedEvent.value = updated;
+        _lastUpdatedEvent.value = merged;
       }
     } catch (e) {
       errorMessage.value = 'Failed to update event: $e';
+      rethrow;
     } finally {
       isUpdatingEvent.value = false;
     }
@@ -428,6 +493,24 @@ class HomeController extends GetxController
   }
 
   void changeBottomIndex(int index) => currentIndex.value = index;
+
+  /// الرجوع إلى التبويب اليومي (لزر الرجوع من أسبوع/شهر/سنة)
+  void goToDayTab() {
+    if (tabController.index != 0) {
+      tabController.animateTo(0);
+      currentTabIndex.value = 0;
+    }
+  }
+
+  /// الرجوع إلى الصفحة الرئيسة والتبويب اليومي (لزر الرجوع من الإعدادات)
+  void goToDayScreen() {
+    currentIndex.value = 0;
+    if (tabController.index != 0) {
+      tabController.animateTo(0);
+    }
+    currentTabIndex.value = 0;
+  }
+
   Future<void> confirmDelete(EventModel event) async {
     if (!InternetGuard.ensureOnline()) return;
 

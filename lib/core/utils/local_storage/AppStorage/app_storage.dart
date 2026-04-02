@@ -10,7 +10,7 @@ class AppStorage {
   Future<void> setTheme(String value) =>
       _storage.write(StorageKeys.theme, value);
 
-  String get lang => _storage.read(StorageKeys.lang) ?? 'en';
+  String? get lang => _storage.read(StorageKeys.lang);
 
   Future<void> setLang(String value) => _storage.write(StorageKeys.lang, value);
   String get calendar => _storage.read(StorageKeys.calendar) ?? 'gregorian';

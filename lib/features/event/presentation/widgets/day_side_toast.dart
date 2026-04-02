@@ -4,8 +4,14 @@ import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
 class DaySideToast extends StatefulWidget {
   final Widget child;
   final bool fromRight;
+  final Duration duration;
 
-  const DaySideToast({super.key, required this.child, this.fromRight = true});
+  const DaySideToast({
+    super.key,
+    required this.child,
+    this.fromRight = true,
+    this.duration = const Duration(seconds: 3),
+  });
 
   @override
   State<DaySideToast> createState() => _DaySideToastState();
@@ -38,7 +44,7 @@ class _DaySideToastState extends State<DaySideToast>
 
     controller.forward();
 
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(widget.duration, () {
       if (mounted) controller.reverse();
     });
   }
@@ -59,26 +65,22 @@ class _DaySideToastState extends State<DaySideToast>
         position: slide,
         child: FadeTransition(
           opacity: fade,
-          child: Material(
-            elevation: 8,
-            color: AppThemeHelper.blackWhite(context),
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              margin: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(
-                color: AppThemeHelper.blackWhite(context),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 10,
-                    spreadRadius: 1,
-                  ),
-                ],
-              ),
-              child: widget.child,
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: AppThemeHelper.blackWhite(context),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 12,
+                  spreadRadius: 2,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
+            child: widget.child,
           ),
         ),
       ),

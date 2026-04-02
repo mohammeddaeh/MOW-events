@@ -51,6 +51,7 @@ class UserStorage {
     await _storage.remove(StorageKeys.events(id));
     await _storage.remove(StorageKeys.reminders(id));
     await _storage.remove(StorageKeys.home(id));
+    await _storage.clearAll();
   }
 
   Future<void> saveScheduledReminders(

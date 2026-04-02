@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/shared/widgets/calendar_grid_view.dart';
+import 'package:mow_events/core/shared/widgets/empty_state_widget.dart';
+import 'package:mow_events/core/utils/constants/app_images.dart';
+import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
 import 'package:mow_events/core/shared/widgets/calendar_header.dart';
 import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
@@ -49,12 +52,12 @@ class MonthScreen extends StatelessWidget {
           const SizedBox(height: 10),
           Obx(() {
             final month = controller.currentMonth.value;
-            final firstDay = DateTime(month.year, month.month, 1);
-            final lastDay = DateTime(month.year, month.month + 1, 0);
-            final startWeekday = firstDay.weekday % 7;
-            final totalCells = startWeekday + lastDay.day;
+            // استخدام نفس المنطق للتقويم المختار (ميلادي/هجري/كلاهما)
+            final days = DateLocalizationHelper.generateMonthDays(month);
+            final totalCells = days.length;
             final totalWeeks = (totalCells / 7).ceil();
             final width = MediaQuery.sizeOf(context).width;
+            DateLocalizationHelper.userCalendar.value;
             final cellSize = (width / 7).clamp(36.0, double.infinity);
             final weekHeaderHeight = cellSize * 0.7;
             final calendarHeight =
@@ -81,7 +84,10 @@ class MonthScreen extends StatelessWidget {
             flex: 1,
             child: Obx(() {
               if (controller.selectedDayTasks.isEmpty) {
-                return Center(child: Text(AppTexts.noEventsThisMonth));
+                return EmptyStateWidget(
+                  lottieAsset: AppImages.noResult,
+                  title: AppTexts.noEventsThisDay,
+                );
               }
 
               return ListView.builder(
@@ -144,26 +150,38 @@ class MonthScreen extends StatelessWidget {
                     child: Transform.translate(
                       offset: Offset(offsetX, 0),
                       child: DaySideToast(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              AppTexts.todaySDate,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 11,
+                        child: Builder(
+                          builder: (ctx) {
+                            final textColor = AppThemeHelper.whiteBlack(ctx);
+                            final baseStyle = TextStyle(
+                              color: textColor,
+                              fontSize: 10,
+                              decoration: TextDecoration.none,
+                              fontWeight: FontWeight.normal,
+                            );
+                            return DefaultTextStyle(
+                              style: baseStyle,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    AppTexts.todaySDate,
+                                    style: baseStyle.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    '${AppTexts.gregorian.tr}: ${display.gDay} ${display.gMonth} ${display.gYear}',
+                                  ),
+                                  Text(
+                                    '${AppTexts.hijri.tr}: ${display.hDay} ${display.hMonth} ${display.hYear}',
+                                  ),
+                                ],
                               ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              '${AppTexts.gregorian}: ${display.gDay} ${display.gMonth} ${display.gYear}',
-                              style: const TextStyle(fontSize: 10),
-                            ),
-                            Text(
-                              '${AppTexts.hijri}: ${display.hDay} ${display.hMonth} ${display.hYear}',
-                              style: const TextStyle(fontSize: 10),
-                            ),
-                          ],
+                            );
+                          },
                         ),
                       ),
                     ),

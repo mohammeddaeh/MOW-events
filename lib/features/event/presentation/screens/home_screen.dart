@@ -35,16 +35,32 @@ class HomeScreen extends GetView<HomeController> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: overlayStyle,
       child: Obx(
-        () => Scaffold(
-          body: controller.currentIndex.value == 0
-              ? HomeTab(controller: controller)
-              : SettingsScreen(),
+        () {
+          final onHome = controller.currentIndex.value == 0;
+          final onDayTab = controller.currentTabIndex.value == 0;
+          final canExitApp = onHome && onDayTab;
 
-          bottomNavigationBar: CustomBottomNav(
-            currentIndex: controller.currentIndex.value,
-            onTap: controller.changeBottomIndex,
-          ),
-        ),
+          return PopScope(
+            canPop: canExitApp,
+            onPopInvokedWithResult: (didPop, result) {
+              if (didPop) return;
+              if (!onHome) {
+                controller.goToDayScreen();
+              } else {
+                controller.goToDayTab();
+              }
+            },
+            child: Scaffold(
+              body: onHome
+                  ? HomeTab(controller: controller)
+                  : SettingsScreen(),
+              bottomNavigationBar: CustomBottomNav(
+                currentIndex: controller.currentIndex.value,
+                onTap: controller.changeBottomIndex,
+              ),
+            ),
+          );
+        },
       ),
     );
   }

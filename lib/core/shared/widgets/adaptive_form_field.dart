@@ -4,7 +4,16 @@ import 'package:mow_events/core/utils/constants/app_size.dart';
 import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
 import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
 
-enum AdaptiveFieldType { text, email, password, select, date, time, note }
+enum AdaptiveFieldType {
+  text,
+  email,
+  password,
+  select,
+  date,
+  time,
+  note,
+  phone,
+}
 
 String _formatDateForDisplay(DateTime date) {
   final model = DateLocalizationHelper.display(date);
@@ -106,7 +115,8 @@ class _AdaptiveFormFieldState<T> extends State<AdaptiveFormField<T>> {
         return TextInputType.datetime;
       case AdaptiveFieldType.note:
         return TextInputType.multiline;
-
+      case AdaptiveFieldType.phone:
+        return TextInputType.phone;
       default:
         return TextInputType.text;
     }
@@ -114,7 +124,7 @@ class _AdaptiveFormFieldState<T> extends State<AdaptiveFormField<T>> {
 
   InputDecoration _decoration() {
     SizeConfig.init(context);
-    final borderColor = widget.borderColor ?? Colors.grey.shade400;
+    final borderColor = widget.borderColor ?? AppThemeHelper.border(context);
 
     OutlineInputBorder outline = OutlineInputBorder(
       borderSide: BorderSide(color: borderColor, width: 1.2.w),
@@ -127,7 +137,7 @@ class _AdaptiveFormFieldState<T> extends State<AdaptiveFormField<T>> {
       labelStyle:
           widget.labelStyle ??
           TextStyle(
-            color: AppColors.textGray,
+            color: AppThemeHelper.textSecondary(context),
             fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
@@ -174,6 +184,7 @@ class _AdaptiveFormFieldState<T> extends State<AdaptiveFormField<T>> {
         widget.type == AdaptiveFieldType.time) {
       return const Icon(Icons.event);
     }
+
     return null;
   }
 
@@ -222,16 +233,35 @@ class _AdaptiveFormFieldState<T> extends State<AdaptiveFormField<T>> {
                     ),
               timePickerTheme: TimePickerThemeData(
                 backgroundColor: AppThemeHelper.background(context),
-                hourMinuteTextColor: AppThemeHelper.whiteBlack(context),
-                dialHandColor: isDark ? AppColors.gold : AppColors.primary,
-                dialBackgroundColor: isDark
-                    ? AppColors.black.withOpacity(0.3)
-                    : AppColors.primary.withOpacity(0.1),
-                entryModeIconColor: isDark ? AppColors.gold : AppColors.primary,
+                hourMinuteColor: AppThemeHelper.buttonPrimary(context),
+                hourMinuteTextColor: isDark ? AppColors.black : Colors.white,
+                hourMinuteTextStyle: TextStyle(
+                  color: isDark ? AppColors.black : Colors.white,
+                  fontSize: 48,
+                  fontWeight: FontWeight.w400,
+                ),
+                dayPeriodColor: AppThemeHelper.buttonPrimary(context),
+                dayPeriodTextColor: WidgetStateColor.resolveWith((
+                  Set<WidgetState> states,
+                ) {
+                  return states.contains(WidgetState.selected)
+                      ? (isDark ? AppColors.black : Colors.white)
+                      : AppThemeHelper.textSecondary(context);
+                }),
+                dialHandColor: AppThemeHelper.accent(context),
+                dialBackgroundColor: AppThemeHelper.accent(
+                  context,
+                ).withOpacity(0.15),
+                dialTextColor: AppThemeHelper.whiteBlack(context),
+                entryModeIconColor: AppThemeHelper.accent(context),
+                helpTextStyle: TextStyle(
+                  color: AppThemeHelper.whiteBlack(context),
+                  fontWeight: FontWeight.w400,
+                ),
               ),
               textButtonTheme: TextButtonThemeData(
                 style: TextButton.styleFrom(
-                  foregroundColor: isDark ? AppColors.gold : AppColors.primary,
+                  foregroundColor: AppThemeHelper.accent(context),
                 ),
               ),
             ),

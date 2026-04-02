@@ -36,7 +36,7 @@ class AppImagePreviewDialog extends StatelessWidget {
             children: [
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.pop(context, false);
                   onCancel?.call();
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -44,7 +44,7 @@ class AppImagePreviewDialog extends StatelessWidget {
               ),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.pop(context, true);
                   onConfirm();
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.green),

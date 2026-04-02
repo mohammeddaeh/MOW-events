@@ -5,6 +5,7 @@ import 'package:mow_events/features/auth/data/models/user_model.dart';
 
 class AuthService {
   static bool isLoggingOut = false;
+  static bool isSessionExpiredHandling = false;
 
   static final _authStorage = AuthStorage();
   static final _appStorage = AppStorage();
@@ -16,7 +17,7 @@ class AuthService {
   static String get token {
     final t = _authStorage.token;
     if (t == null || t.isEmpty) return '';
-    return 'Bearer $t';
+    return t;
   }
 
   static bool get authenticated {

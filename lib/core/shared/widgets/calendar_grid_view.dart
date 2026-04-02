@@ -58,6 +58,7 @@ class UniversalCalendarGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final cellWidth = constraints.maxWidth / 7;
+        final isBothYear = isYearMode && userCalendar == 'both';
         final scale = isYearMode ? (cellWidth * 0.33) : (cellWidth * 0.45);
 
         final fontDay = scale * 0.7;
@@ -240,7 +241,9 @@ class UniversalCalendarGrid extends StatelessWidget {
               SizedBox(width: 4),
             ],
           ),
-          SizedBox(height: 2),
+          if (!(isYearMode &&
+              DateLocalizationHelper.userCalendar.value == 'both'))
+            SizedBox(height: 2),
           Text(
             DateLocalizationHelper.gDay(day),
             style: TextStyle(
@@ -274,6 +277,22 @@ class UniversalCalendarGrid extends StatelessWidget {
     double scale,
     String userCalendar,
   ) {
+    if (userCalendar == 'hijri' && isYearMode) {
+      final hijri = DateLocalizationHelper.toHijri(month);
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 6.0),
+        child: Center(
+          child: Text(
+            DateLocalizationHelper.hijriMonthName(hijri.hMonth),
+            style: TextStyle(
+              fontSize: scale * 1.7,
+              fontWeight: FontWeight.w600,
+              color: Colors.amber.shade700,
+            ),
+          ),
+        ),
+      );
+    }
     return Padding(
       padding: const EdgeInsets.only(bottom: 6.0),
       child: CalendarHeader(

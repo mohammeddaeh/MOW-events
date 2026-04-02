@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/shared/snack_bar/app_snack_bars.dart';
+import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
 import 'package:mow_events/features/category/data/models/category_model.dart';
 import 'package:mow_events/features/category/presentation/controller/categories_controller.dart';
@@ -81,10 +82,19 @@ Future<bool?> showCategoryDialog({
         actions: [
           TextButton(
             onPressed: () => Get.back(result: null),
-            child: Text(AppTexts.cancel),
+            child: Text(
+              AppTexts.cancel,
+              style: TextStyle(
+                color: AppThemeHelper.buttonSecondary(Get.context!),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
           Obx(
             () => ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppThemeHelper.buttonPrimary(Get.context!),
+              ),
               onPressed: isLoading.value
                   ? null
                   : () async {

@@ -1,6 +1,7 @@
 import 'package:mow_events/core/utils/http/api_endpoints.dart';
 import 'package:mow_events/core/utils/validator/event_validator.dart';
 import 'package:mow_events/features/auth/data/models/user_model.dart';
+import 'package:mow_events/features/event/data/models/event_member_display.dart';
 import 'package:mow_events/features/event/data/models/event_model.dart';
 
 import '../../../../core/utils/helpers/http_helper.dart';
@@ -61,7 +62,6 @@ class EventsBackend {
 
     final formData = event.toForm();
     final url = ApiEndpoints.eventsUpdate(id);
-
     final res = await HttpHelper.postMultipart(url, formData, null);
 
     return EventModel.fromJson(res['data']['event']);
@@ -84,11 +84,62 @@ class EventsBackend {
   Future<List<int>> getMembersInEvent(int id) async {
     if (id <= 0) throw ArgumentError('Invalid event ID');
     final url = ApiEndpoints.eventShowMembers(id);
-
     final res = await HttpHelper.get(url);
+    final data = res['data'];
+    if (data == null) return [];
 
-    final members = res['data']?['members'] as List<dynamic>? ?? [];
-    return members.map((e) => (e as num).toInt()).toList();
+    final raw =
+        data['members'] ?? data['users'] ?? (data is List ? data : null);
+    if (raw == null || raw is! List) return [];
+
+    return raw
+        .map((e) {
+          if (e is num) return e.toInt();
+          if (e is Map && e['id'] != null) {
+            final v = e['id'];
+            return (v is num ? v : int.tryParse(v.toString()));
+          }
+          return int.tryParse(e.toString());
+        })
+        .whereType<int>()
+        .where((id) => id > 0)
+        .toList();
+  }
+
+  /// جلب المشاركين مع التفاصيل (اسم، صورة، قسم) إن وُجدت في الاستجابة
+  Future<List<EventMemberDisplay>> getEventMembersWithDetails(int id) async {
+    if (id <= 0) return [];
+    final url = ApiEndpoints.eventShowMembers(id);
+    final res = await HttpHelper.get(url);
+    final data = res['data'];
+    if (data == null) return [];
+
+    final raw =
+        data['members'] ?? data['users'] ?? (data is List ? data : null);
+    if (raw == null || raw is! List) return [];
+
+    final list = <EventMemberDisplay>[];
+    for (final e in raw) {
+      if (e is Map && e['id'] != null) {
+        list.add(EventMemberDisplay.fromJson(Map<String, dynamic>.from(e)));
+      } else if (e is num) {
+        list.add(
+          EventMemberDisplay(
+            id: e.toInt(),
+            firstName: 'User',
+            lastName: '${e.toInt()}',
+          ),
+        );
+      } else {
+        final id = int.tryParse(e.toString());
+        if (id != null && id > 0) {
+          list.add(
+            EventMemberDisplay(id: id, firstName: 'User', lastName: '$id'),
+          );
+        }
+      }
+    }
+    return list;
   }
 
   Future<EventModel> getEventDetails(int id) async {
@@ -98,6 +149,8 @@ class EventsBackend {
 
     final res = await HttpHelper.get(url);
 
-    return EventModel.fromJson(res['data']['result']);
+    return EventModel.fromJson(
+      (res['data']?['result'] ?? res['data']) as Map<String, dynamic>,
+    );
   }
 }

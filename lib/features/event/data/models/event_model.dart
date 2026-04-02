@@ -22,6 +22,7 @@ class EventModel extends EventEntity {
     required super.createdAt,
     required super.userCurrentInMembers,
     required super.members,
+    super.userId,
   });
   factory EventModel.fromJson(Map<String, dynamic> json) {
     int safeInt(dynamic value, [int defaultVal = 0]) => value == null
@@ -72,6 +73,13 @@ class EventModel extends EventEntity {
       createdAt: safeString(json["created_at"]),
       userCurrentInMembers: safeBool(json["user_current_in_members"]),
       members: safeMembers(json["members"]),
+      userId: () {
+        if (json["user_id"] != null) return safeInt(json["user_id"]);
+        if (json["created_by"] != null) return safeInt(json["created_by"]);
+        final user = json["user"];
+        if (user is Map && user["id"] != null) return safeInt(user["id"]);
+        return null;
+      }(),
     );
   }
 }
@@ -180,6 +188,7 @@ extension EventForm on EventModel {
 extension EventCopyWith on EventModel {
   EventModel copyWith({
     int? id,
+    int? userId,
     CategoryModel? category,
     String? name,
     String? location,
@@ -198,10 +207,10 @@ extension EventCopyWith on EventModel {
     bool? userCurrentInMembers,
     List<int>? members,
   }) {
-    print('[EventModel] copyWith -> id: ${id ?? this.id}');
 
     return EventModel(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       category: category ?? this.category,
       name: name ?? this.name,
       location: location ?? this.location,

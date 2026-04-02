@@ -2,6 +2,25 @@ import 'package:get/get.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
 
 class AppValidator {
+  static String normalizePhoneNumber(String? value) {
+    return value?.replaceAll(RegExp(r'\D'), '') ?? '';
+  }
+
+  static String? validatePhoneNumber(String? value) {
+    final rawValue = value?.trim() ?? '';
+    final normalized = normalizePhoneNumber(rawValue);
+
+    if (rawValue.isEmpty) return AppTexts.fieldIsRequired;
+    if (!RegExp(r'^\d+$').hasMatch(rawValue)) {
+      return AppTexts.invalidNumber;
+    }
+    if (!RegExp(r'^0\d{9}$').hasMatch(normalized)) {
+      return AppTexts.invalidNumber;
+    }
+
+    return null;
+  }
+
   static String? validateEmail(String? value) {
     if (value == null || value.isEmpty) return AppTexts.emailIsRequired;
     if (!GetUtils.isEmail(value)) return AppTexts.invalidEmail;

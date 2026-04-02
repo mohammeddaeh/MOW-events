@@ -20,10 +20,10 @@ class ProfileSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(bottom: 20),
-      padding: padding ?? const EdgeInsets.all(16),
+      padding:
+          padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: backgroundColor ?? AppThemeHelper.grey(context),
+        color: backgroundColor ?? AppThemeHelper.blackWhite(context),
         borderRadius: BorderRadius.circular(borderRadius),
       ),
       child: Column(
@@ -32,7 +32,7 @@ class ProfileSection extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-              color: AppThemeHelper.blackBblack(context),
+              color: AppThemeHelper.whiteBlack(context),
               fontSize: 15,
               fontWeight: FontWeight.bold,
             ),
@@ -66,6 +66,7 @@ class ProfileInfoTile extends StatelessWidget {
     return Padding(
       padding: padding ?? const EdgeInsets.symmetric(vertical: 6),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             flex: 3,
@@ -74,7 +75,7 @@ class ProfileInfoTile extends StatelessWidget {
               style:
                   labelStyle ??
                   TextStyle(
-                    color: AppThemeHelper.blackPrimary(context),
+                    color: AppThemeHelper.whiteBlack(context),
                     fontSize: 14,
                   ),
             ),
@@ -86,7 +87,7 @@ class ProfileInfoTile extends StatelessWidget {
               style:
                   valueStyle ??
                   TextStyle(
-                    color: AppThemeHelper.blackBblack(context),
+                    color: AppThemeHelper.whiteBlack(context),
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),

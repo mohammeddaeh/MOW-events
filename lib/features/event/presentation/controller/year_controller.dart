@@ -11,12 +11,21 @@ class YearController extends GetxController {
   RxList<EventModel> events = <EventModel>[].obs;
 
   final Map<String, List<EventModel>> eventsByDay = {};
-  RxInt currentHijriYear = DateTime.now().year.obs;
+  RxInt currentHijriYear = HijriCalendar.now().hYear.obs;
 
   @override
   void onInit() {
     super.onInit();
-    everAll([home.processedEvents, currentYear], (_) => _loadYearEvents());
+    everAll(
+      [home.processedEvents, currentYear, DateLocalizationHelper.userCalendar],
+      (_) {
+        if (DateLocalizationHelper.userCalendar.value == 'hijri') {
+          final todayHijri = HijriCalendar.now();
+          currentHijriYear.value = todayHijri.hYear;
+        }
+        _loadYearEvents();
+      },
+    );
     if (home.processedEvents.isNotEmpty) {
       _loadYearEvents();
     }
@@ -62,18 +71,48 @@ class YearController extends GetxController {
 
   String _dayKey(DateTime dt) => '${dt.year}-${dt.month}-${dt.day}';
 
-  void nextYear() => currentYear.value++;
-  void previousYear() => currentYear.value--;
-  List<DateTime> get yearMonths {
+  void nextYear() {
     if (DateLocalizationHelper.userCalendar.value == 'hijri') {
-      return List.generate(12, (index) {
-        final hMonth = index + 1;
-        final firstDayG = HijriCalendar().hijriToGregorian(
+      if (currentHijriYear.value < 1500) {
+        currentHijriYear.value++;
+        final gDate = HijriCalendar().hijriToGregorian(
           currentHijriYear.value,
-          hMonth,
+          1,
           1,
         );
-        return firstDayG;
+        currentYear.value = gDate.year;
+      }
+    } else {
+      currentYear.value++;
+    }
+  }
+
+  void previousYear() {
+    if (DateLocalizationHelper.userCalendar.value == 'hijri') {
+      if (currentHijriYear.value > 1356) {
+        currentHijriYear.value--;
+        final gDate = HijriCalendar().hijriToGregorian(
+          currentHijriYear.value,
+          1,
+          1,
+        );
+        currentYear.value = gDate.year;
+      }
+    } else {
+      currentYear.value--;
+    }
+  }
+
+  List<DateTime> get yearMonths {
+    if (DateLocalizationHelper.userCalendar.value == 'hijri') {
+      final hYear = currentHijriYear.value;
+      return List.generate(12, (i) {
+        final hMonth = i + 1;
+        try {
+          return HijriCalendar().hijriToGregorian(hYear, hMonth, 1);
+        } catch (_) {
+          return DateTime.now();
+        }
       });
     } else {
       final year = currentYear.value;

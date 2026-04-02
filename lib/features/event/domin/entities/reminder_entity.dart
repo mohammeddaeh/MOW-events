@@ -186,6 +186,7 @@ class DefaultReminder {
     final id = '${source.name}_${eventId}_${type.name}_$value';
     final key = '${type.name}_$value';
 
+    final alarmId = (Object.hash(eventId, id) & 0x7FFFFFFF);
     return ReminderEntity(
       id: id,
       eventId: eventId,
@@ -194,8 +195,7 @@ class DefaultReminder {
       value: value,
       reminderTime: reminderTime,
       defaultKey: key,
-
-      alarmId: DateTime.now().microsecondsSinceEpoch,
+      alarmId: alarmId,
     );
   }
 }

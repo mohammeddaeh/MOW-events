@@ -1,9 +1,11 @@
 import 'package:get/get.dart';
+import 'package:mow_events/features/auth/presentation/binding/change_password_binding.dart';
 import 'package:mow_events/features/auth/presentation/binding/forgot_password_binding.dart';
 import 'package:mow_events/features/auth/presentation/binding/log_in_binding.dart';
 import 'package:mow_events/features/auth/presentation/binding/profile_binding.dart';
 import 'package:mow_events/features/auth/presentation/binding/reset_password_binding.dart';
 import 'package:mow_events/features/auth/presentation/binding/verify_code_binding.dart';
+import 'package:mow_events/features/auth/presentation/screen/change_password_screen.dart';
 import 'package:mow_events/features/auth/presentation/screen/edit_profile_screen.dart';
 import 'package:mow_events/features/auth/presentation/screen/forgot_password_screen.dart';
 import 'package:mow_events/features/auth/presentation/screen/log_in_screen.dart';
@@ -33,6 +35,7 @@ class AppRouter {
   static const String settings = '/settings';
   static const String editProfile = '/editProfile';
   static const String profile = '/profile';
+  static const String changePassword = '/changePassword';
   static const String editEvent = '/editEvent';
   static const String categoriesPage = '/categoriesPage';
   static const String notifications = '/notifications';
@@ -70,6 +73,11 @@ class AppRouter {
       name: AppRouter.editProfile,
       page: () => EditProfileScreen(),
       binding: ProfileBinding(),
+    ),
+    GetPage(
+      name: AppRouter.changePassword,
+      page: () => const ChangePasswordScreen(),
+      binding: ChangePasswordBinding(),
     ),
 
     GetPage(name: homeScreen, page: () => HomeScreen(), binding: HomeBinding()),
