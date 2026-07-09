@@ -10,10 +10,9 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
-<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-
-<!-- Android 13+ -->
-<!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" /> -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <!-- ================= Application ================= -->
     <application
@@ -23,66 +22,40 @@
         android:usesCleartextTraffic="true"
         android:enableOnBackInvokedCallback="true">
 
-        <!-- Alarm Activity -->
+        <!-- Full-screen native alarm UI -->
         <activity
-            android:name=".alarm.AlarmActivity"
+            android:name=".alarm.FullScreenAlarmActivity"
+            android:exported="false"
             android:showWhenLocked="true"
+            android:showOnLockScreen="true"
             android:turnScreenOn="true"
             android:excludeFromRecents="true"
             android:launchMode="singleTask"
             android:taskAffinity=""
-           android:theme="@style/LaunchTheme"
- />
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            tools:targetApi="o_mr1">
 
-        <!-- Alarm Receiver -->
+            <meta-data
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme" />
+        </activity>
+
         <receiver
             android:name=".alarm.AlarmReceiver"
             android:exported="false" />
 
-        <!-- ================= Pushy ================= -->
-        <!-- <meta-data
-            android:name="me.pushy.sdk.pushyAppId"
-            android:value="694848ace5ab0cc75891088f" />
-
         <receiver
-            android:name="me.pushy.sdk.flutter.internal.PushyInternalReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="pushy.me" />
-            </intent-filter>
-        </receiver> -->
-
-        <!-- <receiver
-            android:name="me.pushy.sdk.receivers.PushyUpdateReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
-            </intent-filter>
-        </receiver> -->
-
-        <!-- <receiver
-            android:name="me.pushy.sdk.receivers.PushyBootReceiver"
-            android:exported="false">
+            android:name=".alarm.BootRescheduleReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-        </receiver> -->
-<!-- <service
-    android:name="id.flutter.flutter_background_service.BackgroundService"
-    android:exported="false"
-    android:foregroundServiceType="dataSync"
-    tools:replace="android:exported">
-</service> -->
-
-        <!-- <service
-            android:name="me.pushy.sdk.services.PushySocketService"
-            android:stopWithTask="false" 
-    android:foregroundServiceType="connectedDevice|dataSync"/>
-
-        <service
-            android:name="me.pushy.sdk.services.PushyJobService"
-            android:permission="android.permission.BIND_JOB_SERVICE"
-            android:stopWithTask="false" /> -->
+        </receiver>
 
         <!-- Main Activity -->
         <activity

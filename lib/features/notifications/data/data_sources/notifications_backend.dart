@@ -1,11 +1,24 @@
+import 'package:mow_events/core/utils/error/api_exceptions.dart';
 import 'package:mow_events/core/utils/http/api_endpoints.dart';
+import 'package:mow_events/core/utils/translation/app_texts.dart';
 import 'package:mow_events/features/notifications/data/models/notification_model.dart';
 
 import '../../../../core/utils/helpers/http_helper.dart';
 
 class NotificationsBackend {
   Future<void> setFcmToken(String token) async {
-    await HttpHelper.post(ApiEndpoints.fcmSetToken, {'device_token': token});
+    final res = await HttpHelper.post(
+      ApiEndpoints.fcmSetToken,
+      {'device_token': token},
+    );
+
+    if (res['status'] == false) {
+      final message =
+          res['message']?.toString() ??
+          res['error']?.toString() ??
+          AppTexts.fcmTokenSyncFailed;
+      throw ApiException(message);
+    }
   }
 
   Future<NotificationsResponse> getAllNotifications({int page = 1}) async {

@@ -13,7 +13,7 @@ import 'package:mow_events/features/event/presentation/widgets/custom_card_setti
 import 'package:mow_events/features/event/presentation/screens/add_reminders_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
-  SettingsScreen({super.key});
+  const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -36,28 +36,17 @@ class SettingsScreen extends StatelessWidget {
                   AppTexts.settings,
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
                 ),
-                const SizedBox(height: 24),
 
                 CustomCardSetting(
                   title: userFullName,
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // InkWell(
-                      //   onTap: () {
-                      //     Clipboard.setData(ClipboardData(text: userFullName));
-                      //     Get.snackbar(
-                      //       AppTexts.copied,
-                      //       AppTexts.theNameWasCopiedToTheClipboard,
-                      //     );
-                      //   },
-                      //   child: GradientText(title: AppTexts.copy),
-                      // ),
                       SizedBox(width: 8),
                       Icon(
                         Icons.arrow_forward_ios,
                         size: 18,
-                        color: AppThemeHelper.blackBblack(context),
+                        color: AppThemeHelper.whiteBlack(context),
                       ),
                     ],
                   ),
@@ -70,24 +59,14 @@ class SettingsScreen extends StatelessWidget {
                     trailing: Icon(
                       Icons.arrow_forward_ios,
                       size: 18,
-                      color: AppThemeHelper.blackBblack(context),
+                      color: AppThemeHelper.whiteBlack(context),
                     ),
                     onTap: () {
                       Get.toNamed(AppRouter.categoriesPage);
                     },
                   ),
 
-                Obx(() {
-                  return CustomCardSetting(
-                    title: AppTexts.dateFormat,
-
-                    options: ['gregorian', 'hijri', 'both'],
-                    currentValue: DateLocalizationHelper.userCalendar.value,
-                    onSelected: (val) {
-                      DateLocalizationHelper.save(val);
-                    },
-                  );
-                }),
+                const _DateTimeFormatSettingTile(),
                 Obx(() {
                   return CustomCardSetting(
                     iconData: Icons.language_outlined,
@@ -116,11 +95,12 @@ class SettingsScreen extends StatelessWidget {
                 }),
                 CustomCardSetting(
                   iconData: Icons.alarm,
-                  title: AppTexts.reminders,
+                  title: AppTexts.alarmReminderSettingsTitle,
+                  subtitle: AppTexts.alarmReminderSettingsSubtitle,
                   trailing: Icon(
                     Icons.arrow_forward_ios,
                     size: 18,
-                    color: AppThemeHelper.blackBblack(context),
+                    color: AppThemeHelper.whiteBlack(context),
                   ),
                   onTap: () {
                     Get.to(() => const AddRemindersScreen());
@@ -129,7 +109,7 @@ class SettingsScreen extends StatelessWidget {
 
                 const SizedBox(height: 20),
 
-                const Text('v1.0.3', style: TextStyle(color: Colors.grey)),
+                const Text('v2.0.0', style: TextStyle(color: Colors.grey)),
                 const SizedBox(height: 30),
 
                 OutlinedButton.icon(
@@ -155,7 +135,7 @@ class SettingsScreen extends StatelessWidget {
                     ),
                     overlayColor: Theme.of(
                       context,
-                    ).colorScheme.error.withOpacity(0.08),
+                    ).colorScheme.error.withValues(alpha: 0.08),
                   ),
                   iconAlignment: IconAlignment.start,
                   onPressed: authController.logout,
@@ -167,4 +147,426 @@ class SettingsScreen extends StatelessWidget {
       );
     });
   }
+}
+
+class _DateTimeFormatSettingTile extends StatelessWidget {
+  const _DateTimeFormatSettingTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final summary =
+          '${_localizedSettingValue(DateLocalizationHelper.userCalendar.value)} - '
+          '${_localizedSettingValue(DateLocalizationHelper.userTimeFormat.value)}';
+
+      return CustomCardSetting(
+        iconData: Icons.event_available_outlined,
+        title: AppTexts.dateTimeFormatTitle,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 120,
+              child: Text(
+                summary,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.end,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppThemeHelper.textSecondary(context),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 18,
+              color: AppThemeHelper.whiteBlack(context),
+            ),
+          ],
+        ),
+        onTap: () => _showDateTimeFormatBottomSheet(context),
+      );
+    });
+  }
+}
+
+class _FormatBottomSheetOption extends StatelessWidget {
+  final String title;
+  final String preview;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _FormatBottomSheetOption({
+    required this.title,
+    required this.preview,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = AppThemeHelper.currentBrightness(context) == Brightness.dark;
+    final selectedColor = AppThemeHelper.buttonPrimary(context);
+    final selectedTextColor = isDark ? AppColors.black : Colors.white;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          decoration: BoxDecoration(
+            color: selected
+                ? selectedColor
+                : AppThemeHelper.blackWhite(context),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: selected
+                  ? selectedColor
+                  : AppThemeHelper.border(context).withValues(alpha: 0.8),
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: selected
+                            ? selectedTextColor
+                            : AppThemeHelper.whiteBlack(context),
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      preview,
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.4,
+                        color: selected
+                            ? selectedTextColor.withValues(alpha: 0.9)
+                            : AppThemeHelper.textSecondary(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Icon(
+                selected ? Icons.check_circle_rounded : Icons.circle_outlined,
+                size: 20,
+                color: selected
+                    ? selectedTextColor
+                    : AppThemeHelper.textSecondary(context),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BottomSheetFormatSection extends StatelessWidget {
+  final String title;
+  final List<String> options;
+  final String currentValue;
+  final String Function(String option) previewBuilder;
+  final ValueChanged<String> onSelected;
+
+  const _BottomSheetFormatSection({
+    required this.title,
+    required this.options,
+    required this.currentValue,
+    required this.previewBuilder,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: AppThemeHelper.whiteBlack(context),
+          ),
+        ),
+        const SizedBox(height: 10),
+        ...options.map((option) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _FormatBottomSheetOption(
+              title: _localizedSettingValue(option),
+              preview: previewBuilder(option),
+              selected: option == currentValue,
+              onTap: () => onSelected(option),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+}
+
+class _PreviewTile extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _PreviewTile({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppThemeHelper.blackWhite(context),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppThemeHelper.border(context).withValues(alpha: 0.75),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: AppThemeHelper.textSecondary(context),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 13,
+              height: 1.4,
+              fontWeight: FontWeight.w700,
+              color: AppThemeHelper.whiteBlack(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+String _localizedSettingValue(String value) {
+  return DateLocalizationHelper.localizeDigits(value.tr);
+}
+
+Future<void> _showDateTimeFormatBottomSheet(BuildContext context) {
+  final isDark = AppThemeHelper.currentBrightness(context) == Brightness.dark;
+
+  return showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: false,
+
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (sheetContext) {
+      return Obx(() {
+        final previewDate = DateTime(2026, 4, 9, 9, 35);
+        final dateLines = DateLocalizationHelper.formatDateLines(
+          previewDate,
+          includeCalendarLabelsForBoth: false,
+        );
+        final datePreview = DateLocalizationHelper.userCalendar.value == 'both'
+            ? dateLines.join(' / ')
+            : dateLines.first;
+        final timePreview = DateLocalizationHelper.formatTime(previewDate);
+
+        return Container(
+          padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
+          decoration: BoxDecoration(
+            color: AppThemeHelper.background(sheetContext),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.12),
+                blurRadius: 24,
+                offset: const Offset(0, -6),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppThemeHelper.border(sheetContext),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: AppThemeHelper.buttonPrimary(
+                            sheetContext,
+                          ).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(
+                          Icons.event_available_outlined,
+                          color: AppThemeHelper.buttonPrimary(sheetContext),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              AppTexts.dateTimeFormatTitle,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: AppThemeHelper.whiteBlack(sheetContext),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              AppTexts.dateTimeFormatHint,
+                              style: TextStyle(
+                                fontSize: 13,
+                                height: 1.4,
+                                color: AppThemeHelper.textSecondary(
+                                  sheetContext,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppThemeHelper.buttonPrimary(
+                        sheetContext,
+                      ).withValues(alpha: isDark ? 0.08 : 0.06),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: AppThemeHelper.buttonPrimary(
+                          sheetContext,
+                        ).withValues(alpha: 0.12),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppTexts.formatPreview,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: AppThemeHelper.buttonPrimary(sheetContext),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _PreviewTile(
+                                label: AppTexts.dateFormat,
+                                value: datePreview,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _PreviewTile(
+                                label: AppTexts.timeFormat,
+                                value: timePreview,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  _BottomSheetFormatSection(
+                    title: AppTexts.dateFormat,
+                    options: const ['gregorian', 'hijri', 'both'],
+                    currentValue: DateLocalizationHelper.userCalendar.value,
+                    previewBuilder: _dateOptionPreview,
+                    onSelected: DateLocalizationHelper.save,
+                  ),
+                  const SizedBox(height: 18),
+                  _BottomSheetFormatSection(
+                    title: AppTexts.timeFormat,
+                    options: const ['24h', '12h'],
+                    currentValue: DateLocalizationHelper.userTimeFormat.value,
+                    previewBuilder: _timeOptionPreview,
+                    onSelected: DateLocalizationHelper.saveTimeFormat,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      });
+    },
+  );
+}
+
+String _dateOptionPreview(String option) {
+  final previewDate = DateTime(2026, 4, 9, 21, 35);
+  final gregorian =
+      '${DateLocalizationHelper.gDay(previewDate)} ${DateLocalizationHelper.gMonth(previewDate)} ${DateLocalizationHelper.gYear(previewDate)} ${AppTexts.m}';
+  final hijri =
+      '${DateLocalizationHelper.hDay(previewDate)} ${DateLocalizationHelper.hMonth(previewDate)} ${DateLocalizationHelper.hYear(previewDate)} ${AppTexts.h}';
+
+  switch (option) {
+    case 'hijri':
+      return hijri;
+    case 'both':
+      return '$gregorian / $hijri';
+    case 'gregorian':
+    default:
+      return gregorian;
+  }
+}
+
+String _timeOptionPreview(String option) {
+  if (option == '12h') {
+    return DateLocalizationHelper.formatTimeOfDay(
+      const TimeOfDay(hour: 21, minute: 35),
+      withPeriod: true,
+    );
+  }
+
+  return DateLocalizationHelper.localizeDigits('21:35');
 }

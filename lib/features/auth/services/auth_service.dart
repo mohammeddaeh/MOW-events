@@ -1,14 +1,16 @@
-import 'package:mow_events/core/utils/local_storage/AppStorage/app_storage.dart';
+import 'package:get/get.dart';
 import 'package:mow_events/core/utils/local_storage/AuthStorage/auth_storage.dart';
 import 'package:mow_events/core/utils/local_storage/UserStorage/user_storage.dart';
 import 'package:mow_events/features/auth/data/models/user_model.dart';
+import 'package:mow_events/features/auth/services/registration_approval_service.dart';
+import 'package:mow_events/features/event/presentation/controller/reminder_controller.dart';
 
 class AuthService {
   static bool isLoggingOut = false;
   static bool isSessionExpiredHandling = false;
+  static bool isInactiveAccountHandling = false;
 
   static final _authStorage = AuthStorage();
-  static final _appStorage = AppStorage();
 
   static Future<void> setToken(String token) async {
     await _authStorage.saveToken(token);
@@ -27,6 +29,10 @@ class AuthService {
 
   static Future<void> saveUser(Map<String, dynamic> userJson) async {
     await _authStorage.saveUser(userJson);
+
+    if (Get.isRegistered<ReminderController>()) {
+      ReminderController.to.reloadUserScopedState();
+    }
   }
 
   static UserModel? get currentUser {
@@ -41,11 +47,15 @@ class AuthService {
   static Future<void> logout() async {
     final user = currentUser;
 
-    if (user != null) {
-      await UserStorage().clearAllUserData();
+    if (Get.isRegistered<ReminderController>()) {
+      await ReminderController.to.clearUserScopedState();
     }
 
+    if (user != null) {
+      await UserStorage().clearAllUserDataFor(user.id);
+    }
+
+    await RegistrationApprovalService.clear();
     await _authStorage.clear();
-    await _appStorage.setRememberMe(false);
   }
 }

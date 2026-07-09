@@ -1,12 +1,15 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:mow_events/features/event/data/models/event_model.dart';
-import 'package:table_calendar/table_calendar.dart' as DateUtils;
+import 'package:mow_events/features/event/presentation/helpers/event_day_list_helper.dart';
+
 import 'home_controller.dart';
 
 class WeekController extends GetxController {
+  static const int pageSize = 10;
   final HomeController home = Get.find();
 
   RxList<DateTime> weekDays = <DateTime>[].obs;
@@ -15,7 +18,9 @@ class WeekController extends GetxController {
   var selectedIndex = 0.obs;
   var currentWeekDays = <DateTime>[].obs;
   var dragOffset = 0.0.obs;
+  final RxInt visibleCount = pageSize.obs;
   Timer? _midnightTimer;
+  Worker? _eventsWorker;
 
   @override
   void onInit() {
@@ -23,7 +28,9 @@ class WeekController extends GetxController {
     _generateWeek();
     _scheduleMidnightUpdate();
 
-    ever(home.processedEvents, (_) => _groupEvents());
+    _eventsWorker = ever<List<EventModel>>(home.processedEvents, (_) {
+      _groupEvents();
+    });
 
     if (home.processedEvents.isNotEmpty) {
       _groupEvents();
@@ -42,20 +49,57 @@ class WeekController extends GetxController {
     final map = <String, List<EventModel>>{};
 
     for (final day in weekDays) {
-      final dayEvents = home.processedEvents.where((e) {
-        final dt = e.startDateTimeSafe;
-        if (dt == null) return false;
-        return DateUtils.isSameDay(dt, day);
-      }).toList();
+      final dayStart = DateTime(day.year, day.month, day.day);
+      final dayEnd = dayStart.add(const Duration(days: 1));
+      final dayEvents = home.processedEvents
+          .where((e) => EventDayListHelper.eventOverlapsDay(e, dayStart, dayEnd))
+          .toList()
+        ..sort(EventDayListHelper.compareForDayList);
 
       map[DateFormat('yyyy-MM-dd').format(day)] = dayEvents;
     }
 
     groupedEvents.assignAll(map);
+    final selectedTotal = _selectedDayTotalCount;
+    visibleCount.value = selectedTotal == 0
+        ? pageSize
+        : math.min(math.max(visibleCount.value, pageSize), selectedTotal);
   }
 
   void updateSelectedDay(int index) {
     selectedIndex.value = index;
+    visibleCount.value = pageSize;
+  }
+
+  int get _selectedDayTotalCount {
+    if (weekDays.isEmpty) return 0;
+    final safeIndex = selectedIndex.value.clamp(0, weekDays.length - 1);
+    final day = weekDays[safeIndex];
+    final key = DateFormat('yyyy-MM-dd').format(day);
+    return groupedEvents[key]?.length ?? 0;
+  }
+
+  List<EventModel> get selectedDayEvents {
+    if (weekDays.isEmpty) return const <EventModel>[];
+    final day = weekDays[selectedIndex.value];
+    final key = DateFormat('yyyy-MM-dd').format(day);
+    final events = groupedEvents[key] ?? const <EventModel>[];
+    return events.take(visibleCount.value).toList(growable: false);
+  }
+
+  bool get canLoadMoreSelectedDayEvents {
+    if (weekDays.isEmpty) return false;
+    final day = weekDays[selectedIndex.value];
+    final key = DateFormat('yyyy-MM-dd').format(day);
+    return visibleCount.value < (groupedEvents[key]?.length ?? 0);
+  }
+
+  void loadMoreSelectedDayEvents() {
+    if (weekDays.isEmpty) return;
+    final day = weekDays[selectedIndex.value];
+    final key = DateFormat('yyyy-MM-dd').format(day);
+    final total = groupedEvents[key]?.length ?? 0;
+    visibleCount.value = math.min(visibleCount.value + pageSize, total);
   }
 
   void updateDrag(double delta, bool isRTL) {
@@ -100,6 +144,7 @@ class WeekController extends GetxController {
       _generateWeek();
       _groupEvents();
       selectedIndex.value = 0;
+      visibleCount.value = pageSize;
 
       _scheduleMidnightUpdate();
     });
@@ -107,6 +152,7 @@ class WeekController extends GetxController {
 
   @override
   void onClose() {
+    _eventsWorker?.dispose();
     _midnightTimer?.cancel();
     super.onClose();
   }

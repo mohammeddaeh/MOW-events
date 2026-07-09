@@ -7,3 +7,7 @@
 
 # ================= Legacy Support (safety) =================
 -keep class android.support.v4.app.** { *; }
+
+# ================= Native event alarms =================
+-keep class com.example.mow_events.alarm.** { *; }
+-keep class com.example.mow_events.MainActivity { *; }

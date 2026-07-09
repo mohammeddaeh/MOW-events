@@ -51,6 +51,8 @@ class ProfileInfoTile extends StatelessWidget {
   final TextStyle? labelStyle;
   final TextStyle? valueStyle;
   final EdgeInsetsGeometry? padding;
+  final Widget? trailing;
+  final int valueMaxLines;
 
   const ProfileInfoTile({
     super.key,
@@ -59,6 +61,8 @@ class ProfileInfoTile extends StatelessWidget {
     this.labelStyle,
     this.valueStyle,
     this.padding,
+    this.trailing,
+    this.valueMaxLines = 1,
   });
 
   @override
@@ -72,6 +76,8 @@ class ProfileInfoTile extends StatelessWidget {
             flex: 3,
             child: Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style:
                   labelStyle ??
                   TextStyle(
@@ -80,17 +86,31 @@ class ProfileInfoTile extends StatelessWidget {
                   ),
             ),
           ),
+          const SizedBox(width: 10),
           Expanded(
             flex: 5,
-            child: Text(
-              value ?? '-',
-              style:
-                  valueStyle ??
-                  TextStyle(
-                    color: AppThemeHelper.whiteBlack(context),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    value ?? '-',
+                    maxLines: valueMaxLines,
+                    overflow: TextOverflow.ellipsis,
+                    style:
+                        valueStyle ??
+                        TextStyle(
+                          color: AppThemeHelper.whiteBlack(context),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                   ),
+                ),
+                if (trailing != null) ...[
+                  const SizedBox(width: 4),
+                  trailing!,
+                ],
+              ],
             ),
           ),
         ],

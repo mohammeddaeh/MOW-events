@@ -3,7 +3,7 @@ description: "A new Flutter project."
 
 publish_to: "none"
 
-version: 1.0.2+3
+version: 1.0.1+2
 
 environment:
   sdk: ^3.8.1
@@ -25,7 +25,7 @@ dependencies:
   lottie: ^3.1.0
   table_calendar: ^3.2.0
   hijri: ^3.0.0
-  hijri_calendar: ^1.0.7+7 # أو أحدث إصدار
+  hijri_calendar: ^1.0.7+7
   image_picker: ^1.0.4
   photo_view: ^0.15.0
 
@@ -81,10 +81,12 @@ flutter:
   fonts:
     - family: Arabic
       fonts:
-        - asset: assets/font/Arabic-Bold.ttf
-          weight: 600
-        - asset: assets/font/Arabic-Regular.ttf
-          weight: 800
+        - asset: assets/font/arabic/Tajawal-Regular.ttf
+          weight: 400
+        - asset: assets/font/arabic/Tajawal-Medium.ttf
+          weight: 500
+        - asset: assets/font/arabic/Tajawal-Bold.ttf
+          weight: 700
 
 flutter_icons:
   android: true

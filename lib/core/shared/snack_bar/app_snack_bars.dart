@@ -9,12 +9,30 @@ class AppSnackBars {
   static const SnackPosition _position = SnackPosition.BOTTOM;
 
   static void hideSnackBar() {
-    if (Get.context != null) {
-      ScaffoldMessenger.of(Get.context!).hideCurrentSnackBar();
-    }
+    try {
+      final context = Get.context;
+      if (context != null) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+      }
+    } catch (_) {}
+
     if (Get.isSnackbarOpen) {
-      Get.closeCurrentSnackbar();
+      try {
+        Get.closeAllSnackbars();
+      } catch (_) {
+        try {
+          Get.closeCurrentSnackbar();
+        } catch (_) {}
+      }
     }
+  }
+
+  /// يغلق أي snackbar مفتوح ثم ينفّذ التنقل (يتجنب خطأ GetX عند الإغلاق أثناء الانتقال).
+  static void navigateAfterClosingSnackbars(VoidCallback navigate) {
+    hideSnackBar();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      navigate();
+    });
   }
 
   /// Display a success snackbar with green background
@@ -24,6 +42,7 @@ class AppSnackBars {
     int duration = 3,
   }) {
     if (Get.context == null) return;
+    if (AuthService.isInactiveAccountHandling) return;
 
     Get.snackbar(
       title,
@@ -50,6 +69,7 @@ class AppSnackBars {
     bool force = false,
   }) {
     if (Get.context == null) return;
+    if (AuthService.isInactiveAccountHandling && !force) return;
     if (AuthService.isSessionExpiredHandling && !force) return;
 
     Get.snackbar(
@@ -77,6 +97,7 @@ class AppSnackBars {
     bool force = false,
   }) {
     if (Get.context == null) return;
+    if (AuthService.isInactiveAccountHandling && !force) return;
     if (AuthService.isSessionExpiredHandling && !force) return;
 
     Get.snackbar(
@@ -104,6 +125,7 @@ class AppSnackBars {
     bool force = false,
   }) {
     if (Get.context == null) return;
+    if (AuthService.isInactiveAccountHandling && !force) return;
     if (AuthService.isSessionExpiredHandling && !force) return;
 
     Get.snackbar(

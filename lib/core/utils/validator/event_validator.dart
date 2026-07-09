@@ -55,6 +55,7 @@ class EventValidator {
     required TimeOfDay startTime,
     required TimeOfDay endTime,
   }) {
+    final now = DateTime.now();
     final startDateTime = DateTime(
       startDate.year,
       startDate.month,
@@ -70,6 +71,23 @@ class EventValidator {
       endTime.hour,
       endTime.minute,
     );
+    final startDateOnly = DateTime(startDate.year, startDate.month, startDate.day);
+    final today = DateTime(now.year, now.month, now.day);
+
+    if (startDateOnly.isBefore(today)) {
+      throw Exception(AppTexts.futureEventsOnly);
+    }
+
+    if (startDateOnly == today && !startDateTime.isAfter(now)) {
+      throw Exception(AppTexts.futureEventsOnly);
+    }
+
+    final isSameDay = startDate.year == endDate.year &&
+        startDate.month == endDate.month &&
+        startDate.day == endDate.day;
+    if (isSameDay && !endDateTime.isAfter(startDateTime)) {
+      throw Exception(AppTexts.theEndDateAndTimeMustBeAfterTheStartDate);
+    }
 
     if (endDateTime.isBefore(startDateTime)) {
       throw Exception(AppTexts.theEndDateAndTimeMustBeAfterTheStartDate);

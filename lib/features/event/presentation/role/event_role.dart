@@ -3,21 +3,21 @@ import 'package:mow_events/features/event/data/models/event_model.dart';
 import 'package:mow_events/features/event/presentation/controller/add_event_controller.dart';
 
 abstract class EventBuilderBase {
-  bool showCategory(AddEventController c);
-  bool showMembers(AddEventController c);
-  bool showAttendance(AddEventController c);
-  bool showAdminType(AddEventController c);
+  bool showCategory(EventFormController c);
+  bool showMembers(EventFormController c);
+  bool showAttendance(EventFormController c);
+  bool showAdminType(EventFormController c);
 
-  void applyDefaults(AddEventController c);
+  void applyDefaults(EventFormController c);
 
-  void validate(AddEventController c);
+  void validate(EventFormController c);
 
   List<UserEntity> getSelectableMembers(
     UserEntity currentUser,
     List<UserEntity> allUsers,
   );
 
-  List<int> getEffectiveMembers(UserEntity currentUser, AddEventController c);
+  List<int> getEffectiveMembers(UserEntity currentUser, EventFormController c);
 
-  EventModel build(AddEventController c);
+  EventModel build(EventFormController c);
 }

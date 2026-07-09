@@ -1,6 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:mow_events/core/utils/constants/app_colors.dart';
 import 'package:mow_events/core/utils/constants/app_size.dart';
+import 'package:mow_events/core/utils/translation/app_locale_controller.dart';
 import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
 import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
 
@@ -40,12 +45,14 @@ class AdaptiveFormField<T> extends StatefulWidget {
     this.firstDate,
     this.lastDate,
     this.initialDate,
+    this.initialTime,
     this.locale,
     this.focusNode,
     this.readOnly = false,
     this.onDateSelected,
     this.onTimeSelected,
     this.borderColor,
+    this.inputFormatters,
   });
 
   final TextEditingController? controller;
@@ -66,11 +73,13 @@ class AdaptiveFormField<T> extends StatefulWidget {
   final DateTime? firstDate;
   final DateTime? lastDate;
   final DateTime? initialDate;
+  final TimeOfDay? initialTime;
   final String? locale;
   final bool readOnly;
   final void Function(DateTime)? onDateSelected;
   final void Function(TimeOfDay)? onTimeSelected;
   final Color? borderColor;
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   State<AdaptiveFormField<T>> createState() => _AdaptiveFormFieldState<T>();
@@ -78,33 +87,63 @@ class AdaptiveFormField<T> extends StatefulWidget {
 
 class _AdaptiveFormFieldState<T> extends State<AdaptiveFormField<T>> {
   late final TextEditingController _controller;
+  StreamSubscription<String>? _calendarSubscription;
+  StreamSubscription<String>? _timeFormatSubscription;
+  StreamSubscription<String>? _localeSubscription;
   bool _obscure = true;
   DateTime? _selectedDate;
+  TimeOfDay? _selectedTime;
   @override
   void initState() {
     super.initState();
 
     _selectedDate = widget.initialDate;
+    _selectedTime = widget.initialTime;
 
     _controller =
         widget.controller ??
-        TextEditingController(
-          text: _selectedDate != null
-              ? _formatDateForDisplay(_selectedDate!)
-              : (widget.initialValue ?? ''),
-        );
+        TextEditingController();
 
-    DateLocalizationHelper.userCalendar.listen((_) {
-      if (_selectedDate != null) {
-        _controller.text = _formatDateForDisplay(_selectedDate!);
-      }
+    _syncDisplayText();
+
+    _calendarSubscription = DateLocalizationHelper.userCalendar.listen((_) {
+      _syncDisplayText();
     });
+    _timeFormatSubscription = DateLocalizationHelper.userTimeFormat.listen((_) {
+      _syncDisplayText();
+    });
+    if (Get.isRegistered<AppLocaleController>()) {
+      _localeSubscription = Get.find<AppLocaleController>().currentLang.listen((
+        _,
+      ) {
+        _syncDisplayText();
+      });
+    }
   }
 
   @override
   void dispose() {
+    _calendarSubscription?.cancel();
+    _timeFormatSubscription?.cancel();
+    _localeSubscription?.cancel();
     if (widget.controller == null) _controller.dispose();
     super.dispose();
+  }
+
+  void _syncDisplayText() {
+    if (widget.type == AdaptiveFieldType.date && _selectedDate != null) {
+      _controller.text = _formatDateForDisplay(_selectedDate!);
+      return;
+    }
+
+    if (widget.type == AdaptiveFieldType.time && _selectedTime != null) {
+      _controller.text = DateLocalizationHelper.formatTimeOfDay(_selectedTime!);
+      return;
+    }
+
+    if (_controller.text.isEmpty && widget.initialValue != null) {
+      _controller.text = widget.initialValue!;
+    }
   }
 
   TextInputType _getKeyboard() {
@@ -214,64 +253,72 @@ class _AdaptiveFormFieldState<T> extends State<AdaptiveFormField<T>> {
 
       final picked = await showTimePicker(
         context: context,
-        initialTime: TimeOfDay.fromDateTime(
-          widget.initialDate ?? DateTime.now(),
-        ),
+        initialTime:
+            _selectedTime ??
+            widget.initialTime ??
+            TimeOfDay.fromDateTime(widget.initialDate ?? DateTime.now()),
         builder: (context, child) {
-          return Theme(
-            data: Theme.of(context).copyWith(
-              colorScheme: isDark
-                  ? ColorScheme.dark(
-                      primary: AppColors.gold,
-                      onPrimary: AppColors.black,
-                      onSurface: AppColors.white,
-                    )
-                  : ColorScheme.light(
-                      primary: AppColors.primary,
-                      onPrimary: Colors.white,
-                      onSurface: AppColors.textGray,
-                    ),
-              timePickerTheme: TimePickerThemeData(
-                backgroundColor: AppThemeHelper.background(context),
-                hourMinuteColor: AppThemeHelper.buttonPrimary(context),
-                hourMinuteTextColor: isDark ? AppColors.black : Colors.white,
-                hourMinuteTextStyle: TextStyle(
-                  color: isDark ? AppColors.black : Colors.white,
-                  fontSize: 48,
-                  fontWeight: FontWeight.w400,
-                ),
-                dayPeriodColor: AppThemeHelper.buttonPrimary(context),
-                dayPeriodTextColor: WidgetStateColor.resolveWith((
-                  Set<WidgetState> states,
-                ) {
-                  return states.contains(WidgetState.selected)
-                      ? (isDark ? AppColors.black : Colors.white)
-                      : AppThemeHelper.textSecondary(context);
-                }),
-                dialHandColor: AppThemeHelper.accent(context),
-                dialBackgroundColor: AppThemeHelper.accent(
-                  context,
-                ).withOpacity(0.15),
-                dialTextColor: AppThemeHelper.whiteBlack(context),
-                entryModeIconColor: AppThemeHelper.accent(context),
-                helpTextStyle: TextStyle(
-                  color: AppThemeHelper.whiteBlack(context),
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              textButtonTheme: TextButtonThemeData(
-                style: TextButton.styleFrom(
-                  foregroundColor: AppThemeHelper.accent(context),
-                ),
-              ),
+          final mediaQuery = MediaQuery.of(context);
+          return MediaQuery(
+            data: mediaQuery.copyWith(
+              alwaysUse24HourFormat: DateLocalizationHelper.use24HourFormat,
             ),
-            child: child!,
+            child: Theme(
+              data: Theme.of(context).copyWith(
+                colorScheme: isDark
+                    ? ColorScheme.dark(
+                        primary: AppColors.gold,
+                        onPrimary: AppColors.black,
+                        onSurface: AppColors.white,
+                      )
+                    : ColorScheme.light(
+                        primary: AppColors.primary,
+                        onPrimary: Colors.white,
+                        onSurface: AppColors.textGray,
+                      ),
+                timePickerTheme: TimePickerThemeData(
+                  backgroundColor: AppThemeHelper.background(context),
+                  hourMinuteColor: AppThemeHelper.buttonPrimary(context),
+                  hourMinuteTextColor: isDark ? AppColors.black : Colors.white,
+                  hourMinuteTextStyle: TextStyle(
+                    color: isDark ? AppColors.black : Colors.white,
+                    fontSize: 48,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  dayPeriodColor: AppThemeHelper.buttonPrimary(context),
+                  dayPeriodTextColor: WidgetStateColor.resolveWith((
+                    Set<WidgetState> states,
+                  ) {
+                    return states.contains(WidgetState.selected)
+                        ? (isDark ? AppColors.black : Colors.white)
+                        : AppThemeHelper.textSecondary(context);
+                  }),
+                  dialHandColor: AppThemeHelper.accent(context),
+                  dialBackgroundColor: AppThemeHelper.accent(
+                    context,
+                  ).withValues(alpha: 0.15),
+                  dialTextColor: AppThemeHelper.whiteBlack(context),
+                  entryModeIconColor: AppThemeHelper.accent(context),
+                  helpTextStyle: TextStyle(
+                    color: AppThemeHelper.whiteBlack(context),
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+                textButtonTheme: TextButtonThemeData(
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppThemeHelper.accent(context),
+                  ),
+                ),
+              ),
+              child: child!,
+            ),
           );
         },
       );
 
       if (picked != null) {
-        final formatted = _formatTime(picked);
+        _selectedTime = picked;
+        final formatted = DateLocalizationHelper.formatTimeOfDay(picked);
         _controller.text = formatted;
         widget.onChanged?.call(formatted);
         widget.onTimeSelected?.call(picked);
@@ -281,15 +328,12 @@ class _AdaptiveFormFieldState<T> extends State<AdaptiveFormField<T>> {
 
   String _formatDate(DateTime d) =>
       '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-  String _formatTime(TimeOfDay t) =>
-      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
-
   @override
   Widget build(BuildContext context) {
     if (widget.type == AdaptiveFieldType.select) {
       final items = widget.items ?? <T>[];
       return DropdownButtonFormField<T>(
-        value: items.contains(_controller.text as T)
+        initialValue: items.contains(_controller.text as T)
             ? _controller.text as T
             : null,
         items: items
@@ -327,6 +371,7 @@ class _AdaptiveFormFieldState<T> extends State<AdaptiveFormField<T>> {
       onTap: isDateOrTime ? () => _handleTapForDateTime() : null,
       onChanged: widget.onChanged,
       focusNode: widget.focusNode,
+      inputFormatters: widget.inputFormatters,
       style: TextStyle(
         color: AppThemeHelper.whiteBlack(context),
         fontSize: 14,

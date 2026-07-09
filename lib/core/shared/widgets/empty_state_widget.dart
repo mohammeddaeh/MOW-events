@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:mow_events/core/utils/constants/app_size.dart';
 
 class EmptyStateWidget extends StatelessWidget {
   final String lottieAsset;
@@ -14,7 +15,7 @@ class EmptyStateWidget extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.maxAnimationSize,
-    this.padding = const EdgeInsets.all(16),
+    this.padding = const EdgeInsets.all(2),
   });
 
   @override
@@ -23,7 +24,7 @@ class EmptyStateWidget extends StatelessWidget {
       builder: (context, constraints) {
         final availableHeight = constraints.maxHeight;
         final animationSize = (availableHeight * 0.35).clamp(
-          120.0,
+          100.0,
           maxAnimationSize ?? 240.0,
         );
 
@@ -39,13 +40,12 @@ class EmptyStateWidget extends StatelessWidget {
                   fit: BoxFit.contain,
                 ),
 
-                const SizedBox(height: 16),
-
                 Text(
                   title,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
+                    fontSize: 14.h,
                   ),
                 ),
 

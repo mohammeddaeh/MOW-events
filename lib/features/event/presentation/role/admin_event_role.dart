@@ -9,29 +9,29 @@ import 'package:mow_events/features/event/presentation/role/event_role.dart';
 
 class AdminEventBuilder extends EventBuilderBase {
   @override
-  void applyDefaults(AddEventController c) {
-    c.adminEventType.value = AdminEventType.private;
+  void applyDefaults(EventFormController c) {
+    c.adminEventType.value = AdminEventType.personal;
     c.isPrivate.value = 1;
     c.isPublic.value = 0;
   }
 
   @override
-  bool showCategory(AddEventController c) =>
-      c.adminEventType.value != AdminEventType.private;
+  bool showCategory(EventFormController c) =>
+      c.adminEventType.value != AdminEventType.personal;
 
   @override
-  bool showMembers(AddEventController c) =>
+  bool showMembers(EventFormController c) =>
       c.adminEventType.value == AdminEventType.included;
 
   @override
-  bool showAttendance(AddEventController c) =>
+  bool showAttendance(EventFormController c) =>
       c.adminEventType.value == AdminEventType.included;
 
   @override
-  bool showAdminType(AddEventController c) => true;
+  bool showAdminType(EventFormController c) => true;
 
   @override
-  void validate(AddEventController c) {
+  void validate(EventFormController c) {
     if (c.adminEventType.value == AdminEventType.included &&
         c.members.isEmpty) {
       throw Exception(AppTexts.employeesMustBeSelected);
@@ -49,14 +49,17 @@ class AdminEventBuilder extends EventBuilderBase {
   ) => allUsers;
 
   @override
-  EventModel build(AddEventController c) {
+  EventModel build(EventFormController c) {
     final type = c.adminEventType.value;
 
-    final category = showCategory(c)
-        ? Get.find<CategoriesController>().categories.firstWhere(
-            (e) => e.id == c.selectedCategoryId.value,
-          )
-        : null;
+    final category = () {
+      if (!showCategory(c)) return null;
+      final selectedId = c.selectedCategoryId.value;
+      if (selectedId == null) return null;
+      final categories = Get.find<CategoriesController>().categories;
+      final matches = categories.where((e) => e.id == selectedId).toList();
+      return matches.isNotEmpty ? matches.first : null;
+    }();
 
     return EventModel(
       id: 0,
@@ -70,7 +73,7 @@ class AdminEventBuilder extends EventBuilderBase {
       status: 'active',
       category: category,
       isPublic: type == AdminEventType.public ? 1 : 0,
-      isPrivate: type == AdminEventType.private ? 1 : 0,
+      isPrivate: type == AdminEventType.personal ? 1 : 0,
       members: c.adminEventType.value == AdminEventType.included
           ? c.members.toList()
           : [],
@@ -81,11 +84,14 @@ class AdminEventBuilder extends EventBuilderBase {
       reminders: c.reminders.toList(),
       rawReminders: [],
       createdAt: DateTime.now().toString(),
+      alarmTimeIso: null,
+      isAlarmEnabled: false,
+      snoozeDurationMinutes: 10,
     );
   }
 
   @override
-  List<int> getEffectiveMembers(UserEntity currentUser, AddEventController c) {
+  List<int> getEffectiveMembers(UserEntity currentUser, EventFormController c) {
     throw UnimplementedError();
   }
 }

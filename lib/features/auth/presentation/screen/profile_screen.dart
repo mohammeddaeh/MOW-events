@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/app_router/app_router.dart';
+import 'package:mow_events/core/shared/snack_bar/app_snack_bars.dart';
 import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
 import 'package:mow_events/core/utils/network/internet_guard.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
@@ -11,6 +13,38 @@ import 'package:mow_events/features/auth/presentation/widgets/profile_section.da
 
 class ProfileScreen extends GetView<ProfileController> {
   const ProfileScreen({super.key});
+
+  Future<void> _copyToClipboard({
+    required String value,
+    required String message,
+  }) async {
+    if (value.trim().isEmpty) return;
+    await Clipboard.setData(ClipboardData(text: value.trim()));
+    AppSnackBars.successSnackBar(title: AppTexts.copied, message: message);
+  }
+
+  Widget _buildCopyAction({
+    required BuildContext context,
+    required VoidCallback onPressed,
+  }) {
+    final primary = AppThemeHelper.buttonPrimary(context);
+    return InkResponse(
+      onTap: onPressed,
+      radius: 14,
+      highlightShape: BoxShape.circle,
+      containedInkWell: false,
+      hoverColor: primary.withValues(alpha: 0.08),
+      splashColor: primary.withValues(alpha: 0.12),
+      child: Tooltip(
+        message: AppTexts.copy,
+        child: SizedBox(
+          width: 20,
+          height: 20,
+          child: Icon(Icons.copy_rounded, size: 15, color: primary),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +61,9 @@ class ProfileScreen extends GetView<ProfileController> {
       ),
       body: Obx(() {
         final user = controller.user.value;
+        final fullName = (user?.fullName ?? '').trim();
+        final email = (user?.email ?? '').trim();
+        final phone = (user?.phone ?? '').trim();
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(10),
@@ -39,28 +76,57 @@ class ProfileScreen extends GetView<ProfileController> {
                   imageUrl: user?.image,
                   editable: false,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
 
                 ProfileSection(
                   title: AppTexts.personalInformation,
                   children: [
                     ProfileInfoTile(
-                      label: AppTexts.firstName,
-                      value: user?.firstName,
-                    ),
-                    ProfileInfoTile(
-                      label: AppTexts.familyName,
-                      value: user?.lastName,
+                      label: AppTexts.fullName,
+                      value: user?.fullName,
+                      trailing: fullName.isEmpty
+                          ? null
+                          : _buildCopyAction(
+                              context: context,
+                              onPressed: () => _copyToClipboard(
+                                value: fullName,
+                                message:
+                                    AppTexts.theFullNameWasCopiedToTheClipboard,
+                              ),
+                            ),
                     ),
                   ],
                 ),
                 ProfileSection(
                   title: AppTexts.contactInformation,
                   children: [
-                    ProfileInfoTile(label: AppTexts.email, value: user?.email),
+                    ProfileInfoTile(
+                      label: AppTexts.email,
+                      value: user?.email,
+                      trailing: email.isEmpty
+                          ? null
+                          : _buildCopyAction(
+                              context: context,
+                              onPressed: () => _copyToClipboard(
+                                value: email,
+                                message:
+                                    AppTexts.theEmailWasCopiedToTheClipboard,
+                              ),
+                            ),
+                    ),
                     ProfileInfoTile(
                       label: AppTexts.phoneNo,
                       value: user?.phone,
+                      trailing: phone.isEmpty
+                          ? null
+                          : _buildCopyAction(
+                              context: context,
+                              onPressed: () => _copyToClipboard(
+                                value: phone,
+                                message:
+                                    AppTexts.thePhoneWasCopiedToTheClipboard,
+                              ),
+                            ),
                     ),
                     ProfileInfoTile(
                       label: AppTexts.addresse,

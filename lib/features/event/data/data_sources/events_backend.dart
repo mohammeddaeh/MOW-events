@@ -8,12 +8,24 @@ import '../../../../core/utils/helpers/http_helper.dart';
 
 class EventsBackend {
   Future<List<UserListItem>> getAllUsers({int? departmentId}) async {
+    const requestedKeys = <String>[
+      'id',
+      'first_name',
+      'last_name',
+      'full_name',
+      'email',
+      'phone',
+      'image',
+      'address',
+      'is_active',
+      'is_admin',
+      'is_manager',
+      'department',
+    ];
     final queryParams = <String>[
       'countItems=all',
-      'keys[0]=id',
-      'keys[1]=first_name',
-      'keys[2]=last_name',
-      'keys[3]=department',
+      for (int index = 0; index < requestedKeys.length; index++)
+        'keys[$index]=${requestedKeys[index]}',
     ];
 
     if (departmentId != null) {
@@ -24,7 +36,11 @@ class EventsBackend {
 
     final res = await HttpHelper.get(url);
 
-    final List<dynamic> items = res['data']?['users'] as List<dynamic>? ?? [];
+    final usersPayload = res['data']?['users'];
+    final List<dynamic> items = (usersPayload is List
+            ? usersPayload
+            : usersPayload?['items'] as List<dynamic>?) ??
+        [];
 
     return items.map((e) => UserListItem.fromJson(e)).toList();
   }
@@ -61,6 +77,10 @@ class EventsBackend {
     EventValidator.validate(event);
 
     final formData = event.toForm();
+    if (event.category == null) {
+      // Editing public/included to personal should clear category in backend.
+      formData['category_id'] = '';
+    }
     final url = ApiEndpoints.eventsUpdate(id);
     final res = await HttpHelper.postMultipart(url, formData, null);
 
@@ -147,10 +167,27 @@ class EventsBackend {
 
     final url = ApiEndpoints.eventsShow(id);
 
-    final res = await HttpHelper.get(url);
+    final res = await HttpHelper.get(url, suppressErrorSnackBar: true);
 
     return EventModel.fromJson(
-      (res['data']?['result'] ?? res['data']) as Map<String, dynamic>,
+      (res['data']?['event'] ?? res['data']?['result'] ?? res['data']) as Map<String, dynamic>,
     );
+  }
+
+  Future<void> changeEventMemberStatus({
+    required int eventId,
+    required String status,
+    String? descriptionReject,
+  }) async {
+    if (eventId <= 0) throw ArgumentError('Invalid event ID');
+    assert(status == 'accept' || status == 'reject', 'status must be accept or reject');
+
+    final url = ApiEndpoints.changeEventMemberStatus(eventId);
+    final fields = <String, String>{'status': status};
+    if (status == 'reject' && descriptionReject != null && descriptionReject.isNotEmpty) {
+      fields['description_reject'] = descriptionReject;
+    }
+
+    await HttpHelper.postMultipart(url, fields, null);
   }
 }

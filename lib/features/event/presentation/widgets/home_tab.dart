@@ -14,49 +14,31 @@ import 'package:mow_events/features/event/presentation/widgets/filter_button.dar
 
 class HomeTab extends StatelessWidget {
   final HomeController controller;
-  const HomeTab({super.key, required this.controller});
-
-  static final GlobalKey _searchHeaderKey = GlobalKey();
+  HomeTab({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
     SizeConfig.init(context);
     return SafeArea(
-      child: Listener(
-        onPointerDown: (e) => _unfocusIfOutsideSearch(context, e.position),
-        child: Column(
-          children: [
-            KeyedSubtree(
-              key: _searchHeaderKey,
-              child: _buildSearchHeader(context),
+      child: Column(
+        children: [
+          _buildSearchHeader(context),
+          _buildTabBar(context),
+          Expanded(
+            child: TabBarView(
+              physics: const NeverScrollableScrollPhysics(),
+              controller: controller.tabController,
+              children: [
+                DayScreen(),
+                WeekScreen(),
+                MonthScreen(),
+                YearScreen(),
+              ],
             ),
-            _buildTabBar(),
-            Expanded(
-              child: TabBarView(
-                physics: const NeverScrollableScrollPhysics(),
-                controller: controller.tabController,
-                children: [
-                  DayScreen(),
-                  WeekScreen(),
-                  MonthScreen(),
-                  YearScreen(),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
-  }
-
-  void _unfocusIfOutsideSearch(BuildContext context, Offset globalPosition) {
-    final box = _searchHeaderKey.currentContext?.findRenderObject() as RenderBox?;
-    if (box == null || !box.hasSize) return;
-    final topLeft = box.localToGlobal(Offset.zero);
-    final searchBounds = Rect.fromLTWH(topLeft.dx, topLeft.dy, box.size.width, box.size.height);
-    if (!searchBounds.contains(globalPosition)) {
-      FocusScope.of(context).unfocus();
-    }
   }
 
   Widget _buildSearchHeader(BuildContext context) {
@@ -72,7 +54,10 @@ class HomeTab extends StatelessWidget {
             child: SizedBox(
               height: 40.h,
               child: TextField(
-                onChanged: (v) => controller.searchQuery.value = v,
+                controller: controller.searchTextController,
+                focusNode: controller.searchFocusNode,
+                onTapOutside: (_) => controller.unfocusSearch(),
+                onChanged: controller.onSearchChanged,
                 style: TextStyle(
                   color: isDark ? Colors.white : Colors.black87,
                   fontSize: 14,
@@ -92,7 +77,10 @@ class HomeTab extends StatelessWidget {
                     padding: const EdgeInsets.all(8),
                     child: SvgPicture.asset(
                       AppImages.search,
-                      color: AppColors.gold,
+                      colorFilter: const ColorFilter.mode(
+                        AppColors.gold,
+                        BlendMode.srcIn,
+                      ),
                     ),
                   ),
                   filled: true,
@@ -115,14 +103,24 @@ class HomeTab extends StatelessWidget {
     );
   }
 
-  Widget _buildTabBar() {
+  Widget _buildTabBar(BuildContext context) {
+    final baseStyle =
+        Theme.of(context).textTheme.titleSmall ?? const TextStyle();
+
     return TabBar(
       controller: controller.tabController,
       labelColor: AppColors.gold,
       unselectedLabelColor: Colors.grey,
       indicatorColor: AppColors.gold,
       indicatorSize: TabBarIndicatorSize.tab,
-      labelStyle: const TextStyle(fontWeight: FontWeight.w800),
+      labelStyle: baseStyle.copyWith(
+        fontWeight: FontWeight.w800,
+        fontSize: 14,
+      ),
+      unselectedLabelStyle: baseStyle.copyWith(
+        fontWeight: FontWeight.w600,
+        fontSize: 14,
+      ),
       tabs: [
         Tab(text: AppTexts.day),
         Tab(text: AppTexts.week),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
-import 'date_localization_helper.dart';
 
 class AppDateText extends StatelessWidget {
   final DateTime date;
@@ -23,86 +23,59 @@ class AppDateText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final display = _buildDisplay(date);
-    return Text(display, style: style);
+    return Text(_buildDisplay(), style: style);
   }
 
-  String _buildDisplay(DateTime date) {
+  String _buildDisplay() {
     final type = DateLocalizationHelper.userCalendar.value;
-    String day, month, year;
+    final hijriDate = DateLocalizationHelper.toHijri(date);
 
+    final gregorianMonth = showMonthName
+        ? (useArabicNames
+              ? DateLocalizationHelper.gMonth(date)
+              : DateFormat('MMMM', 'en').format(date))
+        : DateLocalizationHelper.localizeDigits(
+            date.month.toString().padLeft(2, '0'),
+          );
+
+    final hijriMonth = showMonthName
+        ? (useArabicNames
+              ? DateLocalizationHelper.hMonth(date)
+              : DateLocalizationHelper.hijriMonthsEn[hijriDate.hMonth - 1])
+        : DateLocalizationHelper.localizeDigits(
+            hijriDate.hMonth.toString().padLeft(2, '0'),
+          );
+
+    final gregorianYear = showYearSuffix
+        ? '${DateLocalizationHelper.gYear(date)} ${AppTexts.m}'
+        : DateLocalizationHelper.gYear(date);
+    final hijriYear = showYearSuffix
+        ? '${DateLocalizationHelper.hYear(date)} ${AppTexts.h}'
+        : DateLocalizationHelper.hYear(date);
+
+    late final String body;
     switch (type) {
       case 'hijri':
-        day = DateLocalizationHelper.hDay(date);
-        month = showMonthName
-            ? (useArabicNames
-                  ? DateLocalizationHelper
-                        .hijriMonthsAr[DateLocalizationHelper.toHijri(
-                          date,
-                        ).hMonth -
-                        1]
-                  : DateLocalizationHelper
-                        .hijriMonthsEn[DateLocalizationHelper.toHijri(
-                          date,
-                        ).hMonth -
-                        1])
-            : DateLocalizationHelper.toHijri(
-                date,
-              ).hMonth.toString().padLeft(2, '0');
-        year = showYearSuffix
-            ? '${DateLocalizationHelper.hYear(date)} ${AppTexts.h}'
-            : DateLocalizationHelper.hYear(date);
+        body =
+            '${DateLocalizationHelper.hDay(date)} / $hijriMonth / $hijriYear';
         break;
-
       case 'both':
-        final gDay = DateLocalizationHelper.gDay(date);
-        final gMonth = showMonthName
-            ? (useArabicNames
-                  ? DateLocalizationHelper.gregorianMonthsAr[date.month - 1]
-                  : DateFormat('MMMM').format(date))
-            : date.month.toString().padLeft(2, '0');
-        final gYear = showYearSuffix
-            ? '${DateLocalizationHelper.gYear(date)} م'
-            : DateLocalizationHelper.gYear(date);
-
-        final hDay = DateLocalizationHelper.hDay(date);
-        final hMonth = showMonthName
-            ? (useArabicNames
-                  ? DateLocalizationHelper
-                        .hijriMonthsAr[DateLocalizationHelper.toHijri(
-                          date,
-                        ).hMonth -
-                        1]
-                  : DateLocalizationHelper
-                        .hijriMonthsEn[DateLocalizationHelper.toHijri(
-                          date,
-                        ).hMonth -
-                        1])
-            : DateLocalizationHelper.toHijri(
-                date,
-              ).hMonth.toString().padLeft(2, '0');
-        final hYear = showYearSuffix
-            ? '${DateLocalizationHelper.hYear(date)} هـ'
-            : DateLocalizationHelper.hYear(date);
-
-        day = '$gDay / $hDay';
-        month = '$gMonth / $hMonth';
-        year = '$gYear / $hYear';
+        body =
+            '${DateLocalizationHelper.gDay(date)} / ${DateLocalizationHelper.hDay(date)}'
+            ' / $gregorianMonth / $hijriMonth'
+            ' / $gregorianYear / $hijriYear';
         break;
-
+      case 'gregorian':
       default:
-        day = DateLocalizationHelper.gDay(date);
-        month = showMonthName
-            ? (useArabicNames
-                  ? DateLocalizationHelper.gregorianMonthsAr[date.month - 1]
-                  : DateFormat('MMMM').format(date))
-            : date.month.toString().padLeft(2, '0');
-        year = showYearSuffix
-            ? '${DateLocalizationHelper.gYear(date)} ${AppTexts.m}'
-            : DateLocalizationHelper.gYear(date);
+        body =
+            '${DateLocalizationHelper.gDay(date)} / $gregorianMonth / $gregorianYear';
+        break;
     }
 
-    final time = showTime ? ' ${DateFormat('HH:mm').format(date)}' : '';
-    return '$day / $month / $year$time';
+    if (!showTime) {
+      return body;
+    }
+
+    return '$body ${DateLocalizationHelper.formatTime(date)}';
   }
 }

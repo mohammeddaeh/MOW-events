@@ -171,7 +171,7 @@ class _FilterDialogState extends State<FilterDialog> {
                             ? AppTexts.all
                             : p == PrivacyFilter.publicOnly
                             ? AppTexts.publicOnly
-                            : AppTexts.privateOnly,
+                            : AppTexts.personalOnly,
                       ),
                     ],
                   );

@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:get/get.dart';
 import 'package:mow_events/core/utils/constants/app_config.dart';
 import 'package:mow_events/core/utils/error/api_exceptions.dart';
+import 'package:mow_events/core/utils/error/api_message_localizer.dart';
 import 'package:mow_events/core/utils/error/error_handler.dart';
 import 'package:mow_events/core/utils/error/network_exceptions.dart';
 import 'package:mow_events/core/utils/error/validation_exception.dart';
@@ -13,6 +14,7 @@ import 'package:mow_events/core/shared/snack_bar/app_snack_bars.dart';
 import 'package:mow_events/core/utils/network/network_manager.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
 import 'package:mow_events/features/auth/presentation/controller/auth_controller.dart';
+import 'package:mow_events/features/auth/presentation/controller/user_access_controller.dart';
 import 'package:mow_events/features/auth/services/auth_service.dart';
 
 typedef Json = Map<String, dynamic>;
@@ -37,6 +39,7 @@ class HttpHelper {
     String endpoint, {
     bool showLoader = true,
     bool withAuth = true,
+    bool suppressErrorSnackBar = false,
   }) async {
     return _sendRequest(() async {
       final res = await http
@@ -47,7 +50,10 @@ class HttpHelper {
           .timeout(const Duration(seconds: 15));
 
       return _handleResponse(res);
-    }, withAuth: withAuth);
+    },
+      withAuth: withAuth,
+      suppressErrorSnackBar: suppressErrorSnackBar,
+    );
   }
 
   static Future<Json> post(
@@ -55,6 +61,7 @@ class HttpHelper {
     dynamic data, {
     bool showLoader = true,
     bool withAuth = true,
+    bool suppressErrorSnackBar = false,
   }) async {
     return _sendRequest(() async {
       final res = await http
@@ -66,7 +73,10 @@ class HttpHelper {
           .timeout(const Duration(seconds: 15));
 
       return _handleResponse(res);
-    }, withAuth: withAuth);
+    },
+      withAuth: withAuth,
+      suppressErrorSnackBar: suppressErrorSnackBar,
+    );
   }
 
   static Future<Json> put(
@@ -111,6 +121,7 @@ class HttpHelper {
     File? file, {
     bool showLoader = true,
     bool withAuth = true,
+    bool suppressErrorSnackBar = false,
     String imageFieldName = 'image',
   }) async {
     return _sendRequest(() async {
@@ -134,12 +145,16 @@ class HttpHelper {
       final res = await http.Response.fromStream(streamedRes);
 
       return _handleResponse(res);
-    }, withAuth: withAuth);
+    },
+      withAuth: withAuth,
+      suppressErrorSnackBar: suppressErrorSnackBar,
+    );
   }
 
   static Future<T> _sendRequest<T>(
     Future<T> Function() requestFn, {
     required bool withAuth,
+    bool suppressErrorSnackBar = false,
   }) async {
     final isConnected = await NetworkManager.instance.isConnected();
     if (!isConnected) {
@@ -167,6 +182,28 @@ class HttpHelper {
         isError: true,
       );
       throw NoInternetException();
+    } on ValidationException catch (e) {
+      if (!suppressErrorSnackBar) {
+        NetworkManager.instance.showSnackBar(
+          AppTexts.warningTitle,
+          ErrorHandler.getErrorMessage(e),
+          isError: true,
+        );
+      }
+      rethrow;
+    } on ApiException catch (e) {
+      if (withAuth &&
+          AuthService.authenticated &&
+          UserAccessController.isInactiveAccountMessage(e.message)) {
+        await _handleInactiveAccount(e.message);
+      } else if (!suppressErrorSnackBar) {
+        NetworkManager.instance.showSnackBar(
+          AppTexts.warningTitle,
+          ApiMessageLocalizer.localize(e.message),
+          isError: true,
+        );
+      }
+      rethrow;
     } on UnauthorizedException catch (e) {
       if (withAuth && AuthService.authenticated) {
         await _handleUnauthorized(e.message);
@@ -174,18 +211,32 @@ class HttpHelper {
       rethrow;
     } catch (e) {
       final message = ErrorHandler.getErrorMessage(e);
-      NetworkManager.instance.showSnackBar(
-        AppTexts.warningTitle,
-        message,
-        isError: true,
-      );
+      if (!suppressErrorSnackBar) {
+        NetworkManager.instance.showSnackBar(
+          AppTexts.warningTitle,
+          message,
+          isError: true,
+        );
+      }
       throw ApiException(message);
     }
   }
 
+  static Future<void> _handleInactiveAccount(String message) async {
+    AppSnackBars.hideSnackBar();
+
+    if (Get.isRegistered<UserAccessController>()) {
+      await Get.find<UserAccessController>().markAccountInactive(
+        source: 'http',
+        error: ApiException(message),
+      );
+    }
+  }
+
   static Future<void> _handleUnauthorized(String message) async {
-    if (AuthService.isLoggingOut || AuthService.isSessionExpiredHandling)
+    if (AuthService.isLoggingOut || AuthService.isSessionExpiredHandling) {
       return;
+    }
 
     if (Get.isRegistered<AuthController>()) {
       await Get.find<AuthController>().logoutDueToUnauthorized(
@@ -232,10 +283,12 @@ class HttpHelper {
       return decoded;
     }
 
-    final message =
-        decoded['error'] ??
-        decoded['message'] ??
-        AppTexts.anUnknownEerrorHasOccurred;
+    final extracted = ApiMessageLocalizer.extractDynamicMessage(
+      decoded['error'] ?? decoded['message'],
+    );
+    final message = extracted.isNotEmpty
+        ? ApiMessageLocalizer.localize(extracted)
+        : AppTexts.anUnknownEerrorHasOccurred;
 
     switch (res.statusCode) {
       case 400:
@@ -254,7 +307,9 @@ class HttpHelper {
             fieldErrors[key] = List<String>.from(value);
           });
           throw ValidationException(
-            decoded["message"] ?? "Validation error",
+            ApiMessageLocalizer.localize(
+              decoded["message"]?.toString() ?? AppTexts.invalidData,
+            ),
             fieldErrors,
           );
         }

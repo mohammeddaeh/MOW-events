@@ -17,8 +17,19 @@ class AppStorage {
 
   Future<void> setCalendar(String value) =>
       _storage.write(StorageKeys.calendar, value);
+
+  String get timeFormat => _storage.read(StorageKeys.timeFormat) ?? '24h';
+
+  Future<void> setTimeFormat(String value) =>
+      _storage.write(StorageKeys.timeFormat, value);
+
   bool get rememberMe => _storage.read(StorageKeys.rememberMe) ?? false;
 
-  Future<void> setRememberMe(bool value) =>
-      _storage.write(StorageKeys.rememberMe, value);
+  Future<void> setRememberMe(bool value) async {
+    if (value) {
+      await _storage.write(StorageKeys.rememberMe, true);
+      return;
+    }
+    await _storage.remove(StorageKeys.rememberMe);
+  }
 }

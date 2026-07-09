@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:mow_events/core/shared/widgets/empty_state_widget.dart';
+import 'package:mow_events/core/shared/widgets/pagination_footer.dart';
 import 'package:mow_events/core/utils/constants/app_colors.dart';
 import 'package:mow_events/core/utils/constants/app_images.dart';
 import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
@@ -9,6 +10,7 @@ import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
 import 'package:mow_events/features/event/presentation/controller/home_controller.dart';
 import 'package:mow_events/features/event/presentation/controller/week_controller.dart';
+import 'package:mow_events/features/event/presentation/helpers/event_day_list_helper.dart';
 import 'package:mow_events/features/event/presentation/widgets/card_event.dart';
 import 'package:mow_events/features/event/presentation/widgets/custom_date_number_widget.dart';
 
@@ -85,6 +87,7 @@ class _WeeklyDaySliderState extends State<WeeklyDaySlider> {
                     ),
                     Obx(() {
                       final weekDaysList = controller.weekDays;
+                      controller.groupedEvents.entries.toList(growable: false);
                       return Row(
                         children: List.generate(weekDaysList.length, (index) {
                           final day = weekDaysList[index];
@@ -129,17 +132,50 @@ class _WeeklyDaySliderState extends State<WeeklyDaySlider> {
                                     ),
                                   ),
                                   const SizedBox(height: 8),
-                                  AnimatedOpacity(
-                                    duration: const Duration(milliseconds: 250),
-                                    opacity: isSelected ? 1 : 0,
-                                    child: Container(
-                                      width: 6,
-                                      height: 6,
-                                      decoration: const BoxDecoration(
-                                        color: AppColors.gold,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
+                                  Builder(
+                                    builder: (context) {
+                                      final formattedDay = DateFormat(
+                                        'yyyy-MM-dd',
+                                      ).format(day);
+                                      final eventCount =
+                                          controller
+                                              .groupedEvents[formattedDay]
+                                              ?.length ??
+                                          0;
+                                      final dots = eventCount > 3
+                                          ? 3
+                                          : eventCount;
+
+                                      return AnimatedOpacity(
+                                        duration: const Duration(
+                                          milliseconds: 250,
+                                        ),
+                                        opacity: dots > 0 ? 1 : 0,
+                                        child: SizedBox(
+                                          height: 12,
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: List.generate(dots, (
+                                              dotIndex,
+                                            ) {
+                                              return Container(
+                                                width: 6,
+                                                height: 6,
+                                                margin:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 1,
+                                                    ),
+                                                decoration: const BoxDecoration(
+                                                  color: AppColors.gold,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                              );
+                                            }),
+                                          ),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ],
                               ),
@@ -165,6 +201,8 @@ class _WeeklyDaySliderState extends State<WeeklyDaySlider> {
                 controller.weekDays[controller.selectedIndex.value];
             final formattedKey = DateFormat('yyyy-MM-dd').format(selectedDay);
             final events = controller.groupedEvents[formattedKey] ?? [];
+            final visibleEvents = controller.selectedDayEvents;
+            final shouldShowFooter = events.isNotEmpty;
 
             return RefreshIndicator(
               onRefresh: () async {
@@ -183,21 +221,41 @@ class _WeeklyDaySliderState extends State<WeeklyDaySlider> {
                         ),
                       ],
                     )
-                  : ListView.builder(
+                  : ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 6,
                         vertical: 8,
                       ),
-                      itemCount: events.length,
-                      itemBuilder: (context, index) {
-                        final event = events[index];
-                        return CardEvent(
-                          key: ValueKey(event.id),
-                          event: event,
-                          homeController: homeController,
-                        );
-                      },
+                      children: [
+                        ...visibleEvents.map(
+                          (event) => CardEvent(
+                            key: ValueKey(event.id),
+                            event: event,
+                            homeController: homeController,
+                            config: EventCardConfig(
+                              showMultiDaySpanHint:
+                                  EventDayListHelper.spansMultipleCalendarDays(
+                                    event,
+                                  ),
+                            ),
+                          ),
+                        ),
+                        if (shouldShowFooter)
+                          PaginationFooter(
+                            isLoadingMore:
+                                homeController.isLoadingMoreEvents.value,
+                            hasMore:
+                                controller.canLoadMoreSelectedDayEvents ||
+                                homeController.hasMoreEvents.value,
+                            actionLabel: AppTexts.viewmore,
+                            loadingLabel: AppTexts.loadingMoreEvents,
+                            completedLabel: AppTexts.allEventsLoaded,
+                            onLoadMore: controller.canLoadMoreSelectedDayEvents
+                                ? controller.loadMoreSelectedDayEvents
+                                : homeController.loadMoreEvents,
+                          ),
+                      ],
                     ),
             );
           }),

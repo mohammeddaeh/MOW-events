@@ -8,6 +8,7 @@ import 'package:photo_view/photo_view.dart';
 class ProfileImage extends StatelessWidget {
   final String? text;
   final String? imageUrl;
+
   /// عند true تظهر أيقونة الكاميرا لتغيير/حذف الصورة. عند false تُعرض الصورة فقط (مثلاً في صفحة البروفايل).
   final bool editable;
   final VoidCallback? onChangeImage;
@@ -65,7 +66,7 @@ class ProfileImage extends StatelessWidget {
         const SizedBox(height: 16),
         Text(
           text ?? '-',
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          style: Theme.of(context).textTheme.titleLarge,
         ),
       ],
     );
@@ -95,7 +96,7 @@ class ProfileImage extends StatelessWidget {
       GestureDetector(
         onTap: () => Get.back(),
         child: Container(
-          color: Colors.black.withOpacity(0.8),
+          color: Colors.black.withValues(alpha: 0.8),
           child: Center(
             child: GestureDetector(
               onTap: () {},

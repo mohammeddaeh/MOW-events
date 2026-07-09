@@ -34,14 +34,16 @@ class HomeBinding extends Bindings {
         CategoriesController(repository: Get.find()),
       );
     }
-    Get.put<NotificationsController>(
-      NotificationsController(
-        repository: NotificationsRepositoryImpl(
-          backend: NotificationsBackend(),
+    if (!Get.isRegistered<NotificationsController>()) {
+      Get.put<NotificationsController>(
+        NotificationsController(
+          repository: NotificationsRepositoryImpl(
+            backend: NotificationsBackend(),
+          ),
         ),
-      ),
-      permanent: true,
-    );
+        permanent: true,
+      );
+    }
 
     Get.lazyPut<DayController>(() => DayController());
     Get.lazyPut<WeekController>(() => WeekController());

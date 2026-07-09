@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/shared/widgets/adaptive_form_field.dart';
+import 'package:mow_events/core/shared/widgets/app_rich_text.dart';
 import 'package:mow_events/core/utils/constants/app_colors.dart';
 import 'package:mow_events/core/utils/constants/app_images.dart';
 import 'package:mow_events/core/utils/constants/app_size.dart';
@@ -12,6 +13,7 @@ import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
 import 'package:mow_events/core/utils/network/network_manager.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
 import 'package:mow_events/features/auth/presentation/controller/register_controller.dart';
+import 'package:mow_events/features/auth/presentation/widgets/remember_me_checkbox.dart';
 
 class RegisterScreen extends GetView<RegisterController> {
   RegisterScreen({super.key});
@@ -134,6 +136,99 @@ class RegisterScreen extends GetView<RegisterController> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                Obx(() {
+                                  final isResubmit =
+                                      controller.isResubmitMode.value;
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        isResubmit
+                                            ? AppTexts.editYourRegistrationTitle
+                                            : AppTexts.createYourAccount,
+                                        style: TextStyle(
+                                          fontSize: 22.sp,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppThemeHelper.whiteBlack(
+                                            context,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(height: 8.h),
+                                      Text(
+                                        isResubmit
+                                            ? AppTexts
+                                                  .editRegistrationShortDescription
+                                            : AppTexts
+                                                  .createAccountShortDescription,
+                                        style: TextStyle(
+                                          fontSize: 13.sp,
+                                          height: 1.4,
+                                          color: AppThemeHelper.textSecondary(
+                                            context,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }),
+                                Obx(() {
+                                  final reason =
+                                      controller.rejectionNotice.value;
+                                  if (reason == null || reason.isEmpty) {
+                                    return const SizedBox.shrink();
+                                  }
+
+                                  return Padding(
+                                    padding: EdgeInsets.only(bottom: 16.h),
+                                    child: Container(
+                                      width: double.infinity,
+                                      padding: EdgeInsets.all(14.r),
+                                      decoration: BoxDecoration(
+                                        color: AppThemeHelper.red(
+                                          context,
+                                        ).withValues(alpha: 0.08),
+                                        borderRadius: BorderRadius.circular(
+                                          12.r,
+                                        ),
+                                        border: Border.all(
+                                          color: AppThemeHelper.red(
+                                            context,
+                                          ).withValues(alpha: 0.25),
+                                        ),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            AppTexts.registrationRejectionReason,
+                                            style: TextStyle(
+                                              color: AppThemeHelper.red(
+                                                context,
+                                              ),
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 13.sp,
+                                            ),
+                                          ),
+                                          SizedBox(height: 6.h),
+                                          Text(
+                                            reason,
+                                            style: TextStyle(
+                                              height: 1.4,
+                                              fontSize: 13.sp,
+                                              color: AppThemeHelper.whiteBlack(
+                                                context,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }),
+                                SizedBox(height: 8.h),
                                 Text(
                                   AppTexts.firstName,
                                   style: TextStyle(
@@ -146,6 +241,7 @@ class RegisterScreen extends GetView<RegisterController> {
                                   controller: controller.firstNameController,
                                   focusNode: controller.firstNameFocus,
                                   type: AdaptiveFieldType.text,
+                                  hintText: AppTexts.firstNamePlaceholder,
                                   validator: controller.firstNameValidator,
                                   prefixIcon: const Icon(
                                     Icons.person_outline_rounded,
@@ -169,6 +265,7 @@ class RegisterScreen extends GetView<RegisterController> {
                                   controller: controller.lastNameController,
                                   focusNode: controller.lastNameFocus,
                                   type: AdaptiveFieldType.text,
+                                  hintText: AppTexts.familyNamePlaceholder,
                                   validator: controller.lastNameValidator,
                                   prefixIcon: const Icon(Icons.person_rounded),
                                   onFieldSubmitted: (_) {
@@ -224,30 +321,196 @@ class RegisterScreen extends GetView<RegisterController> {
                                   onFieldSubmitted: (_) {
                                     FocusScope.of(
                                       context,
-                                    ).requestFocus(controller.addressFocus);
+                                    ).requestFocus(controller.passwordFocus);
                                   },
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  AppTexts.addresse,
+                                  AppTexts.section,
                                   style: TextStyle(
                                     color: secondaryText,
                                     fontWeight: FontWeight.w400,
                                   ),
                                 ),
                                 const SizedBox(height: 6),
-                                AdaptiveFormField(
-                                  controller: controller.addressController,
-                                  focusNode: controller.addressFocus,
-                                  type: AdaptiveFieldType.note,
-                                  prefixIcon: const Icon(
-                                    Icons.location_on_outlined,
+                                Obx(() {
+                                  if (controller.isLoadingDepartments.value) {
+                                    return const Center(
+                                      child: Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: 12,
+                                        ),
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    );
+                                  }
+
+                                  final loadError =
+                                      controller.departmentsLoadError.value;
+                                  final hasBackendError =
+                                      loadError != null && loadError.isNotEmpty;
+                                  final canSelectDepartment =
+                                      controller.departments.isNotEmpty &&
+                                      !hasBackendError;
+                                  final errorColor = AppThemeHelper.red(
+                                    context,
+                                  );
+                                  final borderColor = hasBackendError
+                                      ? errorColor
+                                      : AppThemeHelper.border(context);
+
+                                  OutlineInputBorder outline({
+                                    double width = 1.2,
+                                  }) => OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: borderColor,
+                                      width: width.w,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10.r),
+                                  );
+
+                                  Widget buildDropdown() {
+                                    return DropdownButtonFormField<int>(
+                                      isExpanded: true,
+                                      value: controller
+                                          .selectedDepartmentId.value,
+                                      decoration: InputDecoration(
+                                        hintText: hasBackendError
+                                            ? AppTexts.tapDepartmentToRetry
+                                            : AppTexts.chooseDepartment,
+                                        hintStyle: TextStyle(
+                                          color: hasBackendError
+                                              ? errorColor.withValues(
+                                                  alpha: 0.8,
+                                                )
+                                              : AppThemeHelper.hintTextGrey(
+                                                  context,
+                                                ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        prefixIcon: Icon(
+                                          Icons.apartment_outlined,
+                                          color: hasBackendError
+                                              ? errorColor
+                                              : null,
+                                        ),
+                                        floatingLabelBehavior:
+                                            FloatingLabelBehavior.never,
+                                        border: outline(),
+                                        enabledBorder: outline(),
+                                        focusedBorder: outline(width: 1.8),
+                                        errorBorder: outline(width: 1.5),
+                                        focusedErrorBorder: outline(
+                                          width: 1.8,
+                                        ),
+                                      ),
+                                      selectedItemBuilder: (context) =>
+                                          controller.departments
+                                              .map(
+                                                (d) => Align(
+                                                  alignment: AlignmentDirectional
+                                                      .centerStart,
+                                                  child: Text(
+                                                    d.name,
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              )
+                                              .toList(),
+                                      items: controller.departments
+                                          .map(
+                                            (d) => DropdownMenuItem<int>(
+                                              value: d.id,
+                                              child: Text(
+                                                d.name,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
+                                      onChanged: canSelectDepartment
+                                          ? (value) {
+                                              controller
+                                                      .selectedDepartmentId
+                                                      .value =
+                                                  value;
+                                              controller.departmentsLoadError
+                                                  .value = null;
+                                            }
+                                          : null,
+                                      validator: (_) {
+                                        if (hasBackendError) {
+                                          return AppTexts.departmentRequired;
+                                        }
+                                        return controller.departmentValidator(
+                                          controller
+                                              .selectedDepartmentId.value,
+                                        );
+                                      },
+                                    );
+                                  }
+
+                                  final departmentField = Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(child: buildDropdown()),
+                                      IconButton(
+                                        onPressed: () => controller
+                                            .loadDepartments(
+                                          showSnackBarOnError: true,
+                                        ),
+                                        icon: const Icon(Icons.refresh_rounded),
+                                      ),
+                                    ],
+                                  );
+
+                                  final fieldWithTap = canSelectDepartment
+                                      ? departmentField
+                                      : GestureDetector(
+                                          onTap: controller.onDepartmentFieldTap,
+                                          behavior: HitTestBehavior.opaque,
+                                          child: departmentField,
+                                        );
+
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      fieldWithTap,
+                                      if (hasBackendError) ...[
+                                        SizedBox(height: 6.h),
+                                        Text(
+                                          loadError,
+                                          style: TextStyle(
+                                            color: errorColor,
+                                            fontSize: 12.sp,
+                                            height: 1.35,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  );
+                                }),
+                                const SizedBox(height: 12),
+                                Obx(
+                                  () => RememberMeCheckbox(
+                                    value: controller.isManager.value,
+                                    onChanged: (value) =>
+                                        controller.isManager.value = value,
+                                    title: Text(
+                                      AppTexts.registerAsManager,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppThemeHelper.textSecondary(
+                                          context,
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                  onFieldSubmitted: (_) {
-                                    FocusScope.of(
-                                      context,
-                                    ).requestFocus(controller.passwordFocus);
-                                  },
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
@@ -329,19 +592,28 @@ class RegisterScreen extends GetView<RegisterController> {
                                               ? const CircularProgressIndicator(
                                                   color: Colors.white,
                                                 )
-                                              : Text(
-                                                  network.isOnline.value
-                                                      ? AppTexts.createAccount
-                                                      : AppTexts
-                                                            .internetRequired,
-                                                  style: TextStyle(
-                                                    fontSize: 18.sp,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.white,
-                                                    height: 1.25,
-                                                    leadingDistribution:
-                                                        TextLeadingDistribution
-                                                            .even,
+                                              : Obx(
+                                                  () => Text(
+                                                    network.isOnline.value
+                                                        ? (controller
+                                                                  .isResubmitMode
+                                                                  .value
+                                                              ? AppTexts
+                                                                    .resubmitRegistrationRequest
+                                                              : AppTexts
+                                                                    .createAccount)
+                                                        : AppTexts
+                                                              .internetRequired,
+                                                    style: TextStyle(
+                                                      fontSize: 18.sp,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.white,
+                                                      height: 1.25,
+                                                      leadingDistribution:
+                                                          TextLeadingDistribution
+                                                              .even,
+                                                    ),
                                                   ),
                                                 ),
                                         ),
@@ -354,18 +626,17 @@ class RegisterScreen extends GetView<RegisterController> {
                                 Center(
                                   child: InkWell(
                                     onTap: controller.goToLogin,
-                                    child: RichText(
+                                    child: AppRichText(
                                       text: TextSpan(
-                                        style: TextStyle(
-                                          fontSize: 12.h,
-                                          color: AppThemeHelper.textSecondary(
-                                            context,
-                                          ),
-                                        ),
                                         children: [
                                           TextSpan(
                                             text:
                                                 '${AppTexts.alreadyHaveAccount} ',
+                                            style: TextStyle(
+                                              fontSize: 12.h,
+                                              color: AppThemeHelper
+                                                  .textSecondary(context),
+                                            ),
                                           ),
                                           TextSpan(
                                             text: AppTexts.login,

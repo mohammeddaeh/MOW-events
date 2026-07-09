@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:hijri/hijri_calendar.dart';
 import 'package:mow_events/core/utils/constants/app_colors.dart';
 import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
 import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
+import 'package:mow_events/core/utils/translation/app_locale_controller.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
 
 typedef OnDatePicked = void Function(DateTime date);
@@ -31,8 +35,11 @@ class _AppDatePickerState extends State<AppDatePicker> {
   late FixedExtentScrollController dayController;
   late FixedExtentScrollController monthController;
   late FixedExtentScrollController yearController;
+  StreamSubscription<String>? _calendarSubscription;
+  StreamSubscription<String>? _localeSubscription;
 
   String? displayText;
+
   @override
   void initState() {
     super.initState();
@@ -56,31 +63,33 @@ class _AppDatePickerState extends State<AppDatePicker> {
     yearController = FixedExtentScrollController(
       initialItem: selectedHijri.hYear - 1400,
     );
-  }
 
-  void _updateDisplayText() {
-    final type = DateLocalizationHelper.userCalendar.value;
+    _calendarSubscription = DateLocalizationHelper.userCalendar.listen((_) {
+      if (!mounted) return;
+      setState(_updateDisplayText);
+    });
 
-    switch (type) {
-      case 'hijri':
-        displayText =
-            "${DateLocalizationHelper.hDay(selectedGregorian)} / "
-            "${DateLocalizationHelper.hMonth(selectedGregorian)} / "
-            "${DateLocalizationHelper.hYear(selectedGregorian)} هـ";
-        break;
-
-      case 'both':
-      case 'gregorian':
-      default:
-        displayText =
-            "${selectedGregorian.year.toString().padLeft(4, '0')} / "
-            "${selectedGregorian.month.toString().padLeft(2, '0')} / "
-            "${selectedGregorian.day.toString().padLeft(2, '0')}";
-        break;
+    if (Get.isRegistered<AppLocaleController>()) {
+      _localeSubscription = Get.find<AppLocaleController>().currentLang.listen((
+        _,
+      ) {
+        if (!mounted) return;
+        setState(_updateDisplayText);
+      });
     }
   }
 
-  void _showPicker() async {
+  void _updateDisplayText() {
+    final lines = DateLocalizationHelper.formatDateLines(
+      selectedGregorian,
+      includeCalendarLabelsForBoth: false,
+    );
+    displayText = DateLocalizationHelper.userCalendar.value == 'both'
+        ? lines.join(' / ')
+        : lines.first;
+  }
+
+  Future<void> _showPicker() async {
     final type = DateLocalizationHelper.userCalendar.value;
     final useHijriPicker = type == 'hijri';
 
@@ -125,91 +134,93 @@ class _AppDatePickerState extends State<AppDatePicker> {
         });
         widget.onDatePicked(picked);
       }
-    } else {
-      int tempDay = selectedHijri.hDay;
-      int tempMonth = selectedHijri.hMonth;
-      int tempYear = selectedHijri.hYear;
-
-      await showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          backgroundColor: AppThemeHelper.background(context),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            AppTexts.selectTheHijriDate,
-            style: TextStyle(
-              color: AppThemeHelper.whiteBlack(context),
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: SizedBox(
-            height: 200,
-            child: Row(
-              children: [
-                _buildCupertinoColumn(
-                  controller: dayController,
-                  itemCount: selectedHijri.getDaysInMonth(
-                    selectedHijri.hYear,
-                    selectedHijri.hMonth,
-                  ),
-                  onSelectedItemChanged: (index) => tempDay = index + 1,
-                  display: (i) => '${i + 1}',
-                ),
-                _buildCupertinoColumn(
-                  controller: monthController,
-                  itemCount: 12,
-                  onSelectedItemChanged: (index) => tempMonth = index + 1,
-                  display: (i) => DateLocalizationHelper.isArabic
-                      ? DateLocalizationHelper.hijriMonthsAr[i]
-                      : DateLocalizationHelper.hijriMonthsEn[i],
-                ),
-                _buildCupertinoColumn(
-                  controller: yearController,
-                  itemCount: 200,
-                  onSelectedItemChanged: (index) => tempYear = 1400 + index,
-                  display: (i) => '${1400 + i}',
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                AppTexts.cancel,
-                style: TextStyle(color: AppThemeHelper.textSecondary(context)),
-              ),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppThemeHelper.buttonPrimary(context),
-              ),
-              onPressed: () {
-                selectedHijri.hDay = tempDay;
-                selectedHijri.hMonth = tempMonth;
-                selectedHijri.hYear = tempYear;
-
-                final gregorian = selectedHijri.hijriToGregorian(
-                  tempYear,
-                  tempMonth,
-                  tempDay,
-                );
-                setState(() {
-                  selectedGregorian = gregorian;
-                  _updateDisplayText();
-                });
-
-                widget.onDatePicked(gregorian);
-                Navigator.pop(context);
-              },
-              child: Text(AppTexts.oK),
-            ),
-          ],
-        ),
-      );
+      return;
     }
+
+    int tempDay = selectedHijri.hDay;
+    int tempMonth = selectedHijri.hMonth;
+    int tempYear = selectedHijri.hYear;
+
+    await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppThemeHelper.background(context),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          AppTexts.selectTheHijriDate,
+          style: TextStyle(
+            color: AppThemeHelper.whiteBlack(context),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: SizedBox(
+          height: 200,
+          child: Row(
+            children: [
+              _buildCupertinoColumn(
+                controller: dayController,
+                itemCount: selectedHijri.getDaysInMonth(
+                  selectedHijri.hYear,
+                  selectedHijri.hMonth,
+                ),
+                onSelectedItemChanged: (index) => tempDay = index + 1,
+                display: (i) =>
+                    DateLocalizationHelper.localizeDigits('${i + 1}'),
+              ),
+              _buildCupertinoColumn(
+                controller: monthController,
+                itemCount: 12,
+                onSelectedItemChanged: (index) => tempMonth = index + 1,
+                display: (i) => DateLocalizationHelper.isArabic
+                    ? DateLocalizationHelper.hijriMonthsAr[i]
+                    : DateLocalizationHelper.hijriMonthsEn[i],
+              ),
+              _buildCupertinoColumn(
+                controller: yearController,
+                itemCount: 200,
+                onSelectedItemChanged: (index) => tempYear = 1400 + index,
+                display: (i) => DateLocalizationHelper.localizeDigits(
+                  '${1400 + i}',
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              AppTexts.cancel,
+              style: TextStyle(color: AppThemeHelper.textSecondary(context)),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppThemeHelper.buttonPrimary(context),
+            ),
+            onPressed: () {
+              selectedHijri.hDay = tempDay;
+              selectedHijri.hMonth = tempMonth;
+              selectedHijri.hYear = tempYear;
+
+              final gregorian = selectedHijri.hijriToGregorian(
+                tempYear,
+                tempMonth,
+                tempDay,
+              );
+              setState(() {
+                selectedGregorian = gregorian;
+                _updateDisplayText();
+              });
+
+              widget.onDatePicked(gregorian);
+              Navigator.pop(context);
+            },
+            child: Text(AppTexts.oK),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildCupertinoColumn({
@@ -242,6 +253,16 @@ class _AppDatePickerState extends State<AppDatePicker> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _calendarSubscription?.cancel();
+    _localeSubscription?.cancel();
+    dayController.dispose();
+    monthController.dispose();
+    yearController.dispose();
+    super.dispose();
   }
 
   @override

@@ -14,14 +14,19 @@ import '../constants/app_colors.dart';
 class AppTheme {
   AppTheme._();
 
+  static const String appFontFamily = 'Arabic';
+
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
-    fontFamily: 'Arabic',
+    fontFamily: appFontFamily,
     disabledColor: AppColors.grey,
     brightness: Brightness.light,
     primaryColor: AppColors.primary,
     colorScheme: const ColorScheme.light().copyWith(primary: AppColors.primary),
-    textTheme: AppTextTheme.lightTextTheme,
+    textTheme: AppTextTheme.lightTextTheme.apply(fontFamily: appFontFamily),
+    primaryTextTheme: AppTextTheme.lightTextTheme.apply(
+      fontFamily: appFontFamily,
+    ),
     chipTheme: AppChipTheme.lightChipTheme,
     scaffoldBackgroundColor: AppColors.white,
     appBarTheme: AppAppBarTheme.lightAppAppBarTheme,
@@ -31,16 +36,24 @@ class AppTheme {
     filledButtonTheme: AppFilledButtonTheme.lightFilledButtonTheme,
     outlinedButtonTheme: AppOutlinedButtonTheme.lightOutlinedButtonTheme,
     inputDecorationTheme: AppTextFormFieldTheme.lightInputDecorationTheme,
+    textSelectionTheme: const TextSelectionThemeData(
+      cursorColor: AppColors.primary,
+      selectionColor: Color(0x33223F3A),
+      selectionHandleColor: AppColors.primary,
+    ),
   );
 
   static ThemeData darkTheme = ThemeData(
     useMaterial3: true,
-    fontFamily: 'Arabic',
+    fontFamily: appFontFamily,
     disabledColor: AppColors.grey,
     brightness: Brightness.dark,
     primaryColor: AppColors.primary,
     colorScheme: const ColorScheme.dark().copyWith(primary: AppColors.primary),
-    textTheme: AppTextTheme.darkTextTheme,
+    textTheme: AppTextTheme.darkTextTheme.apply(fontFamily: appFontFamily),
+    primaryTextTheme: AppTextTheme.darkTextTheme.apply(
+      fontFamily: appFontFamily,
+    ),
     chipTheme: AppChipTheme.darkChipTheme,
     scaffoldBackgroundColor: AppColors.black,
     appBarTheme: AppAppBarTheme.darkAppAppBarTheme,
@@ -50,5 +63,10 @@ class AppTheme {
     filledButtonTheme: AppFilledButtonTheme.darkFilledButtonTheme,
     outlinedButtonTheme: AppOutlinedButtonTheme.darkOutlinedButtonTheme,
     inputDecorationTheme: AppTextFormFieldTheme.darkInputDecorationTheme,
+    textSelectionTheme: const TextSelectionThemeData(
+      cursorColor: AppColors.gold,
+      selectionColor: Color(0x33B9A779),
+      selectionHandleColor: AppColors.gold,
+    ),
   );
 }

@@ -1,4 +1,5 @@
 import 'package:mow_events/features/event/data/models/event_model.dart';
+import 'package:mow_events/features/event/presentation/helpers/event_display_helper.dart';
 
 enum EventDayTimeline { ended, upcoming, ongoing }
 
@@ -11,7 +12,7 @@ class EventDayListHelper {
     DateTime dayEnd,
   ) {
     final sd = e.startDateTimeSafe;
-    final ed = e.endDateTimeSafe;
+    final ed = EventDisplayHelper.effectiveEndDateTime(e);
     if (sd == null || ed == null) return false;
     return sd.isBefore(dayEnd) && ed.isAfter(dayStart);
   }
@@ -19,7 +20,7 @@ class EventDayListHelper {
   static EventDayTimeline classify(EventModel e) {
     final now = DateTime.now();
     final start = e.startDateTimeSafe;
-    final end = e.endDateTimeSafe;
+    final end = EventDisplayHelper.effectiveEndDateTime(e);
     if (start == null || end == null) return EventDayTimeline.ongoing;
     if (end.isBefore(now)) return EventDayTimeline.ended;
     if (start.isAfter(now)) return EventDayTimeline.upcoming;
@@ -28,7 +29,7 @@ class EventDayListHelper {
 
   static bool spansMultipleCalendarDays(EventModel e) {
     final s = e.startDateTimeSafe;
-    final ed = e.endDateTimeSafe;
+    final ed = EventDisplayHelper.effectiveEndDateTime(e);
     if (s == null || ed == null) return false;
     return s.year != ed.year || s.month != ed.month || s.day != ed.day;
   }

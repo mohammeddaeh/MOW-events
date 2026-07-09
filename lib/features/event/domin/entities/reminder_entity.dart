@@ -1,6 +1,6 @@
 import 'package:mow_events/core/utils/translation/app_texts.dart';
 
-enum ReminderType { day, hour, minute }
+enum ReminderType { day, hours, minute }
 
 extension ReminderTypeExt on ReminderType {
   static ReminderType fromString(String type) {
@@ -8,7 +8,7 @@ extension ReminderTypeExt on ReminderType {
       case 'day':
         return ReminderType.day;
       case 'hour':
-        return ReminderType.hour;
+        return ReminderType.hours;
       case 'minute':
         return ReminderType.minute;
       default:
@@ -20,7 +20,7 @@ extension ReminderTypeExt on ReminderType {
     switch (this) {
       case ReminderType.day:
         return 'day';
-      case ReminderType.hour:
+      case ReminderType.hours:
         return 'hour';
       case ReminderType.minute:
         return 'minute';
@@ -31,7 +31,7 @@ extension ReminderTypeExt on ReminderType {
     switch (this) {
       case ReminderType.day:
         return AppTexts.day;
-      case ReminderType.hour:
+      case ReminderType.hours:
         return AppTexts.hour;
       case ReminderType.minute:
         return AppTexts.minute;
@@ -66,8 +66,14 @@ class ReminderEntity {
     String eventId,
     ReminderType type,
     int value,
-    DateTime eventStart,
-  ) {
+    DateTime eventStart, {
+    Iterable<ReminderEntity> existingReminders = const [],
+  }) {
+    validateCustom(
+      type: type,
+      value: value,
+      existingReminders: existingReminders,
+    );
     final reminderTime = calculateTime(eventStart, type, value);
     return ReminderEntity(
       id: 'custom_${eventId}_${type.name}_$value',
@@ -80,11 +86,48 @@ class ReminderEntity {
     );
   }
 
+  static bool isReservedAtStartReminder(ReminderType type, int value) =>
+      type == ReminderType.minute && value == 0;
+
+  static void validateCustom({
+    required ReminderType type,
+    required int value,
+    Iterable<ReminderEntity> existingReminders = const [],
+    String? editingReminderId,
+  }) {
+    if (value < 0) {
+      throw ArgumentError(AppTexts.reminderValueCannotBeNegative);
+    }
+
+    if (value == 0) {
+      if (isReservedAtStartReminder(type, value)) {
+        throw ArgumentError(AppTexts.reminderAtStartReserved);
+      }
+
+      throw ArgumentError(AppTexts.mustBeGreaterThanZero);
+    }
+
+    if (isReservedAtStartReminder(type, value)) {
+      throw ArgumentError(AppTexts.reminderAtStartReserved);
+    }
+
+    final hasDuplicate = existingReminders.any(
+      (reminder) =>
+          reminder.id != editingReminderId &&
+          reminder.type == type &&
+          reminder.value == value,
+    );
+
+    if (hasDuplicate) {
+      throw ArgumentError(AppTexts.reminderAlreadyExists);
+    }
+  }
+
   static DateTime calculateTime(DateTime start, ReminderType type, int value) {
     switch (type) {
       case ReminderType.day:
         return start.subtract(Duration(days: value));
-      case ReminderType.hour:
+      case ReminderType.hours:
         return start.subtract(Duration(hours: value));
       case ReminderType.minute:
         return start.subtract(Duration(minutes: value));
@@ -99,15 +142,21 @@ class ReminderEntity {
         ? ReminderSource.default_
         : ReminderSource.backend;
 
+    final typeRaw = (json['reminder_type'] ?? json['type'] ?? 'day').toString();
+    final valueRaw = int.tryParse((json['value'] ?? 0).toString()) ?? 0;
+    final reminderRaw =
+        json['reminder'] ?? json['reminder_time'] ?? json['reminder_date'];
+
     return ReminderEntity(
       id:
           json['id'] ??
-          '${sourceStr}_${json['event_id']}_${json['reminder_type']}_${json['value']}',
-      eventId: json['event_id'] ?? '',
+          '${sourceStr}_${json['event_id'] ?? json['eventId']}_${typeRaw}_$valueRaw',
+      eventId: (json['event_id'] ?? json['eventId'] ?? '').toString(),
       source: source,
-      type: ReminderTypeExt.fromString(json['reminder_type'] ?? 'day'),
-      value: json['value'] ?? 0,
-      reminderTime: DateTime.tryParse(json['reminder'] ?? '') ?? DateTime.now(),
+      type: ReminderTypeExt.fromString(typeRaw),
+      value: valueRaw,
+      reminderTime:
+          DateTime.tryParse(reminderRaw?.toString() ?? '') ?? DateTime.now(),
       defaultKey: json['default_key'],
       alarmId: json['alarm_id'] ?? DateTime.now().microsecondsSinceEpoch,
     );

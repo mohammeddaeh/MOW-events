@@ -86,33 +86,30 @@ class AppDialog extends StatelessWidget {
               const SizedBox(height: 20),
 
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.grey),
-                      ),
-                      onPressed: () {
-                        Navigator.pop(context);
-                        onCancel?.call();
-                      },
-                      child: Text(AppTexts.cancel),
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.grey),
                     ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      onCancel?.call();
+                    },
+                    child: Text(AppTexts.cancel),
                   ),
 
                   const SizedBox(width: 12),
 
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: type.confirmColor,
-                      ),
-                      onPressed: () {
-                        Navigator.pop(context);
-                        onConfirm();
-                      },
-                      child: Text(type.confirmText),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: type.confirmColor,
                     ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      onConfirm();
+                    },
+                    child: Text(type.confirmText),
                   ),
                 ],
               ),

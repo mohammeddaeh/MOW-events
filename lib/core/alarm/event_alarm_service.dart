@@ -59,9 +59,7 @@ class EventAlarmService extends GetxService {
 
       try {
         await _channel.invokeMethod<void>('scheduleAlarm', map);
-      } catch (err) {
-        debugPrint('EventAlarmService.scheduleAlarm: $err');
-      }
+      } catch (_) {}
     }
 
     for (final old in _trackedRequestCodes.difference(nextCodes)) {
@@ -77,9 +75,7 @@ class EventAlarmService extends GetxService {
       await _channel.invokeMethod<void>('setAlarmScheduleSnapshot', {
         'json': jsonEncode(entries),
       });
-    } catch (err) {
-      debugPrint('EventAlarmService.setAlarmScheduleSnapshot: $err');
-    }
+    } catch (_) {}
   }
 
   /// دمج الحدث مع قائمة [HomeController] عند توفرها ليبقى لقطة التخزين متسقة.

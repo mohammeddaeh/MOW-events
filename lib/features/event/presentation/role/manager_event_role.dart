@@ -9,28 +9,28 @@ import 'package:mow_events/features/event/presentation/role/event_role.dart';
 
 class ManagerEventBuilder extends EventBuilderBase {
   @override
-  void applyDefaults(AddEventController c) {
-    c.visibility.value = EventVisibility.private;
+  void applyDefaults(EventFormController c) {
+    c.visibility.value = EventVisibility.personal;
     c.isPrivate.value = 1;
     c.isPublic.value = 0;
   }
 
   @override
-  bool showCategory(AddEventController c) =>
+  bool showCategory(EventFormController c) =>
       c.visibility.value == EventVisibility.included;
 
   @override
-  bool showMembers(AddEventController c) =>
+  bool showMembers(EventFormController c) =>
       c.visibility.value == EventVisibility.included;
 
   @override
-  bool showAttendance(AddEventController c) => false;
+  bool showAttendance(EventFormController c) => false;
 
   @override
-  bool showAdminType(AddEventController c) => false;
+  bool showAdminType(EventFormController c) => false;
 
   @override
-  void validate(AddEventController c) {
+  void validate(EventFormController c) {
     if (showMembers(c) && c.members.isEmpty) {
       throw Exception(AppTexts.chooseMembersForTheEvent);
     }
@@ -53,17 +53,15 @@ class ManagerEventBuilder extends EventBuilderBase {
     UserEntity currentUser,
     List<UserEntity> allUsers,
   ) {
-    return allUsers
-        .where((u) => u.department?.id == currentUser.department?.id)
-        .toList();
+    return allUsers;
   }
 
   @override
-  List<int> getEffectiveMembers(UserEntity currentUser, AddEventController c) =>
+  List<int> getEffectiveMembers(UserEntity currentUser, EventFormController c) =>
       c.members.toList();
 
   @override
-  EventModel build(AddEventController c) {
+  EventModel build(EventFormController c) {
     return EventModel(
       id: 0,
       name: c.nameController.text,
@@ -83,7 +81,7 @@ class ManagerEventBuilder extends EventBuilderBase {
       }(),
 
       isPublic: 0,
-      isPrivate: c.visibility.value == EventVisibility.private ? 1 : 0,
+      isPrivate: c.visibility.value == EventVisibility.personal ? 1 : 0,
       members: getEffectiveMembers(c.currentUser, c),
       userCurrentInMembers: c.visibility.value == EventVisibility.included
           ? true
@@ -91,6 +89,9 @@ class ManagerEventBuilder extends EventBuilderBase {
       reminders: c.reminders.toList(),
       rawReminders: [],
       createdAt: DateTime.now().toString(),
+      alarmTimeIso: null,
+      isAlarmEnabled: false,
+      snoozeDurationMinutes: 10,
     );
   }
 }

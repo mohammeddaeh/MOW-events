@@ -4,6 +4,9 @@ import 'package:mow_events/features/event/presentation/controller/add_event_cont
 class AddEventBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<AddEventController>(() => AddEventController());
+    Get.lazyPut<EventFormController>(
+      () => EventFormController(mode: EventFormMode.create),
+      fenix: false,
+    );
   }
 }

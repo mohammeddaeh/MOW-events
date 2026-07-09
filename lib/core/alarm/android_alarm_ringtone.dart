@@ -32,8 +32,7 @@ Future<bool> scheduleAndroidAlarmRingtonePreview({
       'snoozeMinutes': 10,
     });
     return true;
-  } catch (e, st) {
-    debugPrint('scheduleAndroidAlarmRingtonePreview: $e\n$st');
+  } catch (_) {
     return false;
   }
 }
@@ -44,8 +43,7 @@ Future<String?> getAndroidAlarmRingtoneUri() async {
   try {
     final v = await _kAlarmChannel.invokeMethod<String?>('getAlarmRingtoneUri');
     return v;
-  } catch (e, st) {
-    debugPrint('getAndroidAlarmRingtoneUri: $e\n$st');
+  } catch (_) {
     return null;
   }
 }
@@ -72,8 +70,7 @@ Future<AlarmRingtoneSource> getAndroidAlarmRingtoneSource() async {
     // توافق مع نسخ APK قديمة لا تحتوي method getAlarmRingtoneSource.
     final uri = await getAndroidAlarmRingtoneUri();
     return _inferRingtoneSourceFromUri(uri);
-  } catch (e, st) {
-    debugPrint('getAndroidAlarmRingtoneSource: $e\n$st');
+  } catch (_) {
     final uri = await getAndroidAlarmRingtoneUri();
     return _inferRingtoneSourceFromUri(uri);
   }
@@ -83,9 +80,7 @@ Future<void> clearAndroidAlarmRingtone() async {
   if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
   try {
     await _kAlarmChannel.invokeMethod<void>('clearAlarmRingtone');
-  } catch (e, st) {
-    debugPrint('clearAndroidAlarmRingtone: $e\n$st');
-  }
+  } catch (_) {}
 }
 
 /// يفتح منتقي نغمات المنبّه في النظام؛ يعيد [Uri] كنص أو `null` عند الإلغاء.
@@ -95,8 +90,7 @@ Future<String?> pickAndroidSystemAlarmRingtone() async {
     final v =
         await _kAlarmChannel.invokeMethod<String?>('pickSystemAlarmRingtone');
     return v;
-  } catch (e, st) {
-    debugPrint('pickAndroidSystemAlarmRingtone: $e\n$st');
+  } catch (_) {
     return null;
   }
 }
@@ -107,8 +101,7 @@ Future<String?> pickAndroidAlarmAudioFile() async {
   try {
     final v = await _kAlarmChannel.invokeMethod<String?>('pickAlarmAudioFile');
     return v;
-  } catch (e, st) {
-    debugPrint('pickAndroidAlarmAudioFile: $e\n$st');
+  } catch (_) {
     return null;
   }
 }
@@ -122,8 +115,7 @@ Future<bool> playAndroidAlarmTonePreview({String? uri}) async {
       {'uri': uri},
     );
     return ok ?? false;
-  } catch (e, st) {
-    debugPrint('playAndroidAlarmTonePreview: $e\n$st');
+  } catch (_) {
     return false;
   }
 }
@@ -132,9 +124,7 @@ Future<void> stopAndroidAlarmTonePreview() async {
   if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
   try {
     await _kAlarmChannel.invokeMethod<void>('stopAlarmTonePreview');
-  } catch (e, st) {
-    debugPrint('stopAndroidAlarmTonePreview: $e\n$st');
-  }
+  } catch (_) {}
 }
 
 AlarmRingtoneSource _inferRingtoneSourceFromUri(String? uri) {

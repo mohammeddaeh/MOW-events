@@ -4,6 +4,7 @@ class RefreshableList extends StatelessWidget {
   final Future<void> Function() onRefresh;
   final List<Widget> children;
   final Widget emptyWidget;
+  final Widget? footer;
   final EdgeInsets padding;
 
   const RefreshableList({
@@ -11,6 +12,7 @@ class RefreshableList extends StatelessWidget {
     required this.onRefresh,
     required this.children,
     required this.emptyWidget,
+    this.footer,
     this.padding = const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
   });
 
@@ -28,7 +30,10 @@ class RefreshableList extends StatelessWidget {
                   child: Center(child: emptyWidget),
                 ),
               ]
-            : children,
+            : [
+                ...children,
+                if (footer != null) footer!,
+              ],
       ),
     );
   }

@@ -1,5 +1,5 @@
-/// نموذج لعرض مشارك في تفاصيل الحدث (الاسم الأول، الثاني، صورة، قسم، مدير/أدمن)
-/// يتوافق مع استجابة API: id, first_name, last_name, full_name, email, image, department, is_manager, is_admin
+/// نموذج لعرض مشارك في تفاصيل الحدث
+/// يتوافق مع استجابة API: id, first_name, last_name, full_name, email, image, department, is_admin, status
 class EventMemberDisplay {
   final int id;
   final String firstName;
@@ -9,6 +9,12 @@ class EventMemberDisplay {
   final bool isManager;
   final bool isAdmin;
 
+  /// حالة المشارك: 'accept' | 'pending' | 'reject'
+  final String status;
+
+  /// سبب الرفض (يظهر فقط للمنشئ عند رفض أحد الأعضاء)
+  final String? descriptionReject;
+
   const EventMemberDisplay({
     required this.id,
     required this.firstName,
@@ -17,6 +23,8 @@ class EventMemberDisplay {
     this.departmentName,
     this.isManager = false,
     this.isAdmin = false,
+    this.status = 'pending',
+    this.descriptionReject,
   });
 
   /// الاسم الكامل للعرض (full_name أو first + last)
@@ -28,7 +36,10 @@ class EventMemberDisplay {
   }
 
   static bool _isTrue(dynamic v) =>
-      v == true || v == 1 || v?.toString() == '1' || (v?.toString().toLowerCase() == 'true');
+      v == true ||
+      v == 1 ||
+      v?.toString() == '1' ||
+      (v?.toString().toLowerCase() == 'true');
 
   factory EventMemberDisplay.fromJson(Map<String, dynamic> json) {
     final first = (json['first_name']?.toString() ?? '').trim();
@@ -37,7 +48,8 @@ class EventMemberDisplay {
     String deptName = '';
     if (dep is Map) {
       deptName = (dep['name']?.toString() ?? '').trim();
-      if (deptName.isEmpty) deptName = (dep['department_name']?.toString() ?? '').trim();
+      if (deptName.isEmpty)
+        deptName = (dep['department_name']?.toString() ?? '').trim();
     } else if (dep != null) {
       deptName = dep.toString().trim();
     }
@@ -45,13 +57,21 @@ class EventMemberDisplay {
       deptName = json['department_name'].toString().trim();
     }
     // مدير: من الجذر (is_manager / is_manager_department) أو من department.is_manager_department — مثل UserModel و Department
-    final isManagerRoot = _isTrue(json['is_manager']) || _isTrue(json['is_manager_department']);
+    final isManagerRoot =
+        _isTrue(json['is_manager']) || _isTrue(json['is_manager_department']);
     bool isManagerDept = false;
     if (dep is Map) {
       isManagerDept = _isTrue(dep['is_manager_department']);
     }
     final isManager = isManagerRoot || isManagerDept;
     final isAdmin = _isTrue(json['is_admin']);
+
+    final statusRaw = (json['status']?.toString() ?? 'pending').toLowerCase();
+    final statusVal = (statusRaw == 'accept' || statusRaw == 'reject')
+        ? statusRaw
+        : 'pending';
+
+    final descRaw = json['description_reject']?.toString().trim();
 
     return EventMemberDisplay(
       id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
@@ -61,6 +81,8 @@ class EventMemberDisplay {
       departmentName: deptName.isEmpty ? null : deptName,
       isManager: isManager,
       isAdmin: isAdmin,
+      status: statusVal,
+      descriptionReject: (descRaw == null || descRaw.isEmpty) ? null : descRaw,
     );
   }
 
@@ -71,14 +93,17 @@ class EventMemberDisplay {
     String? departmentName,
     bool? isManager,
     bool? isAdmin,
-  }) =>
-      EventMemberDisplay(
-        id: id,
-        firstName: firstName ?? this.firstName,
-        lastName: lastName ?? this.lastName,
-        image: image ?? this.image,
-        departmentName: departmentName ?? this.departmentName,
-        isManager: isManager ?? this.isManager,
-        isAdmin: isAdmin ?? this.isAdmin,
-      );
+    String? status,
+    String? descriptionReject,
+  }) => EventMemberDisplay(
+    id: id,
+    firstName: firstName ?? this.firstName,
+    lastName: lastName ?? this.lastName,
+    image: image ?? this.image,
+    departmentName: departmentName ?? this.departmentName,
+    isManager: isManager ?? this.isManager,
+    isAdmin: isAdmin ?? this.isAdmin,
+    status: status ?? this.status,
+    descriptionReject: descriptionReject ?? this.descriptionReject,
+  );
 }

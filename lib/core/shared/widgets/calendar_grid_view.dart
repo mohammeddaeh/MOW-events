@@ -58,7 +58,6 @@ class UniversalCalendarGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final cellWidth = constraints.maxWidth / 7;
-        final isBothYear = isYearMode && userCalendar == 'both';
         final scale = isYearMode ? (cellWidth * 0.33) : (cellWidth * 0.45);
 
         final fontDay = scale * 0.7;
@@ -104,31 +103,32 @@ class UniversalCalendarGrid extends StatelessWidget {
 
             Flexible(
               fit: FlexFit.tight,
-              child: GridView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 7,
-                  mainAxisSpacing: isYearMode ? 5 : 4,
-                  crossAxisSpacing: isYearMode ? 3 : 4,
-                  childAspectRatio: isYearMode ? 1.1 : 1,
-                ),
-                itemCount: days.length,
-                itemBuilder: (_, index) {
-                  final day = days[index];
+              child: Obx(() {
+                final today = DateLocalizationHelper.today.value;
 
-                  final isInMonth = DateLocalizationHelper.isInSameMonth(
-                    day,
-                    month,
-                  );
+                return GridView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 7,
+                    mainAxisSpacing: isYearMode ? 5 : 4,
+                    crossAxisSpacing: isYearMode ? 3 : 4,
+                    childAspectRatio: isYearMode ? 1.1 : 1,
+                  ),
+                  itemCount: days.length,
+                  itemBuilder: (_, index) {
+                    final day = days[index];
 
-                  if (!isInMonth) {
-                    return Container();
-                  }
+                    final isInMonth = DateLocalizationHelper.isInSameMonth(
+                      day,
+                      month,
+                    );
 
-                  return Obx(() {
+                    if (!isInMonth) {
+                      return Container();
+                    }
+
                     final hasEv = hasEvents?.call(day) ?? false;
                     final evCount = eventCount?.call(day) ?? 0;
-                    final today = DateLocalizationHelper.today.value;
                     final isToday = DateUtils.isSameDay(day, today);
                     final isSelected =
                         selectedDay != null &&
@@ -145,7 +145,7 @@ class UniversalCalendarGrid extends StatelessWidget {
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
                         decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.15),
+                          color: Colors.grey.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(scale * 0.35),
                           border: isSelected
                               ? Border.all(color: Colors.amber, width: 1.5)
@@ -164,7 +164,9 @@ class UniversalCalendarGrid extends StatelessWidget {
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.amber.withOpacity(0.7),
+                                      color: Colors.amber.withValues(
+                                        alpha: 0.7,
+                                      ),
                                       blurRadius: 8,
                                       spreadRadius: 3,
                                     ),
@@ -207,9 +209,9 @@ class UniversalCalendarGrid extends StatelessWidget {
                         ),
                       ),
                     );
-                  });
-                },
-              ),
+                  },
+                );
+              }),
             ),
           ],
         );

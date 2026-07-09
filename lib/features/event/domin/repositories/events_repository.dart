@@ -13,4 +13,9 @@ abstract class EventsRepository {
   Future<List<EventMemberDisplay>> getEventMembersWithDetails(int id);
   Future<List<UserEntity>> getAllUsers({int? departmentId});
   Future<EventModel> getEvent(int id);
+  Future<void> changeEventMemberStatus({
+    required int eventId,
+    required String status,
+    String? descriptionReject,
+  });
 }

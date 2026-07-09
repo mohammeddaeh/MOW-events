@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/shared/widgets/calendar_grid_view.dart';
 import 'package:mow_events/core/shared/widgets/empty_state_widget.dart';
+import 'package:mow_events/core/shared/widgets/pagination_footer.dart';
 import 'package:mow_events/core/utils/constants/app_images.dart';
 import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
 import 'package:mow_events/core/shared/widgets/calendar_header.dart';
@@ -9,13 +10,12 @@ import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
 import 'package:mow_events/features/event/presentation/controller/home_controller.dart';
 import 'package:mow_events/features/event/presentation/controller/monthly_controller.dart';
+import 'package:mow_events/features/event/presentation/helpers/event_day_list_helper.dart';
 import 'package:mow_events/features/event/presentation/widgets/card_event.dart';
 import 'package:mow_events/features/event/presentation/widgets/day_side_toast.dart';
 
 class MonthScreen extends StatelessWidget {
-  MonthScreen({super.key});
-  OverlayEntry? _currentToast;
-  final ValueNotifier<double> _toastOffsetX = ValueNotifier(0.0);
+  const MonthScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +52,7 @@ class MonthScreen extends StatelessWidget {
           const SizedBox(height: 10),
           Obx(() {
             final month = controller.currentMonth.value;
-            // استخدام نفس المنطق للتقويم المختار (ميلادي/هجري/كلاهما)
+            controller.groupedEvents.entries.toList(growable: false);
             final days = DateLocalizationHelper.generateMonthDays(month);
             final totalCells = days.length;
             final totalWeeks = (totalCells / 7).ceil();
@@ -74,7 +74,11 @@ class MonthScreen extends StatelessWidget {
                 onDayTap: (day) {
                   controller.selectDay(day);
                   final display = DateLocalizationHelper.display(day);
-                  showDayToast(context, display);
+                  controller.showSideToast(
+                    toastBuilder: (ctx) => DaySideToast(
+                      child: _MonthDayToastContent(display: display),
+                    ),
+                  );
                 },
               ),
             );
@@ -83,125 +87,93 @@ class MonthScreen extends StatelessWidget {
           Expanded(
             flex: 1,
             child: Obx(() {
-              if (controller.selectedDayTasks.isEmpty) {
-                return EmptyStateWidget(
-                  lottieAsset: AppImages.noResult,
-                  title: AppTexts.noEventsThisDay,
-                );
-              }
-
-              return ListView.builder(
-                padding: const EdgeInsets.only(
-                  bottom: 20,
-                  right: 6,
-                  left: 6,
-                  top: 8,
-                ),
-                itemCount: controller.selectedDayTasks.length,
-                itemBuilder: (_, i) {
-                  final e = controller.selectedDayTasks[i];
-                  return CardEvent(event: e, homeController: homeController);
-                },
+            if (controller.selectedDayTasks.isEmpty) {
+              return EmptyStateWidget(
+                lottieAsset: AppImages.noResult,
+                title: AppTexts.noEventsThisDay,
               );
-            }),
-          ),
+            }
+
+            final visibleTasks = controller.visibleSelectedDayTasks;
+            final shouldShowFooter = controller.selectedDayTasks.isNotEmpty;
+
+            return ListView(
+              padding: const EdgeInsets.only(
+                bottom: 20,
+                right: 6,
+                left: 6,
+                top: 8,
+              ),
+              children: [
+                ...visibleTasks.map(
+                  (event) => CardEvent(
+                    event: event,
+                    homeController: homeController,
+                    config: EventCardConfig(
+                      showMultiDaySpanHint:
+                          EventDayListHelper.spansMultipleCalendarDays(event),
+                    ),
+                  ),
+                ),
+                if (shouldShowFooter)
+                  PaginationFooter(
+                    isLoadingMore: homeController.isLoadingMoreEvents.value,
+                    hasMore:
+                        controller.canLoadMoreSelectedDayTasks ||
+                        homeController.hasMoreEvents.value,
+                    actionLabel: AppTexts.viewmore,
+                    loadingLabel: AppTexts.loadingMoreEvents,
+                    completedLabel: AppTexts.allEventsLoaded,
+                    onLoadMore: controller.canLoadMoreSelectedDayTasks
+                        ? controller.loadMoreSelectedDayTasks
+                        : homeController.loadMoreEvents,
+                  ),
+              ],
+            );
+          }),
+        ),
         ],
       ),
     );
   }
+}
 
-  void showDayToast(BuildContext context, dynamic display) {
-    _currentToast?.remove();
-    _currentToast = null;
-    _toastOffsetX.value = 0;
+class _MonthDayToastContent extends StatelessWidget {
+  final DateDisplayModel display;
 
-    final overlay = OverlayEntry(
-      builder: (_) {
-        final screenWidth = MediaQuery.of(context).size.width;
+  const _MonthDayToastContent({required this.display});
 
-        return ValueListenableBuilder<double>(
-          valueListenable: _toastOffsetX,
-          builder: (_, offsetX, __) {
-            return Stack(
-              children: [
-                Positioned.fill(child: IgnorePointer()),
-
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.12,
-                  right: Directionality.of(context) == TextDirection.rtl
-                      ? 10
-                      : null,
-                  left: Directionality.of(context) == TextDirection.ltr
-                      ? 10
-                      : null,
-
-                  child: GestureDetector(
-                    onHorizontalDragUpdate: (details) {
-                      _toastOffsetX.value += details.delta.dx;
-                    },
-                    onHorizontalDragEnd: (_) {
-                      if (_toastOffsetX.value.abs() > screenWidth * 0.25) {
-                        _currentToast?.remove();
-                        _currentToast = null;
-                      } else {
-                        _toastOffsetX.value = 0;
-                      }
-                    },
-                    child: Transform.translate(
-                      offset: Offset(offsetX, 0),
-                      child: DaySideToast(
-                        child: Builder(
-                          builder: (ctx) {
-                            final textColor = AppThemeHelper.whiteBlack(ctx);
-                            final baseStyle = TextStyle(
-                              color: textColor,
-                              fontSize: 10,
-                              decoration: TextDecoration.none,
-                              fontWeight: FontWeight.normal,
-                            );
-                            return DefaultTextStyle(
-                              style: baseStyle,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    AppTexts.todaySDate,
-                                    style: baseStyle.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    '${AppTexts.gregorian.tr}: ${display.gDay} ${display.gMonth} ${display.gYear}',
-                                  ),
-                                  Text(
-                                    '${AppTexts.hijri.tr}: ${display.hDay} ${display.hMonth} ${display.hYear}',
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
+  @override
+  Widget build(BuildContext context) {
+    final textColor = AppThemeHelper.whiteBlack(context);
+    final baseStyle = TextStyle(
+      color: textColor,
+      fontSize: 10,
+      decoration: TextDecoration.none,
+      fontWeight: FontWeight.normal,
     );
 
-    _currentToast = overlay;
-    Overlay.of(context).insert(overlay);
-
-    Future.delayed(const Duration(seconds: 3), () {
-      if (_currentToast == overlay) {
-        overlay.remove();
-        _currentToast = null;
-      }
-    });
+    return DefaultTextStyle(
+      style: baseStyle,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppTexts.todaySDate,
+            style: baseStyle.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: 11,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '${AppTexts.gregorian.tr}: ${display.gDay} ${display.gMonth} ${display.gYear}',
+          ),
+          Text(
+            '${AppTexts.hijri.tr}: ${display.hDay} ${display.hMonth} ${display.hYear}',
+          ),
+        ],
+      ),
+    );
   }
 }

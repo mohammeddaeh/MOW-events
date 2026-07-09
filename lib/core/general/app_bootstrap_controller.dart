@@ -1,13 +1,17 @@
 import 'package:get/get.dart';
 import 'package:mow_events/core/app_router/app_router.dart';
 import 'package:mow_events/core/utils/local_storage/AppStorage/app_storage.dart';
-import 'package:mow_events/core/utils/network/network_manager.dart';
 import 'package:mow_events/features/auth/presentation/controller/auth_controller.dart';
+import 'package:mow_events/features/auth/presentation/controller/user_access_controller.dart';
+import 'package:mow_events/features/auth/services/auth_service.dart';
+import 'package:mow_events/features/auth/services/registration_approval_service.dart';
 import 'package:mow_events/features/event/presentation/controller/reminder_controller.dart';
+import 'package:mow_events/features/notifications/services/notifications_fcm_service.dart';
 
 class AppBootstrapController extends GetxController {
   final AuthController auth = Get.find();
-  final NetworkManager network = Get.find();
+  final UserAccessController accessController = Get.find();
+
   @override
   void onInit() {
     super.onInit();
@@ -22,15 +26,46 @@ class AppBootstrapController extends GetxController {
 
   Future<void> _start() async {
     auth.loadFromLocal();
-    final remember = await AppStorage().rememberMe;
+
+    final localUser = auth.user.value;
+    await RegistrationApprovalService.reconcileLocalStateWithUser(localUser);
+
+    if (auth.isAuthenticated.value &&
+        RegistrationApprovalService.shouldHoldRegistrationApproval(localUser)) {
+      if (localUser != null) {
+        await RegistrationApprovalService.syncFromUser(localUser);
+      }
+      NotificationsFcmService.ensureController();
+      await NotificationsFcmService.processPendingBackgroundAction();
+      Get.offAllNamed(AppRouter.registrationPendingScreen);
+      return;
+    }
+
+    final storage = AppStorage();
+    final remember = storage.rememberMe;
 
     if (!auth.isAuthenticated.value || remember == false) {
+      if (auth.isAuthenticated.value && remember == false) {
+        await AuthService.logout();
+        auth.user.value = null;
+        auth.isAuthenticated.value = false;
+      }
+
       Get.offAllNamed(AppRouter.logInScreen);
       return;
     }
 
-    Get.offAllNamed(AppRouter.homeScreen);
+    final startupAccess = await accessController.resolveStartupAccess();
 
-    await Future.delayed(Duration.zero);
+    switch (startupAccess) {
+      case StartupAccessResult.unauthenticated:
+        Get.offAllNamed(AppRouter.logInScreen);
+        return;
+      case StartupAccessResult.active:
+      case StartupAccessResult.requiresRefresh:
+      case StartupAccessResult.inactive:
+        Get.offAllNamed(AppRouter.homeScreen);
+        return;
+    }
   }
 }

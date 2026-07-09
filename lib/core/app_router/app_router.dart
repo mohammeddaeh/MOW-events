@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:mow_events/features/auth/presentation/binding/change_password_binding.dart';
 import 'package:mow_events/features/auth/presentation/binding/forgot_password_binding.dart';
 import 'package:mow_events/features/auth/presentation/binding/log_in_binding.dart';
+import 'package:mow_events/features/auth/presentation/binding/register_binding.dart';
 import 'package:mow_events/features/auth/presentation/binding/profile_binding.dart';
 import 'package:mow_events/features/auth/presentation/binding/reset_password_binding.dart';
 import 'package:mow_events/features/auth/presentation/binding/verify_code_binding.dart';
@@ -9,6 +10,9 @@ import 'package:mow_events/features/auth/presentation/screen/change_password_scr
 import 'package:mow_events/features/auth/presentation/screen/edit_profile_screen.dart';
 import 'package:mow_events/features/auth/presentation/screen/forgot_password_screen.dart';
 import 'package:mow_events/features/auth/presentation/screen/log_in_screen.dart';
+import 'package:mow_events/features/auth/presentation/binding/registration_pending_binding.dart';
+import 'package:mow_events/features/auth/presentation/screen/register_screen.dart';
+import 'package:mow_events/features/auth/presentation/screen/registration_pending_screen.dart';
 import 'package:mow_events/features/auth/presentation/screen/profile_screen.dart';
 import 'package:mow_events/features/auth/presentation/screen/reset_password_screen.dart';
 import 'package:mow_events/features/auth/presentation/screen/verify_code_screen.dart';
@@ -22,11 +26,15 @@ import 'package:mow_events/features/event/presentation/screens/edit_event_screen
 import 'package:mow_events/features/event/presentation/screens/home_screen.dart';
 import 'package:mow_events/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:mow_events/features/event/presentation/screens/settings_screen.dart';
+import 'package:mow_events/features/alarm/presentation/alarm_screen.dart';
+import 'package:mow_events/features/alarm/presentation/bindings/alarm_ringing_binding.dart';
 import 'package:mow_events/features/splash/splash_screen.dart';
 
 class AppRouter {
   static const String splash = '/';
   static const String logInScreen = '/logInScreen';
+  static const String registerScreen = '/registerScreen';
+  static const String registrationPendingScreen = '/registrationPendingScreen';
   static const String addEventScreen = '/AddEventScreen';
   static const String forgotPassword = '/forgotPassword';
   static const String verifyCode = '/verifyCode';
@@ -39,6 +47,8 @@ class AppRouter {
   static const String editEvent = '/editEvent';
   static const String categoriesPage = '/categoriesPage';
   static const String notifications = '/notifications';
+  /// منبّه ملء الشاشة (يُفتح من [FullScreenAlarmActivity] عبر defaultRouteName).
+  static const String alarmRinging = '/alarm';
 
   static List<GetPage> appPages = [
     GetPage(name: splash, page: () => SplashScreen()),
@@ -47,6 +57,16 @@ class AppRouter {
       name: logInScreen,
       page: () => LogInScreen(),
       binding: LogInBinding(),
+    ),
+    GetPage(
+      name: registerScreen,
+      page: () => RegisterScreen(),
+      binding: RegisterBinding(),
+    ),
+    GetPage(
+      name: registrationPendingScreen,
+      page: () => const RegistrationPendingScreen(),
+      binding: RegistrationPendingBinding(),
     ),
 
     GetPage(
@@ -99,5 +119,10 @@ class AppRouter {
     ),
     GetPage(name: AppRouter.categoriesPage, page: () => CategoriesPage()),
     GetPage(name: AppRouter.notifications, page: () => NotificationsScreen()),
+    GetPage(
+      name: AppRouter.alarmRinging,
+      page: () => const AlarmScreen(),
+      binding: AlarmRingingBinding(),
+    ),
   ];
 }

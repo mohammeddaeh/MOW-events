@@ -10,7 +10,7 @@ class AppTextFormFieldTheme {
     suffixIconColor: AppColors.darkGrey,
     labelStyle: TextStyle(fontSize: 16, color: AppColors.black),
     hintStyle: TextStyle(fontSize: 12, color: AppColors.black),
-    floatingLabelStyle: TextStyle(color: AppColors.black.withOpacity(0.8)),
+    floatingLabelStyle: TextStyle(color: AppColors.black.withValues(alpha: 0.8)),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
       borderSide: BorderSide(width: 1, color: AppColors.grey),
@@ -21,7 +21,7 @@ class AppTextFormFieldTheme {
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(width: 1, color: AppColors.dark),
+      borderSide: BorderSide(width: 1.6, color: AppColors.primary),
     ),
     errorBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
@@ -41,7 +41,7 @@ class AppTextFormFieldTheme {
     suffixIconColor: AppColors.darkGrey,
     labelStyle: TextStyle(fontSize: 16, color: AppColors.white),
     hintStyle: TextStyle(fontSize: 12, color: AppColors.white),
-    floatingLabelStyle: TextStyle(color: AppColors.white.withOpacity(0.8)),
+    floatingLabelStyle: TextStyle(color: AppColors.white.withValues(alpha: 0.8)),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
       borderSide: BorderSide(width: 1, color: AppColors.darkGrey),
@@ -52,7 +52,7 @@ class AppTextFormFieldTheme {
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(width: 1, color: AppColors.white),
+      borderSide: BorderSide(width: 1.6, color: AppColors.gold),
     ),
     errorBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),

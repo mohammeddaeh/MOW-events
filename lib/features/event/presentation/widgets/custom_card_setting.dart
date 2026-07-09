@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get_utils/get_utils.dart';
-import 'package:mow_events/core/utils/constants/app_colors.dart';
+import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
 import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
 
 class CustomCardSetting extends StatelessWidget {
   final String title;
+
+  /// سطر ثانٍ بخط أصغر (اختياري).
+  final String? subtitle;
   final List<String>? options;
   final String? currentValue;
   final void Function(String)? onSelected;
@@ -15,6 +18,7 @@ class CustomCardSetting extends StatelessWidget {
   const CustomCardSetting({
     super.key,
     required this.title,
+    this.subtitle,
     this.options,
     this.currentValue,
     this.onSelected,
@@ -25,42 +29,86 @@ class CustomCardSetting extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String localizedOptionLabel(String value) =>
+        DateLocalizationHelper.localizeDigits(value.tr);
+    final isDark = AppThemeHelper.currentBrightness(context) == Brightness.dark;
+    final cardColor = AppThemeHelper.blackWhite(context);
+    final borderColor = AppThemeHelper.border(context).withValues(alpha: 0.8);
+    final iconColor = AppThemeHelper.buttonPrimary(context);
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 24.0),
+      padding: const EdgeInsets.only(bottom: 8.0),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(18),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(8),
+            color: cardColor,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: borderColor),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 2,
-                offset: const Offset(0, 0),
+                color: Colors.black.withValues(alpha: isDark ? 0.14 : 0.07),
+                blurRadius: isDark ? 12 : 18,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
           child: Row(
             children: [
               if (iconData != null)
-                Icon(iconData, color: AppColors.primary, size: 16),
-              if (iconData != null) const SizedBox(width: 8),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: AppThemeHelper.blackBblack(context),
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: isDark ? 0.14 : 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(iconData, color: iconColor, size: 16),
                 ),
+              if (iconData != null) const SizedBox(width: 8),
+              Expanded(
+                child: subtitle != null
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            title,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: AppThemeHelper.whiteBlack(context),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            subtitle!,
+                            style: TextStyle(
+                              fontSize: 12,
+                              height: 1.35,
+                              color: AppThemeHelper.textSecondary(context),
+                            ),
+                          ),
+                        ],
+                      )
+                    : Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: AppThemeHelper.whiteBlack(context),
+                        ),
+                      ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               if (trailing != null)
                 trailing!
               else if (options != null && currentValue != null)
                 PopupMenuButton<String>(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                   offset: const Offset(0, 40),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -74,7 +122,7 @@ class CustomCardSetting extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            opt.tr,
+                            localizedOptionLabel(opt),
                             style: TextStyle(
                               color: AppThemeHelper.whiteBlack(context),
                             ),
@@ -82,7 +130,7 @@ class CustomCardSetting extends StatelessWidget {
                           if (opt == currentValue)
                             Icon(
                               Icons.check,
-                              color: AppThemeHelper.whiteBlack(context),
+                              color: AppThemeHelper.buttonPrimary(context),
                               size: 20,
                             ),
                         ],
@@ -93,18 +141,18 @@ class CustomCardSetting extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        currentValue!.tr,
+                        localizedOptionLabel(currentValue!),
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
-                          color: AppThemeHelper.blackBblack(context),
+                          color: AppThemeHelper.whiteBlack(context),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Icon(
                         Icons.keyboard_arrow_down_rounded,
                         size: 16,
-                        color: AppThemeHelper.blackBblack(context),
+                        color: AppThemeHelper.whiteBlack(context),
                       ),
                     ],
                   ),

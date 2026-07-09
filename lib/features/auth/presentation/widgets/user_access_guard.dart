@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
+import 'package:mow_events/core/utils/translation/app_texts.dart';
 import 'package:mow_events/features/auth/presentation/controller/user_access_controller.dart';
 
 class UserAccessGuard extends GetView<UserAccessController> {
@@ -14,6 +15,8 @@ class UserAccessGuard extends GetView<UserAccessController> {
       final shouldBlock =
           controller.shouldBlockProtectedRoutes &&
           controller.isOnProtectedRoute;
+      final isInactive =
+          controller.state.value == UserAccessState.inactive;
 
       final overlayColor = AppThemeHelper.blackBblack(
         context,
@@ -112,6 +115,28 @@ class UserAccessGuard extends GetView<UserAccessController> {
                                     : Text(controller.actionLabel),
                               ),
                             ),
+                            if (isInactive) ...[
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton(
+                                  onPressed: controller.isChecking
+                                      ? null
+                                      : controller.logoutToLoginScreen,
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: iconColor,
+                                    side: BorderSide(color: iconColor),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                  ),
+                                  child: Text(AppTexts.logOut),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),

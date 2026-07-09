@@ -7,15 +7,20 @@ class AppValidator {
   }
 
   static String? validatePhoneNumber(String? value) {
+    return validateSyrianPhoneNumber(value);
+  }
+
+  static String? validateSyrianPhoneNumber(String? value) {
     final rawValue = value?.trim() ?? '';
     final normalized = normalizePhoneNumber(rawValue);
 
-    if (rawValue.isEmpty) return AppTexts.fieldIsRequired;
-    if (!RegExp(r'^\d+$').hasMatch(rawValue)) {
-      return AppTexts.invalidNumber;
+    if (rawValue.isEmpty) {
+      return AppTexts.phoneNumberIsRequired;
     }
-    if (!RegExp(r'^0\d{9}$').hasMatch(normalized)) {
-      return AppTexts.invalidNumber;
+
+    if (!RegExp(r'^\d{10}$').hasMatch(normalized) ||
+        !normalized.startsWith('09')) {
+      return AppTexts.invalidSyrianPhoneNumber;
     }
 
     return null;

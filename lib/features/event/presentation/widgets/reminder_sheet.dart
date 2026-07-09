@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import 'package:mow_events/core/shared/snack_bar/app_snack_bars.dart';
 import 'package:mow_events/core/utils/constants/app_colors.dart';
 import 'package:mow_events/core/utils/constants/app_images.dart';
 import 'package:mow_events/core/utils/constants/enums/app_dialog_type.dart';
+import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
 import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
 import 'package:mow_events/core/shared/widgets/empty_state_widget.dart';
 import 'package:mow_events/features/event/data/models/event_model.dart';
 import 'package:mow_events/features/event/domin/entities/reminder_entity.dart';
 import 'package:mow_events/features/event/presentation/controller/reminder_controller.dart';
+import 'package:mow_events/features/event/presentation/widgets/reminder_dialog_helpers.dart';
 
 import '../../../../core/shared/widgets/dialoge/app_dialog.dart';
 
@@ -20,6 +21,13 @@ class EventRemindersSheet extends StatelessWidget {
 
   const EventRemindersSheet({super.key, required this.event, required this.now})
     : super();
+
+  void _showValidationError(Object error) {
+    AppSnackBars.warningSnackBar(
+      title: AppTexts.warningTitle,
+      message: reminderValidationMessage(error),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +42,7 @@ class EventRemindersSheet extends StatelessWidget {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.4 : 0.08),
+              color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.08),
               blurRadius: 16,
               offset: const Offset(0, -4),
             ),
@@ -140,12 +148,14 @@ class EventRemindersSheet extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppThemeHelper.accent(context).withOpacity(0.15),
+                  color: AppThemeHelper.buttonPrimary(
+                    context,
+                  ).withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   Icons.alarm_rounded,
-                  color: AppThemeHelper.accent(context),
+                  color: AppThemeHelper.buttonPrimary(context),
                   size: 24,
                 ),
               ),
@@ -176,6 +186,23 @@ class EventRemindersSheet extends StatelessWidget {
                 ),
               ),
               IconButton(
+                tooltip: AppTexts.reminderInfoTooltip,
+                onPressed: () => showReminderGuideDialog(
+                  context,
+                  reminderColor: AppThemeHelper.buttonPrimary(context),
+                ),
+                icon: Icon(
+                  Icons.info_outline_rounded,
+                  color: AppThemeHelper.buttonPrimary(context),
+                ),
+                style: IconButton.styleFrom(
+                  backgroundColor: AppThemeHelper.buttonPrimary(
+                    context,
+                  ).withValues(alpha: 0.08),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
                 onPressed: () => Get.back(),
                 icon: Icon(
                   Icons.close_rounded,
@@ -184,7 +211,7 @@ class EventRemindersSheet extends StatelessWidget {
                 style: IconButton.styleFrom(
                   backgroundColor: AppThemeHelper.border(
                     context,
-                  ).withOpacity(0.5),
+                  ).withValues(alpha: 0.5),
                 ),
               ),
             ],
@@ -232,7 +259,7 @@ class EventRemindersSheet extends StatelessWidget {
           icon: const Icon(Icons.add_rounded, size: 22),
           label: Text(AppTexts.addReminder),
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppThemeHelper.accent(context),
+            backgroundColor: AppThemeHelper.buttonPrimary(context),
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(
@@ -251,21 +278,25 @@ class EventRemindersSheet extends StatelessWidget {
       type: AppDialogType.delete,
       onConfirm: () {
         WidgetsBinding.instance.addPostFrameCallback((_) async {
-          final controller = ReminderController.to;
-          if (r.isDefault) {
-            controller.ignoreDefaultReminder(r.eventId, r);
-          } else {
-            await controller.applyReminderChange(
-              action: ReminderAction.remove,
-              eventId: r.eventId,
-              reminder: r,
-            );
-          }
-          if (Get.context != null && Get.context!.mounted) {
-            AppSnackBars.successSnackBar(
-              title: AppTexts.success,
-              message: AppTexts.reminderDeletedSuccessfully,
-            );
+          try {
+            final controller = ReminderController.to;
+            if (r.isDefault) {
+              await controller.ignoreDefaultReminder(r.eventId, r);
+            } else {
+              await controller.applyReminderChange(
+                action: ReminderAction.remove,
+                eventId: r.eventId,
+                reminder: r,
+              );
+            }
+            if (Get.context != null && Get.context!.mounted) {
+              AppSnackBars.successSnackBar(
+                title: AppTexts.success,
+                message: AppTexts.reminderDeletedSuccessfully,
+              );
+            }
+          } catch (error) {
+            _showValidationError(error);
           }
         });
       },
@@ -275,89 +306,122 @@ class EventRemindersSheet extends StatelessWidget {
 
   void _editReminder(BuildContext context, ReminderEntity r) {
     if (!r.canEdit) return;
+    final eventStart = event.startDateTimeSafe;
+    if (eventStart == null) {
+      AppSnackBars.warningSnackBar(
+        title: AppTexts.warningTitle,
+        message: AppTexts.anUnexpectedErrorOccurred,
+      );
+      return;
+    }
 
     ReminderType type = r.type;
-    int value = r.value;
-    final valueCtrl = TextEditingController(text: value.toString());
+    final formKey = GlobalKey<FormState>();
+    final valueCtrl = TextEditingController(text: r.value.toString());
+    final reminderColor = AppThemeHelper.buttonPrimary(context);
 
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => Theme(
-        data: Theme.of(ctx).copyWith(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppThemeHelper.accent(ctx),
-            brightness: AppThemeHelper.currentBrightness(ctx),
-          ),
-        ),
-        child: AlertDialog(
-          title: Text(AppTexts.editReminder),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                DropdownButtonFormField<ReminderType>(
-                  value: type,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  items: ReminderType.values
-                      .map(
-                        (e) => DropdownMenuItem(value: e, child: Text(e.name)),
-                      )
-                      .toList(),
-                  onChanged: (v) => type = v ?? type,
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: valueCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: '${AppTexts.before} (${type.name})',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onChanged: (v) => value = int.tryParse(v) ?? value,
-                ),
-              ],
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => Theme(
+          data: buildReminderDialogTheme(ctx, reminderColor: reminderColor),
+          child: AlertDialog(
+            title: buildReminderDialogTitle(
+              ctx,
+              AppTexts.editReminder,
+              reminderColor: reminderColor,
             ),
-          ),
-          actions: [
-            TextButton(onPressed: Get.back, child: Text(AppTexts.cancel)),
-            FilledButton(
-              onPressed: () {
-                value = int.tryParse(valueCtrl.text) ?? value;
-                final updated = r.copyWith(
-                  type: type,
-                  value: value,
-                  reminderTime: ReminderEntity.calculateTime(
-                    event.startDateTimeSafe!,
-                    type,
-                    value,
-                  ),
-                );
-                Navigator.of(ctx).pop();
-                WidgetsBinding.instance.addPostFrameCallback((_) async {
-                  await ReminderController.to.applyReminderChange(
-                    action: ReminderAction.update,
-                    eventId: event.id.toString(),
-                    reminder: updated,
-                  );
-                  if (Get.context != null && Get.context!.mounted) {
-                    AppSnackBars.successSnackBar(
-                      title: AppTexts.success,
-                      message: AppTexts.reminderUpdatedSuccessfully,
+            content: SingleChildScrollView(
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    buildReminderDialogDescriptionCard(
+                      ctx,
+                      reminderColor: reminderColor,
+                    ),
+                    const SizedBox(height: 16),
+                    buildReminderTypeDropdown(
+                      ctx,
+                      value: type,
+                      onChanged: (v) {
+                        if (v == null) return;
+                        setState(() => type = v);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    buildReminderValueField(
+                      ctx,
+                      controller: valueCtrl,
+                      onChanged: (_) => setState(() {}),
+                    ),
+                    const SizedBox(height: 12),
+                    buildReminderPreviewCard(
+                      ctx,
+                      type: type,
+                      valueText: valueCtrl.text,
+                      reminderColor: reminderColor,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: Get.back, child: Text(AppTexts.cancel)),
+              FilledButton(
+                onPressed: () {
+                  if (!formKey.currentState!.validate()) return;
+
+                  final value = int.parse(valueCtrl.text);
+                  try {
+                    ReminderEntity.validateCustom(
+                      type: type,
+                      value: value,
+                      existingReminders: ReminderController.to.getReminders(
+                        event.id.toString(),
+                      ),
+                      editingReminderId: r.id,
                     );
+                  } catch (error) {
+                    _showValidationError(error);
+                    return;
                   }
-                });
-              },
-              child: Text(AppTexts.done),
-            ),
-          ],
+
+                  final updated = r.copyWith(
+                    type: type,
+                    value: value,
+                    reminderTime: ReminderEntity.calculateTime(
+                      eventStart,
+                      type,
+                      value,
+                    ),
+                  );
+                  Navigator.of(ctx).pop();
+                  WidgetsBinding.instance.addPostFrameCallback((_) async {
+                    try {
+                      await ReminderController.to.applyReminderChange(
+                        action: ReminderAction.update,
+                        eventId: event.id.toString(),
+                        reminder: updated,
+                      );
+                      if (Get.context != null && Get.context!.mounted) {
+                        AppSnackBars.successSnackBar(
+                          title: AppTexts.success,
+                          message: AppTexts.reminderUpdatedSuccessfully,
+                        );
+                      }
+                    } catch (error) {
+                      _showValidationError(error);
+                    }
+                  });
+                },
+                child: Text(AppTexts.done),
+              ),
+            ],
+          ),
         ),
       ),
     ).then(
@@ -369,85 +433,116 @@ class EventRemindersSheet extends StatelessWidget {
   }
 
   void _addCustomReminder(BuildContext context, String eventId) {
+    final eventStart = event.startDateTimeSafe;
+    if (eventStart == null) {
+      AppSnackBars.warningSnackBar(
+        title: AppTexts.warningTitle,
+        message: AppTexts.anUnexpectedErrorOccurred,
+      );
+      return;
+    }
+
     ReminderType type = ReminderType.minute;
-    int value = 5;
-    final valueCtrl = TextEditingController(text: '5');
+    final formKey = GlobalKey<FormState>();
+    final valueCtrl = TextEditingController();
+    final reminderColor = AppThemeHelper.buttonPrimary(context);
 
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => Theme(
-        data: Theme.of(ctx).copyWith(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppThemeHelper.accent(ctx),
-            brightness: AppThemeHelper.currentBrightness(ctx),
-          ),
-        ),
-        child: AlertDialog(
-          title: Text(AppTexts.addReminder),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                DropdownButtonFormField<ReminderType>(
-                  value: type,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  items: ReminderType.values
-                      .map(
-                        (e) => DropdownMenuItem(value: e, child: Text(e.name)),
-                      )
-                      .toList(),
-                  onChanged: (v) => type = v ?? type,
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: valueCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: '${AppTexts.before} (${type.name})',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onChanged: (v) => value = int.tryParse(v) ?? value,
-                ),
-              ],
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => Theme(
+          data: buildReminderDialogTheme(ctx, reminderColor: reminderColor),
+          child: AlertDialog(
+            title: buildReminderDialogTitle(
+              ctx,
+              AppTexts.addReminder,
+              reminderColor: reminderColor,
             ),
-          ),
-          actions: [
-            TextButton(onPressed: Get.back, child: Text(AppTexts.cancel)),
-            FilledButton(
-              onPressed: () {
-                value = int.tryParse(valueCtrl.text) ?? value;
-                final newReminder = ReminderEntity.createCustom(
-                  eventId,
-                  type,
-                  value,
-                  event.startDateTimeSafe!,
-                );
-                Navigator.of(ctx).pop();
-                WidgetsBinding.instance.addPostFrameCallback((_) async {
-                  await ReminderController.to.applyReminderChange(
-                    action: ReminderAction.add,
-                    eventId: eventId,
-                    reminder: newReminder,
-                  );
-                  if (Get.context != null && Get.context!.mounted) {
-                    AppSnackBars.successSnackBar(
-                      title: AppTexts.success,
-                      message: AppTexts.reminderAddedSuccessfully,
+            content: SingleChildScrollView(
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    buildReminderDialogDescriptionCard(
+                      ctx,
+                      reminderColor: reminderColor,
+                    ),
+                    const SizedBox(height: 16),
+                    buildReminderTypeDropdown(
+                      ctx,
+                      value: type,
+                      onChanged: (v) {
+                        if (v == null) return;
+                        setState(() => type = v);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    buildReminderValueField(
+                      ctx,
+                      controller: valueCtrl,
+                      onChanged: (_) => setState(() {}),
+                    ),
+                    const SizedBox(height: 12),
+                    buildReminderPreviewCard(
+                      ctx,
+                      type: type,
+                      valueText: valueCtrl.text,
+                      reminderColor: reminderColor,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: Get.back, child: Text(AppTexts.cancel)),
+              FilledButton(
+                onPressed: () {
+                  if (!formKey.currentState!.validate()) return;
+
+                  final value = int.parse(valueCtrl.text);
+
+                  ReminderEntity newReminder;
+                  try {
+                    newReminder = ReminderEntity.createCustom(
+                      eventId,
+                      type,
+                      value,
+                      eventStart,
+                      existingReminders: ReminderController.to.getReminders(
+                        eventId,
+                      ),
                     );
+                  } catch (error) {
+                    _showValidationError(error);
+                    return;
                   }
-                });
-              },
-              child: Text(AppTexts.addReminder),
-            ),
-          ],
+
+                  Navigator.of(ctx).pop();
+                  WidgetsBinding.instance.addPostFrameCallback((_) async {
+                    try {
+                      await ReminderController.to.applyReminderChange(
+                        action: ReminderAction.add,
+                        eventId: eventId,
+                        reminder: newReminder,
+                      );
+                      if (Get.context != null && Get.context!.mounted) {
+                        AppSnackBars.successSnackBar(
+                          title: AppTexts.success,
+                          message: AppTexts.reminderAddedSuccessfully,
+                        );
+                      }
+                    } catch (error) {
+                      _showValidationError(error);
+                    }
+                  });
+                },
+                child: Text(AppTexts.addReminder),
+              ),
+            ],
+          ),
         ),
       ),
     ).then(
@@ -487,8 +582,8 @@ class _ReminderCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
               color: isDark
-                  ? AppThemeHelper.whiteBlack(context).withOpacity(0.06)
-                  : AppThemeHelper.border(context).withOpacity(0.25),
+                  ? AppThemeHelper.whiteBlack(context).withValues(alpha: 0.06)
+                  : AppThemeHelper.border(context).withValues(alpha: 0.25),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: AppThemeHelper.border(context),
@@ -501,7 +596,7 @@ class _ReminderCard extends StatelessWidget {
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: (isPast ? AppColors.red : AppColors.green)
-                        .withOpacity(0.15),
+                        .withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -537,9 +632,9 @@ class _ReminderCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        DateFormat(
-                          'dd MMM • HH:mm',
-                        ).format(reminder.reminderTime),
+                        DateLocalizationHelper.formatCompactDateTime(
+                          reminder.reminderTime,
+                        ),
                         style: TextStyle(
                           fontSize: 12,
                           color: AppThemeHelper.textSecondary(context),
@@ -566,7 +661,7 @@ class _ReminderCard extends StatelessWidget {
             icon: Icon(
               Icons.edit_outlined,
               size: 20,
-              color: AppThemeHelper.accent(context),
+              color: AppThemeHelper.buttonPrimary(context),
             ),
             onPressed: onEdit,
             style: IconButton.styleFrom(
@@ -609,7 +704,7 @@ class ScheduledAlertsSheet extends StatelessWidget {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.4 : 0.08),
+              color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.08),
               blurRadius: 16,
               offset: const Offset(0, -4),
             ),
@@ -636,7 +731,7 @@ class ScheduledAlertsSheet extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.schedule_rounded,
-                        color: AppThemeHelper.accent(context),
+                        color: AppThemeHelper.buttonPrimary(context),
                         size: 28,
                       ),
                       const SizedBox(width: 12),
@@ -694,12 +789,14 @@ class ScheduledAlertsSheet extends StatelessWidget {
                       icon: Icon(
                         Icons.notifications_active_rounded,
                         size: 20,
-                        color: AppThemeHelper.accent(context),
+                        color: AppThemeHelper.buttonPrimary(context),
                       ),
                       label: Text(AppTexts.testAlert),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppThemeHelper.accent(context),
-                        side: BorderSide(color: AppThemeHelper.accent(context)),
+                        foregroundColor: AppThemeHelper.buttonPrimary(context),
+                        side: BorderSide(
+                          color: AppThemeHelper.buttonPrimary(context),
+                        ),
                       ),
                     ),
                   ),
@@ -806,7 +903,7 @@ class ScheduledAlertsSheet extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
+              color: color.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
@@ -842,8 +939,8 @@ class _ScheduledAlertTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: isDark
-              ? AppThemeHelper.whiteBlack(context).withOpacity(0.06)
-              : AppThemeHelper.border(context).withOpacity(0.25),
+              ? AppThemeHelper.whiteBlack(context).withValues(alpha: 0.06)
+              : AppThemeHelper.border(context).withValues(alpha: 0.25),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: AppThemeHelper.border(context), width: 0.5),
         ),
@@ -852,8 +949,8 @@ class _ScheduledAlertTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: (isPast ? AppColors.red : AppColors.green).withOpacity(
-                  0.15,
+                color: (isPast ? AppColors.red : AppColors.green).withValues(
+                  alpha: 0.15,
                 ),
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -888,7 +985,7 @@ class _ScheduledAlertTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${AppTexts.alertAt} ${DateFormat('dd/MM • HH:mm').format(r.reminderTime)}',
+                    '${AppTexts.alertAt} ${DateLocalizationHelper.formatCompactDateTime(r.reminderTime)}',
                     style: TextStyle(
                       fontSize: 11,
                       color: AppThemeHelper.textSecondary(context),

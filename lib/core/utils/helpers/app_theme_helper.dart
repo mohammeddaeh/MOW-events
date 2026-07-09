@@ -21,6 +21,11 @@ class AppThemeHelper {
       ? AppColors.black
       : AppColors.white;
 
+  static Color scaffoldColor(BuildContext context) =>
+      currentBrightness(context) == Brightness.dark
+      ? AppColors.black
+      : AppColors.white;
+
   static Color whitePrimary(BuildContext context) =>
       currentBrightness(context) == Brightness.dark
       ? AppColors.white

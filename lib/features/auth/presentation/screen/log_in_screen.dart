@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/app_router/app_router.dart';
-import 'package:mow_events/core/utils/local_storage/storage_keys.dart';
 import 'package:mow_events/core/shared/widgets/adaptive_form_field.dart';
+import 'package:mow_events/core/shared/widgets/app_rich_text.dart';
 import 'package:mow_events/core/utils/constants/app_colors.dart';
 import 'package:mow_events/core/utils/constants/app_images.dart';
 import 'package:mow_events/core/utils/constants/app_size.dart';
@@ -24,6 +24,11 @@ class LogInScreen extends GetView<LoginController> {
   @override
   Widget build(BuildContext context) {
     SizeConfig.init(context);
+    final secondaryText = AppThemeHelper.greyprimary(
+      context,
+    ).withValues(alpha: 0.5);
+    final accentColor = AppThemeHelper.accent(context);
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(
         statusBarIconBrightness: Brightness.light,
@@ -45,7 +50,6 @@ class LogInScreen extends GetView<LoginController> {
                 bool keyboardOpen = _isKeyboardVisible(context);
                 return SingleChildScrollView(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Center(
                         child: SvgPicture.asset(
@@ -74,43 +78,93 @@ class LogInScreen extends GetView<LoginController> {
                           duration: const Duration(milliseconds: 400),
                           padding: EdgeInsets.only(
                             top: 32.h,
-                            bottom: keyboardOpen ? 0 : 100.h,
+                            bottom: keyboardOpen ? 0 : 60.h,
                           ),
                           child: Form(
                             key: controller.loginFormKey,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  AppTexts.email,
-                                  style: TextStyle(
-                                    color: AppThemeHelper.greyprimary(
-                                      context,
-                                    ).withOpacity(0.5),
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                AdaptiveFormField(
-                                  type: AdaptiveFieldType.email,
-                                  hintText: 'example@gmail.com',
+                                Obx(() {
+                                  final isPhoneLogin =
+                                      controller.isPhoneLogin.value;
 
-                                  focusNode: controller.emailFocus,
-                                  controller: controller.emailController,
-                                  validator: controller.emailValidator,
-                                  onFieldSubmitted: (_) {
-                                    FocusScope.of(
-                                      context,
-                                    ).requestFocus(controller.passwordFocus);
-                                  },
-                                ),
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        controller.identifierLabel,
+                                        style: TextStyle(
+                                          color: secondaryText,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      AnimatedSwitcher(
+                                        duration: const Duration(
+                                          milliseconds: 320,
+                                        ),
+                                        switchInCurve: Curves.easeOutCubic,
+                                        switchOutCurve: Curves.easeInCubic,
+                                        transitionBuilder: (child, animation) {
+                                          return FadeTransition(
+                                            opacity: animation,
+                                            child: SlideTransition(
+                                              position: Tween<Offset>(
+                                                begin: const Offset(0.08, 0),
+                                                end: Offset.zero,
+                                              ).animate(animation),
+                                              child: child,
+                                            ),
+                                          );
+                                        },
+                                        child: AdaptiveFormField(
+                                          key: ValueKey(
+                                            isPhoneLogin
+                                                ? 'phone-login-field'
+                                                : 'email-login-field',
+                                          ),
+                                          type: isPhoneLogin
+                                              ? AdaptiveFieldType.phone
+                                              : AdaptiveFieldType.email,
+                                          hintText: controller.identifierHint,
+                                          focusNode: controller.identifierFocus,
+                                          controller:
+                                              controller.identifierController,
+                                          validator: isPhoneLogin
+                                              ? controller.phoneValidator
+                                              : controller.emailValidator,
+                                          prefixIcon: Icon(
+                                            isPhoneLogin
+                                                ? Icons.phone_android_rounded
+                                                : Icons.email_outlined,
+                                          ),
+                                          inputFormatters: isPhoneLogin
+                                              ? [
+                                                  FilteringTextInputFormatter.allow(
+                                                    RegExp(r'[0-9]'),
+                                                  ),
+                                                  LengthLimitingTextInputFormatter(
+                                                    10,
+                                                  ),
+                                                ]
+                                              : null,
+                                          onFieldSubmitted: (_) {
+                                            FocusScope.of(context).requestFocus(
+                                              controller.passwordFocus,
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }),
                                 const SizedBox(height: 16),
                                 Text(
                                   AppTexts.password,
                                   style: TextStyle(
-                                    color: AppThemeHelper.greyprimary(
-                                      context,
-                                    ).withOpacity(0.5),
+                                    color: secondaryText,
                                     fontWeight: FontWeight.w400,
                                   ),
                                 ),
@@ -136,10 +190,8 @@ class LogInScreen extends GetView<LoginController> {
                                 SizedBox(height: 16.h),
                                 Obx(
                                   () => RememberMeCheckbox(
-                                    initialValue: controller.rememberMe.value,
-                                    storageKey: StorageKeys.rememberMe,
-                                    onChanged: (v) =>
-                                        controller.toggleRememberMe(v),
+                                    value: controller.rememberMe.value,
+                                    onChanged: controller.toggleRememberMe,
                                     title: Text(
                                       AppTexts.rememberMe,
                                       style: TextStyle(
@@ -218,23 +270,79 @@ class LogInScreen extends GetView<LoginController> {
                                     return elevatedButton;
                                   }),
                                 ),
-                                SizedBox(height: 16.h),
+                                SizedBox(height: 24.h),
                                 Center(
-                                  child: TextButton(
-                                    onPressed: () {},
-                                    child: Text(
-                                      AppTexts.logInPhone,
-                                      style: TextStyle(
-                                        color: AppColors.accent,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w400,
-                                        height: 1.25,
-                                        leadingDistribution:
-                                            TextLeadingDistribution.even,
+                                  child: InkWell(
+                                    onTap: controller.toggleLoginMethod,
+                                    borderRadius: BorderRadius.circular(8.r),
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 4.w,
+                                        vertical: 6.h,
+                                      ),
+                                      child: AnimatedSwitcher(
+                                        duration: const Duration(
+                                          milliseconds: 220,
+                                        ),
+                                        switchInCurve: Curves.easeOut,
+                                        switchOutCurve: Curves.easeIn,
+                                        transitionBuilder: (child, animation) {
+                                          return FadeTransition(
+                                            opacity: animation,
+                                            child: child,
+                                          );
+                                        },
+
+                                        child: Obx(
+                                          () => Text(
+                                            key: ValueKey(
+                                              controller.switchLoginMethodLabel,
+                                            ),
+                                            controller.switchLoginMethodLabel,
+                                            style: TextStyle(
+                                              color: accentColor,
+                                              fontSize: 13.sp,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
+                                SizedBox(height: 12.h),
+
+                                Center(
+                                  child: InkWell(
+                                    onTap: controller.openRegister,
+                                    child: AppRichText(
+                                      text: TextSpan(
+                                        children: [
+                                          TextSpan(
+                                            text:
+                                                '${AppTexts.dontHaveAccount} ',
+                                            style: TextStyle(
+                                              fontSize: 12.sp,
+                                              color:
+                                                  AppThemeHelper.textSecondary(
+                                                    context,
+                                                  ),
+                                            ),
+                                          ),
+                                          TextSpan(
+                                            text: AppTexts.createAccount,
+                                            style: TextStyle(
+                                              fontSize: 12.sp,
+                                              color: accentColor,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 23.h),
                               ],
                             ),
                           ),

@@ -3,7 +3,8 @@ class AppImages {
   static const String _icons = 'assets/images/icons';
   static const String _animated = 'assets/images/animated';
 
-  static const String logoAndName = '$_logo/logo_name.svg';
+  static const String logoAndName = '$_logo/logo_MOW.svg';
+  static const String logo = '$_logo/logo.svg';
 
   static const String notification = '$_icons/notification.svg';
   static const String search = '$_icons/search.svg';

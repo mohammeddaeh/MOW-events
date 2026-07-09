@@ -38,8 +38,7 @@ Future<AlarmRuntimeStatus?> queryAlarmRuntimeStatus() async {
       areNotificationsEnabled: m['areNotificationsEnabled'] as bool? ?? true,
       sdkInt: m['sdkInt'] as int? ?? 0,
     );
-  } catch (e, st) {
-    debugPrint('queryAlarmRuntimeStatus: $e\n$st');
+  } catch (_) {
     return null;
   }
 }
@@ -48,27 +47,21 @@ Future<void> openAndroidExactAlarmSettings() async {
   if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
   try {
     await _kAlarmChannel.invokeMethod<void>('openExactAlarmSettings');
-  } catch (e, st) {
-    debugPrint('openAndroidExactAlarmSettings: $e\n$st');
-  }
+  } catch (_) {}
 }
 
 Future<void> openAndroidFullScreenIntentSettings() async {
   if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
   try {
     await _kAlarmChannel.invokeMethod<void>('openFullScreenIntentSettings');
-  } catch (e, st) {
-    debugPrint('openAndroidFullScreenIntentSettings: $e\n$st');
-  }
+  } catch (_) {}
 }
 
 Future<void> openAndroidNotificationSettings() async {
   if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
   try {
     await _kAlarmChannel.invokeMethod<void>('openNotificationSettings');
-  } catch (e, st) {
-    debugPrint('openAndroidNotificationSettings: $e\n$st');
-  }
+  } catch (_) {}
 }
 
 /// يفتح إعدادات الصوت في النظام (نغمة المنبّه الافتراضية وغيرها).
@@ -76,9 +69,7 @@ Future<void> openAndroidSystemSoundSettings() async {
   if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
   try {
     await _kAlarmChannel.invokeMethod<void>('openSystemSoundSettings');
-  } catch (e, st) {
-    debugPrint('openAndroidSystemSoundSettings: $e\n$st');
-  }
+  } catch (_) {}
 }
 
 /// تحسينات موثوقية المنبّه على أندرويد (بدون الاعتماد على تشغيل Flutter).
@@ -94,22 +85,6 @@ Future<void> requestAndroidAlarmReliabilityEnhancements() async {
   try {
     final status = await queryAlarmRuntimeStatus();
     if (status == null) return;
-
-    if (kDebugMode) {
-      if (!status.areNotificationsEnabled) {
-        debugPrint(
-          'Alarm: notifications disabled — enable in system settings.',
-        );
-      }
-      if (!status.canScheduleExactAlarms) {
-        debugPrint('Alarm: canScheduleExactAlarms=false — allow exact alarms.');
-      }
-      if (status.sdkInt >= 34 && !status.canUseFullScreenIntent) {
-        debugPrint(
-          'Alarm: canUseFullScreenIntent=false — allow full-screen intents (Android 14+).',
-        );
-      }
-    }
 
     final box = GetStorage();
 
@@ -132,7 +107,5 @@ Future<void> requestAndroidAlarmReliabilityEnhancements() async {
       await box.write('alarm_prompted_fsi_v1', true);
       return;
     }
-  } catch (e, st) {
-    debugPrint('requestAndroidAlarmReliabilityEnhancements: $e\n$st');
-  }
+  } catch (_) {}
 }

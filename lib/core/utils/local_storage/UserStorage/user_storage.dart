@@ -8,6 +8,18 @@ class UserStorage {
 
   int? get uid => AuthService.currentUser?.id;
 
+  int? _resolveUserId([int? userId]) => userId ?? uid;
+
+  List<String> _userScopedKeys(int userId) => [
+    StorageKeys.categories(userId),
+    StorageKeys.events(userId),
+    StorageKeys.reminders(userId),
+    StorageKeys.home(userId),
+    StorageKeys.scheduledReminders(userId),
+    StorageKeys.ignoredDefaults(userId),
+    StorageKeys.defaultReminders(userId),
+  ];
+
   Future<void> saveCategories(List data) async {
     final id = uid;
     if (id == null) return;
@@ -45,13 +57,18 @@ class UserStorage {
   }
 
   Future<void> clearAllUserData() async {
-    final id = uid;
+    final id = _resolveUserId();
     if (id == null) return;
-    await _storage.remove(StorageKeys.categories(id));
-    await _storage.remove(StorageKeys.events(id));
-    await _storage.remove(StorageKeys.reminders(id));
-    await _storage.remove(StorageKeys.home(id));
-    await _storage.clearAll();
+    await clearAllUserDataFor(id);
+  }
+
+  Future<void> clearAllUserDataFor(int userId) async {
+    for (final key in _userScopedKeys(userId)) {
+      await _storage.remove(key);
+    }
+
+    // Cleanup for older builds where default reminders were stored globally.
+    await _storage.remove(StorageKeys.legacyDefaultReminders);
   }
 
   Future<void> saveScheduledReminders(
@@ -82,5 +99,17 @@ class UserStorage {
     return (_storage.read(StorageKeys.ignoredDefaults(id)) as Map?)?.map(
       (k, v) => MapEntry(k.toString(), (v as List).cast<String>()),
     );
+  }
+
+  Future<void> saveDefaultReminders(List<Map<String, dynamic>> data) async {
+    final id = uid;
+    if (id == null) return;
+    await _storage.write(StorageKeys.defaultReminders(id), data);
+  }
+
+  List<dynamic>? get defaultReminders {
+    final id = uid;
+    if (id == null) return null;
+    return _storage.read(StorageKeys.defaultReminders(id));
   }
 }

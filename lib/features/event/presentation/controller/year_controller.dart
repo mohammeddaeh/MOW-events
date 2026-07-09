@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hijri/hijri_calendar.dart';
 import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
@@ -10,13 +9,15 @@ class YearController extends GetxController {
   RxInt currentYear = DateTime.now().year.obs;
   RxList<EventModel> events = <EventModel>[].obs;
 
-  final Map<String, List<EventModel>> eventsByDay = {};
+  final RxMap<String, List<EventModel>> eventsByDay =
+      <String, List<EventModel>>{}.obs;
   RxInt currentHijriYear = HijriCalendar.now().hYear.obs;
+  Worker? _yearWorker;
 
   @override
   void onInit() {
     super.onInit();
-    everAll(
+    _yearWorker = everAll(
       [home.processedEvents, currentYear, DateLocalizationHelper.userCalendar],
       (_) {
         if (DateLocalizationHelper.userCalendar.value == 'hijri') {
@@ -31,29 +32,51 @@ class YearController extends GetxController {
     }
   }
 
-  void _loadYearEvents() {
-    final start = DateTime(currentYear.value, 1, 1);
-    final end = DateTime(currentYear.value + 1, 1, 1);
+  @override
+  void onClose() {
+    _yearWorker?.dispose();
+    super.onClose();
+  }
 
+  void _loadYearEvents() {
     final yearEvents = home.processedEvents.where((e) {
       final dt = e.startDateTimeSafe;
       if (dt == null) return false;
-      return dt.isAfter(start.subtract(const Duration(seconds: 1))) &&
-          dt.isBefore(end.add(const Duration(seconds: 1)));
+
+      if (DateLocalizationHelper.userCalendar.value == 'hijri') {
+        return DateLocalizationHelper.toHijri(dt).hYear ==
+            currentHijriYear.value;
+      }
+
+      return dt.year == currentYear.value;
     }).toList();
 
     events.assignAll(yearEvents);
 
-    eventsByDay.clear();
+    final groupedByDay = <String, List<EventModel>>{};
     for (final e in yearEvents) {
       final dt = e.startDateTimeSafe;
       if (dt == null) continue;
       final key = _dayKey(dt);
-      eventsByDay.putIfAbsent(key, () => []).add(e);
+      groupedByDay.putIfAbsent(key, () => []).add(e);
     }
+    eventsByDay.assignAll(groupedByDay);
   }
 
   List<EventModel> getEventsForMonth(DateTime month) {
+    if (DateLocalizationHelper.userCalendar.value == 'hijri') {
+      final selectedHijriMonth = DateLocalizationHelper.toHijri(month);
+
+      return events.where((e) {
+        final dt = e.startDateTimeSafe;
+        if (dt == null) return false;
+
+        final eventHijriDate = DateLocalizationHelper.toHijri(dt);
+        return eventHijriDate.hYear == selectedHijriMonth.hYear &&
+            eventHijriDate.hMonth == selectedHijriMonth.hMonth;
+      }).toList();
+    }
+
     return events.where((e) {
       final dt = e.startDateTimeSafe;
       if (dt == null) return false;

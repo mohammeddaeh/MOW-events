@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/shared/snack_bar/app_snack_bars.dart';
 import 'package:mow_events/core/utils/local_storage/UserStorage/user_storage.dart';
 import 'package:mow_events/core/utils/network/internet_guard.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
+import 'package:mow_events/features/auth/presentation/controller/user_access_controller.dart';
 import 'package:mow_events/features/auth/services/auth_service.dart';
 import 'package:mow_events/features/category/data/models/category_model.dart';
 import 'package:mow_events/features/category/domin/repositories/categories_repository.dart';
@@ -17,16 +19,46 @@ class CategoriesController extends GetxController {
   final RxList<CategoryModel> categories = <CategoryModel>[].obs;
   final RxBool isLoading = false.obs;
   final userStorage = UserStorage();
+  final UserAccessController accessController = Get.find();
+  Worker? _accessWorker;
+
+  EventFormController? get _eventFormControllerOrNull {
+    if (!Get.isRegistered<EventFormController>()) {
+      return null;
+    }
+
+    return Get.find<EventFormController>();
+  }
 
   @override
   void onInit() {
     super.onInit();
     final currentUser = AuthService.currentUser!;
     if (currentUser.isAdmin || currentUser.department?.isManager == true) {
-      loadCategories();
+      _loadCachedCategories();
+      if (accessController.canUseProtectedFeatures) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => fetchCategories());
+      }
+      _accessWorker = ever<UserAccessState>(
+        accessController.state,
+        _onAccessStateChanged,
+      );
     } else {
       _loadCategoriesForRegularUser();
     }
+  }
+
+  @override
+  void onClose() {
+    _accessWorker?.dispose();
+    super.onClose();
+  }
+
+  Future<void> _onAccessStateChanged(UserAccessState state) async {
+    if (state != UserAccessState.active) {
+      return;
+    }
+    await fetchCategories();
   }
 
   void _loadCategoriesForRegularUser() {
@@ -49,20 +81,26 @@ class CategoriesController extends GetxController {
 
   Future<void> loadCategories() async {
     final currentUser = AuthService.currentUser!;
-    if (!(currentUser.isAdmin || currentUser.department?.isManager == true))
+    if (!(currentUser.isAdmin || currentUser.department?.isManager == true)) {
       return;
+    }
 
+    _loadCachedCategories();
+    await fetchCategories();
+  }
+
+  void _loadCachedCategories() {
     final cached = userStorage.categories;
     if (cached != null && cached.isNotEmpty) {
       categories.assignAll(
         cached.map((e) => CategoryModel.fromJson(e)).toList(),
       );
     }
-
-    await fetchCategories();
   }
 
   Future<void> fetchCategories() async {
+    if (!accessController.canUseProtectedFeatures) return;
+    if (isLoading.value) return;
     if (!InternetGuard.ensureOnline()) return;
 
     try {
@@ -116,10 +154,16 @@ class CategoriesController extends GetxController {
   }
 
   Future<Map<String, List<String>>?> addCategory(CategoryModel category) async {
-    if (!InternetGuard.ensureOnline())
+    if (!accessController.canUseProtectedFeatures) {
+      return {
+        'general': [AppTexts.warningTitle],
+      };
+    }
+    if (!InternetGuard.ensureOnline()) {
       return {
         'general': [AppTexts.noInternet],
       };
+    }
     try {
       final newCategory = await repository.create(category.toJson());
       categories.add(newCategory);
@@ -127,8 +171,7 @@ class CategoriesController extends GetxController {
         categories.map((e) => e.toJson()).toList(),
       );
 
-      final addEventCtrl = Get.find<AddEventController>();
-      addEventCtrl.selectedCategoryId.value = newCategory.id;
+      _eventFormControllerOrNull?.selectedCategoryId.value = newCategory.id;
 
       return null;
     } catch (e) {
@@ -139,6 +182,11 @@ class CategoriesController extends GetxController {
   Future<Map<String, List<String>>?> updateCategory(
     CategoryModel category,
   ) async {
+    if (!accessController.canUseProtectedFeatures) {
+      return {
+        'general': [AppTexts.warningTitle],
+      };
+    }
     if (!InternetGuard.ensureOnline()) {
       return {
         'general': [AppTexts.noInternet],
@@ -179,6 +227,7 @@ class CategoriesController extends GetxController {
   }
 
   Future<void> deleteCategories(List<int> ids) async {
+    if (!accessController.canUseProtectedFeatures) return;
     if (!InternetGuard.ensureOnline()) return;
     try {
       await repository.delete(ids);

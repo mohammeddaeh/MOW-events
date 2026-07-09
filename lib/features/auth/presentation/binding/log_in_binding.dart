@@ -4,6 +4,8 @@ import 'package:mow_events/features/auth/presentation/controller/login_controlle
 class LogInBinding extends Bindings {
   @override
   void dependencies() {
-    Get.put(LoginController(), permanent: true);
+    if (!Get.isRegistered<LoginController>()) {
+      Get.lazyPut<LoginController>(() => LoginController());
+    }
   }
 }

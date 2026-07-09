@@ -128,4 +128,23 @@ class EventRepositoryImpl implements EventsRepository {
       duration: const Duration(seconds: 10),
     );
   }
+
+  @override
+  Future<void> changeEventMemberStatus({
+    required int eventId,
+    required String status,
+    String? descriptionReject,
+  }) {
+    if (eventId <= 0) throw ArgumentError('Invalid event ID');
+    return withNetworkCheck(
+      () => _safe(
+        backend.changeEventMemberStatus(
+          eventId: eventId,
+          status: status,
+          descriptionReject: descriptionReject,
+        ),
+        timeoutMsg: 'Changing event member status timed out',
+      ),
+    );
+  }
 }

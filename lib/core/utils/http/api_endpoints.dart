@@ -2,6 +2,12 @@ class ApiEndpoints {
   static const String dashboardBase = 'api/v1/dashboard';
   static const String eventsBase = '$dashboardBase/events';
   static const String login = '$dashboardBase/login';
+  static const String register = '$dashboardBase/register';
+  static const String editRegister = '$dashboardBase/edit_register';
+  static const String showRegisterDepartments =
+      '$dashboardBase/show/departments';
+  static const String showRegisterDepartmentsAll =
+      '$showRegisterDepartments?countItems=all';
   static const String logout = '$dashboardBase/logout';
 
   static const String forgotPassword = '$dashboardBase/forget-password';
@@ -11,7 +17,7 @@ class ApiEndpoints {
   static const String editProfile = '$dashboardBase/profile/edit';
   static const String changePassword = '$dashboardBase/profile/change-password';
 
-  static const String alluser = '$dashboardBase/users/index';
+  static const String alluser = '$dashboardBase/users/all';
 
   static const String eventsIndex = '$eventsBase/index';
   static const String eventsStore = '$eventsBase/store';
@@ -19,6 +25,8 @@ class ApiEndpoints {
   static String eventsUpdate(int id) => '$eventsBase/update/$id';
   static const String eventsDelete = '$eventsBase/delete';
   static String eventShowMembers(int id) => '$eventsBase/show/$id/members';
+  static String changeEventMemberStatus(int eventId) =>
+      '$dashboardBase/change/status/event_member/$eventId';
   static const String profile = '$dashboardBase/profile';
 
   static const String fcmSetToken =

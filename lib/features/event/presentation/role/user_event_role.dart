@@ -6,25 +6,25 @@ import 'package:mow_events/features/event/presentation/role/event_role.dart';
 
 class UserEventBuilder extends EventBuilderBase {
   @override
-  void applyDefaults(AddEventController c) {
+  void applyDefaults(EventFormController c) {
     c.isPrivate.value = 1;
     c.isPublic.value = 0;
   }
 
   @override
-  bool showCategory(AddEventController c) => false;
+  bool showCategory(EventFormController c) => false;
 
   @override
-  bool showMembers(AddEventController c) => false;
+  bool showMembers(EventFormController c) => false;
 
   @override
-  bool showAttendance(AddEventController c) => false;
+  bool showAttendance(EventFormController c) => false;
 
   @override
-  bool showAdminType(AddEventController c) => false;
+  bool showAdminType(EventFormController c) => false;
 
   @override
-  void validate(AddEventController c) {}
+  void validate(EventFormController c) {}
 
   @override
   List<UserEntity> getSelectableMembers(
@@ -33,11 +33,11 @@ class UserEventBuilder extends EventBuilderBase {
   ) => [];
 
   @override
-  List<int> getEffectiveMembers(UserEntity currentUser, AddEventController c) =>
+  List<int> getEffectiveMembers(UserEntity currentUser, EventFormController c) =>
       [];
 
   @override
-  EventModel build(AddEventController c) {
+  EventModel build(EventFormController c) {
     return EventModel(
       id: 0,
       name: c.nameController.text,
@@ -56,6 +56,9 @@ class UserEventBuilder extends EventBuilderBase {
       reminders: c.reminders.toList(),
       rawReminders: [],
       createdAt: DateTime.now().toString(),
+      alarmTimeIso: null,
+      isAlarmEnabled: false,
+      snoozeDurationMinutes: 10,
     );
   }
 }

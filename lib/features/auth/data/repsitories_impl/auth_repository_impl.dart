@@ -1,11 +1,16 @@
-import 'dart:async';
 import 'dart:io';
-import 'package:mow_events/core/utils/http/api_exceptions.dart';
+
+import 'package:mow_events/core/utils/error/api_exceptions.dart' show ApiException;
+import 'package:mow_events/core/utils/error/api_message_localizer.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
 import 'package:mow_events/features/auth/data/data_sources/back_end_laravel.dart';
+import 'package:mow_events/features/auth/data/models/register_conflict_type.dart';
 import 'package:mow_events/features/auth/data/models/user_model.dart';
 import 'package:mow_events/features/auth/domin/repositories/auth_repository.dart';
 import 'package:mow_events/features/auth/services/auth_service.dart';
+import 'package:mow_events/features/auth/utils/auth_api_fields.dart';
+import 'package:mow_events/features/auth/utils/auth_response_parser.dart';
+import 'package:mow_events/features/auth/utils/register_conflict_parser.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final BackEndLaravel backend;
@@ -13,16 +18,129 @@ class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl({required this.backend});
 
   @override
-  Future<UserModel> login(String email, String password) async {
-    final response = await backend.login(email, password);
-    final data = response['data'];
-    final token = data['access_token'];
-    final userJson = data['user'];
+  Future<UserModel> register({
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String phone,
+    required String password,
+    required int departmentId,
+    required bool isManager,
+  }) async {
+    final res = await backend.register(
+      AuthApiFields.registration(
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        phone: phone,
+        password: password,
+        departmentId: departmentId,
+        isManager: isManager,
+      ),
+    );
 
-    await AuthService.setToken(token);
-    await AuthService.saveUser(userJson);
+    if (res['status'] != true) {
+      final conflict = RegisterConflictParser.fromRegisterResponse(res);
+      if (conflict != null) {
+        throw ApiException(_registerConflictMessage(conflict));
+      }
+      throw ApiException(
+        ApiMessageLocalizer.localize(
+          res['message']?.toString() ?? AppTexts.unableToCreateAccount,
+        ),
+      );
+    }
 
-    return UserModel.fromJson(userJson);
+    final session = AuthResponseParser.parseSession(res);
+    final registeredUser = UserModel.fromJson(session.userJson);
+    await AuthService.setToken(session.token);
+    await AuthService.saveUser(registeredUser.toJson());
+
+    return registeredUser;
+  }
+
+  @override
+  Future<UserModel> updateRegistration({
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String phone,
+    required String password,
+    required int departmentId,
+    required bool isManager,
+  }) async {
+    final res = await backend.editRegister(
+      AuthApiFields.registration(
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        phone: phone,
+        password: password,
+        departmentId: departmentId,
+        isManager: isManager,
+      ),
+    );
+
+    if (res['status'] != true) {
+      final conflict = RegisterConflictParser.fromRegisterResponse(res);
+      if (conflict != null) {
+        throw ApiException(_registerConflictMessage(conflict));
+      }
+      throw ApiException(
+        ApiMessageLocalizer.localize(
+          res['message']?.toString() ?? AppTexts.unableToCreateAccount,
+        ),
+      );
+    }
+
+    final session = AuthResponseParser.parseSession(
+      res,
+      fallbackToken: AuthService.token,
+    );
+    final updatedUser = UserModel.fromJson(session.userJson);
+    await AuthService.setToken(session.token);
+    await AuthService.saveUser(updatedUser.toJson());
+
+    return updatedUser;
+  }
+
+  static String _registerConflictMessage(RegisterConflictType type) {
+    switch (type) {
+      case RegisterConflictType.emailPendingReview:
+        return AppTexts.emailPendingAdminReview;
+      case RegisterConflictType.phoneTaken:
+        return AppTexts.phoneAlreadyTaken;
+      case RegisterConflictType.emailTaken:
+        return AppTexts.emailAlreadyTaken;
+    }
+  }
+
+  @override
+  Future<UserModel> login({
+    required String identifier,
+    required String password,
+  }) async {
+    final response = await backend.login(
+      identifier: identifier,
+      password: password,
+    );
+
+    if (response['status'] != true) {
+      throw ApiException(
+        ApiMessageLocalizer.extractFromResponse(
+          response,
+          fallback: AppTexts.incorrectEmailOrPassword,
+        ),
+      );
+    }
+
+    final session = AuthResponseParser.parseSession(response);
+    final loggedInUser = UserModel.fromJson(session.userJson);
+
+    await AuthService.setToken(session.token);
+    await AuthService.saveUser(loggedInUser.toJson());
+
+    return loggedInUser;
   }
 
   @override

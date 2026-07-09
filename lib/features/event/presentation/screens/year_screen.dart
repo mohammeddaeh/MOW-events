@@ -8,8 +8,8 @@ import 'package:mow_events/core/utils/constants/app_size.dart';
 import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
 import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
-import 'package:mow_events/features/event/data/models/event_model.dart';
 import 'package:mow_events/features/event/presentation/controller/year_controller.dart';
+import 'package:mow_events/features/event/presentation/widgets/card_event.dart';
 
 class YearScreen extends StatelessWidget {
   YearScreen({super.key});
@@ -21,6 +21,7 @@ class YearScreen extends StatelessWidget {
     return Scaffold(
       body: Obx(() {
         final months = controller.yearMonths;
+        controller.eventsByDay.entries.toList(growable: false);
         final isRTL = DateLocalizationHelper.isArabic;
 
         return Directionality(
@@ -53,23 +54,20 @@ class YearScreen extends StatelessWidget {
                       eventCount: controller.countEventsOnDay,
 
                       onMonthTap: (selectedMonth) {
-                        debugPrint("🔥 Month tapped: $selectedMonth");
                         final monthEvents = controller.getEventsForMonth(
                           selectedMonth,
                         );
 
-                        debugPrint("📦 Events count: ${monthEvents.length}");
-
                         if (monthEvents.isNotEmpty) {
                           _showMonthEventsBottomSheet(
                             context,
-                            monthEvents,
+                            selectedMonth,
                             DateLocalizationHelper.display(
                               selectedMonth,
                             ).displayMonth,
                           );
                         } else {
-                          if (Get.isSnackbarOpen ?? false) return;
+                          if (Get.isSnackbarOpen) return;
 
                           Get.snackbar(
                             AppTexts.noEvents,
@@ -127,7 +125,7 @@ class YearScreen extends StatelessWidget {
 
   void _showMonthEventsBottomSheet(
     BuildContext context,
-    List<EventModel> events,
+    DateTime month,
     String monthTitle,
   ) {
     if (Get.isBottomSheetOpen ?? false) return;
@@ -136,8 +134,13 @@ class YearScreen extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       showDragHandle: false,
-      builder: (_) =>
-          MonthEventsBottomSheet(monthTitle: monthTitle, events: events),
+      builder: (_) => MonthEventsBottomSheet(
+        monthTitle: monthTitle,
+        month: month,
+        onEventTap: (event) {
+          CardEvent.showEventDetailsSheet(context, event, controller.home);
+        },
+      ),
     );
   }
 

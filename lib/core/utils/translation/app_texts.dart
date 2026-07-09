@@ -12,6 +12,7 @@ class AppTexts {
   static String get tContinue => 'tContinue'.tr;
   static String get changeLang => 'changeLang'.tr;
   static String get copy => "copy".tr;
+  static String get fullName => 'fullName'.tr;
   static String get soon => "soon".tr;
   static String get success => "success".tr;
   static String get delete => "delete".tr;
@@ -40,11 +41,87 @@ class AppTexts {
   static String get passwordIsRequired => 'passwordIsRequired'.tr;
   static String get rememberMe => 'rememberMe'.tr;
   static String get login => 'login'.tr;
+  static String get createAccount => 'createAccount'.tr;
+  static String get createYourAccount => 'createYourAccount'.tr;
+  static String get editYourRegistrationTitle =>
+      'editYourRegistrationTitle'.tr;
+  static String get editRegistrationShortDescription =>
+      'editRegistrationShortDescription'.tr;
+  static String get resubmitRegistrationRequest =>
+      'resubmitRegistrationRequest'.tr;
+  static String get createAccountDescription => 'createAccountDescription'.tr;
+  static String get createAccountShortDescription =>
+      'createAccountShortDescription'.tr;
   static String get logInPhone => 'logInPhone'.tr;
+  static String get logInEmail => 'logInEmail'.tr;
+  static String get firstInstallRegisterTitle => 'firstInstallRegisterTitle'.tr;
+  static String get firstInstallRegisterDescription =>
+      'firstInstallRegisterDescription'.tr;
+  static String get alreadyHaveAccount => 'alreadyHaveAccount'.tr;
+  static String get dontHaveAccount => 'dontHaveAccount'.tr;
+  static String get chooseDepartment => 'chooseDepartment'.tr;
+  static String get departmentRequired => 'departmentRequired'.tr;
+  static String get failedToLoadDepartments => 'failedToLoadDepartments'.tr;
+  static String get noDepartmentsAvailable => 'noDepartmentsAvailable'.tr;
+  static String get tapDepartmentToRetry => 'tapDepartmentToRetry'.tr;
+  static String get registerAsManager => 'registerAsManager'.tr;
+  static String get registrationSubmittedMessage =>
+      'registrationSubmittedMessage'.tr;
+  static String get registrationPendingTitle => 'registrationPendingTitle'.tr;
+  static String get loginRegistrationPendingTitle =>
+      'loginRegistrationPendingTitle'.tr;
+  static String get loginRegistrationPendingMessage =>
+      'loginRegistrationPendingMessage'.tr;
+  static String get loginRegistrationRejectedTitle =>
+      'loginRegistrationRejectedTitle'.tr;
+  static String get loginRegistrationRejectedMessage =>
+      'loginRegistrationRejectedMessage'.tr;
+  static String get emailPendingAdminReview => 'emailPendingAdminReview'.tr;
+  static String get emailPendingAdminReviewAction =>
+      'emailPendingAdminReviewAction'.tr;
+  static String get registrationResubmittedMessage =>
+      'registrationResubmittedMessage'.tr;
+  static String get registrationResubmitRequiresLogin =>
+      'registrationResubmitRequiresLogin'.tr;
+  static String get registrationPendingBadge => 'registrationPendingBadge'.tr;
+  static String get registrationRejectedTitle => 'registrationRejectedTitle'.tr;
+  static String get registrationRejectedBadge => 'registrationRejectedBadge'.tr;
+  static String get registrationRejectedDescription =>
+      'registrationRejectedDescription'.tr;
+  static String get registrationRejectionReason =>
+      'registrationRejectionReason'.tr;
+  static String get registrationRejectedDefaultReason =>
+      'registrationRejectedDefaultReason'.tr;
+  static String get registrationSubmittedData => 'registrationSubmittedData'.tr;
+  static String get registrationApprovedTitle => 'registrationApprovedTitle'.tr;
+  static String get registrationApprovedMessage =>
+      'registrationApprovedMessage'.tr;
+  static String get registrationApprovalProcessing =>
+      'registrationApprovalProcessing'.tr;
+  static String get registrationStillUnderReview =>
+      'registrationStillUnderReview'.tr;
+  static String get registrationProfileCheckUnavailable =>
+      'registrationProfileCheckUnavailable'.tr;
+  static String get refreshRequiresInternetConnection =>
+      'refreshRequiresInternetConnection'.tr;
+  static String get registrationRefreshBackupHint =>
+      'registrationRefreshBackupHint'.tr;
+  static String get registrationRecheckFailed => 'registrationRecheckFailed'.tr;
+  static String get registrationAwaitingPushHint =>
+      'registrationAwaitingPushHint'.tr;
+  static String get editRegistrationRequest => 'editRegistrationRequest'.tr;
+  static String get backToLogin => 'backToLogin'.tr;
+  static String get fcmTokenUnavailable => 'fcmTokenUnavailable'.tr;
+  static String get fcmTokenSyncFailed => 'fcmTokenSyncFailed'.tr;
   static String get forgotMyPassword => 'forgotMyPassword'.tr;
   static String get phoneNo => 'phoneNo'.tr;
   static String get searchCountry => 'searchCountry'.tr;
   static String get resendEmail => 'resendEmail'.tr;
+  static String get emailPlaceholder => 'emailPlaceholder'.tr;
+  static String get firstNamePlaceholder => 'firstNamePlaceholder'.tr;
+  static String get familyNamePlaceholder => 'familyNamePlaceholder'.tr;
+  static String get syrianPhonePlaceholder => 'syrianPhonePlaceholder'.tr;
+  static String get syrianPhoneHint => 'syrianPhoneHint'.tr;
 
   static String get noInternetSnackBarTitle => 'noInternetSnackBarTitle'.tr;
   static String get noInternetSnackBarMessage => 'noInternetSnackBarMessage'.tr;
@@ -63,9 +140,25 @@ class AppTexts {
   static String get home => 'home'.tr;
   static String get search => 'search'.tr;
   static String get viewmore => 'viewMore'.tr;
+  static String get loadingMoreEvents => 'loadingMoreEvents'.tr;
+  static String get loadingMoreNotifications => 'loadingMoreNotifications'.tr;
+  static String get allEventsLoaded => 'allEventsLoaded'.tr;
+  static String get allNotificationsLoaded => 'allNotificationsLoaded'.tr;
   static String get close => 'close'.tr;
   static String get edit => 'edit'.tr;
   static String get dateFormat => 'dateFormat'.tr;
+  static String get timeFormat => Get.locale?.languageCode == 'ar'
+      ? '\u0646\u0638\u0627\u0645 \u0627\u0644\u0633\u0627\u0639\u0629'
+      : 'Time Format';
+  static String get dateTimeFormatTitle => Get.locale?.languageCode == 'ar'
+      ? '\u0627\u0644\u062A\u0627\u0631\u064A\u062E \u0648\u0627\u0644\u0648\u0642\u062A'
+      : 'Date & Time';
+  static String get dateTimeFormatHint => Get.locale?.languageCode == 'ar'
+      ? '\u0627\u062E\u062A\u0631 \u0637\u0631\u064A\u0642\u0629 \u0639\u0631\u0636 \u0627\u0644\u062A\u0642\u0648\u064A\u0645 \u0648\u0627\u0644\u0633\u0627\u0639\u0629 \u0641\u064A \u062C\u0645\u064A\u0639 \u0634\u0627\u0634\u0627\u062A \u0627\u0644\u062A\u0637\u0628\u064A\u0642'
+      : 'Choose how dates and time appear across the app';
+  static String get formatPreview => Get.locale?.languageCode == 'ar'
+      ? '\u0645\u0639\u0627\u064A\u0646\u0629 \u0627\u0644\u0639\u0631\u0636'
+      : 'Preview';
   static String get day => 'day'.tr;
   static String get week => 'week'.tr;
   static String get month => 'month'.tr;
@@ -74,24 +167,42 @@ class AppTexts {
   static String get unexpectedError => 'unexpectedError'.tr;
   static String get emailNotFound => 'emailNotFound'.tr;
   static String get incorrectEmailOrPassword => 'incorrectEmailOrPassword'.tr;
+  static String get incorrectPhoneOrPassword => 'incorrectPhoneOrPassword'.tr;
   static String get noEvents => 'noEvents'.tr;
   static String get addNewEvent => 'addNewEvent'.tr;
   static String get eventName => 'eventName'.tr;
+  static String get eventUntitled => 'eventUntitled'.tr;
+  static String get eventNoDescription => 'eventNoDescription'.tr;
+  static String get eventCardIncompleteData => 'eventCardIncompleteData'.tr;
+  static String get eventIssueMissingName => 'eventIssueMissingName'.tr;
+  static String get eventIssueMissingDescription =>
+      'eventIssueMissingDescription'.tr;
+  static String get eventIssueMissingStartDate =>
+      'eventIssueMissingStartDate'.tr;
+  static String get eventIssueMissingEndDate => 'eventIssueMissingEndDate'.tr;
   static String get enterTheNameOfTheEvent => 'enterTheNameOfTheEvent'.tr;
   static String get typeTheNoteHere => 'typeTheNoteHere'.tr;
   static String get logOut => 'logOut'.tr;
   static String get monthEvents => 'monthEvents'.tr;
   static String get noEventsThisMonth => 'noEventsThisMonth'.tr;
   static String get noEventsThisDay => 'noEventsThisDay'.tr;
+  static String get eventDayStatusEnded => 'eventDayStatusEnded'.tr;
+  static String get eventDayStatusUpcoming => 'eventDayStatusUpcoming'.tr;
+  static String get eventDayStatusOngoing => 'eventDayStatusOngoing'.tr;
+  static String get eventSpansMultipleDays => 'eventSpansMultipleDays'.tr;
   static String get noInternet => 'noInternet'.tr;
   static String get invalidDataFormat => 'invalidDataFormat'.tr;
   static String get serverConnectionFailed => 'serverConnectionFailed'.tr;
   static String get requestTimeout => 'requestTimeout'.tr;
   static String get errorOccurred => 'errorOccurred'.tr;
   static String get invalidEmail => 'invalidEmail'.tr;
+  static String get phoneNumberIsRequired => 'phoneNumberIsRequired'.tr;
+  static String get invalidSyrianPhoneNumber => 'invalidSyrianPhoneNumber'.tr;
   static String get shortPassword => 'shortPassword'.tr;
   static String get passwordsNotMatching => 'passwordsNotMatching'.tr;
   static String get loginSuccess => 'loginSuccess'.tr;
+  static String get accountCreatedSuccessfully =>
+      'accountCreatedSuccessfully'.tr;
   static String get codeSent => 'codeSent'.tr;
   static String get codeVerified => 'codeVerified'.tr;
   static String get enterCode => 'enterCode'.tr;
@@ -102,6 +213,7 @@ class AppTexts {
   static String get logoutConfirmTitle => 'logoutConfirmTitle'.tr;
   static String get logoutConfirmDesc => 'logoutConfirmDesc'.tr;
   static String get logoutSuccess => 'logoutSuccess'.tr;
+  static String get loggingOut => 'loggingOut'.tr;
   static String get unauthorized => 'unauthorized'.tr;
 
   static String get codeCouldNotBeSent => 'codeCouldNotBeSent'.tr;
@@ -109,6 +221,9 @@ class AppTexts {
   static String get thePasswordHasNotBeenChanged =>
       'thePasswordHasNotBeenChanged'.tr;
   static String get unableToUpdateProfile => 'unableToUpdateProfile'.tr;
+  static String get unableToCreateAccount => 'unableToCreateAccount'.tr;
+  static String get emailAlreadyTaken => 'emailAlreadyTaken'.tr;
+  static String get phoneAlreadyTaken => 'phoneAlreadyTaken'.tr;
   static String get thereAreNoEventsThisMonth => 'thereAreNoEventsThisMonth'.tr;
   static String get events => 'events'.tr;
   static String get youAreNotAuthorizedToEnter =>
@@ -159,14 +274,50 @@ class AppTexts {
   static String get currentPassword => 'currentPassword'.tr;
   static String get newPassword => 'newPassword'.tr;
   static String get confirmNewPassword => 'confirmNewPassword'.tr;
-  static String get changePasswordDescription =>
-      'changePasswordDescription'.tr;
+  static String get changePasswordDescription => 'changePasswordDescription'.tr;
   static String get confirmTheCode => 'confirmTheCode'.tr;
   static String get enterTheVerificationCodeSentToYourEmail =>
       'enterTheVerificationCodeSentToYourEmail'.tr;
   static String get verification => 'verification'.tr;
 
   static String get selectEventMembers => 'selectEventMembers'.tr;
+  static String get searchMembersByNameOrEmail =>
+      'searchMembersByNameOrEmail'.tr;
+  static String get memberSearchScopeEmail => 'memberSearchScopeEmail'.tr;
+  static String get memberSearchScopePhone => 'memberSearchScopePhone'.tr;
+  static String get memberSearchScopeMixedEmail =>
+      'memberSearchScopeMixedEmail'.tr;
+  static String get memberSearchScopeName => 'memberSearchScopeName'.tr;
+  static String get noMembersFoundForSearch => 'noMembersFoundForSearch'.tr;
+  static String get noMembersAvailable => 'noMembersAvailable'.tr;
+  static String get searchResults => 'searchResults'.tr;
+  static String get finishSearch => 'finishSearch'.tr;
+  static String get selectedMembers => 'selectedMembers'.tr;
+  static String get noSelectedMembersYet => 'noSelectedMembersYet'.tr;
+  static String get memberSearchGuideTitle => 'memberSearchGuideTitle'.tr;
+  static String get memberSearchGuideSearchTip =>
+      'memberSearchGuideSearchTip'.tr;
+  static String get memberSearchGuideSelectTip =>
+      'memberSearchGuideSelectTip'.tr;
+  static String get memberSearchGuideLongPressTip =>
+      'memberSearchGuideLongPressTip'.tr;
+  static String get memberSearchGuideFinishTip =>
+      'memberSearchGuideFinishTip'.tr;
+  static String get memberSearchGuideReviewTip =>
+      'memberSearchGuideReviewTip'.tr;
+  static String get selectedMembersManageHint => 'selectedMembersManageHint'.tr;
+  static String get memberDetails => 'memberDetails'.tr;
+  static String get removeMemberFromEventTitle =>
+      'removeMemberFromEventTitle'.tr;
+  static String get removeMemberFromEventDescription =>
+      'removeMemberFromEventDescription'.tr;
+  static String get removeFromEvent => 'removeFromEvent'.tr;
+  static String get role => 'role'.tr;
+  static String get accountStatus => 'accountStatus'.tr;
+  static String get administrator => 'administrator'.tr;
+  static String get employee => 'employee'.tr;
+  static String get active => 'active'.tr;
+  static String get inactive => 'inactive'.tr;
   static String get addAnEvent => 'addAnEvent'.tr;
   static String get theSite => 'theSite'.tr;
   static String get description => 'description'.tr;
@@ -175,6 +326,12 @@ class AppTexts {
   static String get copied => 'copied'.tr;
   static String get theNameWasCopiedToTheClipboard =>
       'theNameWasCopiedToTheClipboard'.tr;
+  static String get theFullNameWasCopiedToTheClipboard =>
+      'theFullNameWasCopiedToTheClipboard'.tr;
+  static String get theEmailWasCopiedToTheClipboard =>
+      'theEmailWasCopiedToTheClipboard'.tr;
+  static String get thePhoneWasCopiedToTheClipboard =>
+      'thePhoneWasCopiedToTheClipboard'.tr;
   static String get changed => 'changed'.tr;
   static String get selected => 'selected'.tr;
   static String get otpLengthError => 'otpLengthError'.tr;
@@ -190,6 +347,7 @@ class AppTexts {
   static String get acceptance => 'acceptance'.tr;
   static String get sortOptions => 'sortOptions'.tr;
   static String get manager => 'manager'.tr;
+
   /// "Manager of %s" — استبدل %s باسم القسم
   static String get managerOfDepartment => 'managerOfDepartment'.tr;
   static String get startTime => 'startTime'.tr;
@@ -198,7 +356,7 @@ class AppTexts {
   static String get concessive => 'concessive'.tr;
   static String get all => 'all'.tr;
   static String get publicOnly => 'publicOnly'.tr;
-  static String get privateOnly => 'privateOnly'.tr;
+  static String get personalOnly => 'personalOnly'.tr;
   static String get reset => 'reset'.tr;
   static String get history => 'history'.tr;
   static String get from => 'from'.tr;
@@ -248,7 +406,7 @@ class AppTexts {
   static String get editCategory => 'editCategory'.tr;
   static String get addCategory => 'addCategory'.tr;
   static String get typeOfEvent => 'typeOfEvent'.tr;
-  static String get private => 'private'.tr;
+  static String get personal => 'personal'.tr;
   static String get general => 'general'.tr;
   static String get embedding => 'embedding'.tr;
   static String get startDate => 'startDate'.tr;
@@ -335,6 +493,51 @@ class AppTexts {
   static String get ifyouAreSureAboutDeleting => 'ifyouAreSureAboutDeleting'.tr;
   static String get manageReminders => 'manageReminders'.tr;
   static String get addReminder => 'addReminder'.tr;
+  static String get reminderGuideTitle => 'reminderGuideTitle'.tr;
+  static String get reminderGuideDescription => 'reminderGuideDescription'.tr;
+  static String get reminderGuideTip => 'reminderGuideTip'.tr;
+  static String get reminderInfoTooltip => 'reminderInfoTooltip'.tr;
+  static String get reminderDialogDescription => 'reminderDialogDescription'.tr;
+  static String get reminderChooseUnitLabel => 'reminderChooseUnitLabel'.tr;
+  static String get reminderChooseUnitHint => 'reminderChooseUnitHint'.tr;
+  static String get reminderValueHint => 'reminderValueHint'.tr;
+  static String get reminderBeforeEventLabel => 'reminderBeforeEventLabel'.tr;
+  static String get reminderPreviewDescription =>
+      'reminderPreviewDescription'.tr;
+  static String get reminderAlreadyExists => 'reminderAlreadyExists'.tr;
+  static String get reminderAtStartReserved => 'reminderAtStartReserved'.tr;
+  static String get reminderAtEventTime => 'reminderAtEventTime'.tr;
+  static String get alarmRingingTitle => 'alarmRingingTitle'.tr;
+  static String get alarmSnoozeFailed => 'alarmSnoozeFailed'.tr;
+  static String get alarmSnooze5 => 'alarmSnooze5'.tr;
+  static String get alarmSnooze10 => 'alarmSnooze10'.tr;
+  static String get alarmDismiss => 'alarmDismiss'.tr;
+  static String get alarmSoundSettingsTitle => 'alarmSoundSettingsTitle'.tr;
+  static String get alarmSoundSettingsSubtitle =>
+      'alarmSoundSettingsSubtitle'.tr;
+  static String get alarmRingtoneScreenTitle => 'alarmRingtoneScreenTitle'.tr;
+  static String get alarmRingtoneUseSystemDefault =>
+      'alarmRingtoneUseSystemDefault'.tr;
+  static String get alarmRingtoneChooseFromPhone =>
+      'alarmRingtoneChooseFromPhone'.tr;
+  static String get alarmRingtoneChooseFromFile =>
+      'alarmRingtoneChooseFromFile'.tr;
+  static String get alarmRingtoneStatusDefault =>
+      'alarmRingtoneStatusDefault'.tr;
+  static String get alarmRingtoneStatusCustom => 'alarmRingtoneStatusCustom'.tr;
+  static String get alarmRingtonePreviewButton =>
+      'alarmRingtonePreviewButton'.tr;
+  static String get alarmRingtoneStopPreviewButton =>
+      'alarmRingtoneStopPreviewButton'.tr;
+  static String get alarmReminderSettingsTitle =>
+      'alarmReminderSettingsTitle'.tr;
+  static String get alarmReminderSettingsSubtitle =>
+      'alarmReminderSettingsSubtitle'.tr;
+  static String get alarmRingtoneTestButton => 'alarmRingtoneTestButton'.tr;
+  static String get alarmRingtonePreviewAlarmTitle =>
+      'alarmRingtonePreviewAlarmTitle'.tr;
+  static String get reminderValueCannotBeNegative =>
+      'reminderValueCannotBeNegative'.tr;
   static String get applyTo => 'applyTo'.tr;
   static String get allEvents => 'allEvents'.tr;
   static String get reminderAddedSuccessfully => 'reminderAddedSuccessfully'.tr;
@@ -368,6 +571,13 @@ class AppTexts {
   static String get chooseColor => 'chooseColor'.tr;
   static String get somethingWentWrong => 'somethingWentWrong'.tr;
   static String get update => 'update'.tr;
+  static String get refreshStatus => 'refreshStatus'.tr;
+  static String get accessRefreshTitle => 'accessRefreshTitle'.tr;
+  static String get accessRefreshDescription => 'accessRefreshDescription'.tr;
+  static String get accessCheckingDescription => 'accessCheckingDescription'.tr;
+  static String get accountDeactivated => 'accountDeactivated'.tr;
+  static String get accountDeactivatedDescription =>
+      'accountDeactivatedDescription'.tr;
   static String get colorAlreadyTaken => 'colorAlreadyTaken'.tr;
   static String get nameAlreadyTaken => 'nameAlreadyTaken'.tr;
   static String get deleteCategoriesDescription =>
@@ -375,8 +585,25 @@ class AppTexts {
   static String get deleteCategories => 'deleteCategories'.tr;
   static String get now => 'now'.tr;
   static String get ago => 'ago'.tr;
+  static String get amPeriod => 'amPeriod'.tr;
+  static String get pmPeriod => 'pmPeriod'.tr;
   static String get hours => 'hours'.tr;
   static String get minutes => 'minutes'.tr;
   static String get invitedToEvent => 'invitedToEvent'.tr;
   static String get eventCancelled => 'eventCancelled'.tr;
+  static String get eventDeletedMessage => 'eventDeletedMessage'.tr;
+
+  // Invitation accept/reject
+  static String get invitationPending => 'invitationPending'.tr;
+  static String get respondToInvitation => 'respondToInvitation'.tr;
+  static String get acceptInvitation => 'acceptInvitation'.tr;
+  static String get rejectInvitation => 'rejectInvitation'.tr;
+  static String get rejectionReason => 'rejectionReason'.tr;
+  static String get enterRejectionReason => 'enterRejectionReason'.tr;
+  static String get rejectionReasonRequired => 'rejectionReasonRequired'.tr;
+  static String get eventResponseSentAccept => 'eventResponseSentAccept'.tr;
+  static String get eventResponseSentReject => 'eventResponseSentReject'.tr;
+  static String get statusAccepted => 'statusAccepted'.tr;
+  static String get statusPending => 'statusPending'.tr;
+  static String get statusRejected => 'statusRejected'.tr;
 }

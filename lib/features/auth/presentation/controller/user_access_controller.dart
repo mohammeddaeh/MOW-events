@@ -12,6 +12,7 @@ import 'package:mow_events/features/auth/data/models/user_model.dart';
 import 'package:mow_events/features/auth/domin/repositories/auth_repository.dart';
 import 'package:mow_events/features/auth/presentation/controller/auth_controller.dart';
 import 'package:mow_events/features/auth/services/auth_service.dart';
+import 'package:mow_events/features/auth/services/registration_approval_service.dart';
 
 enum UserAccessState { idle, requiresRefresh, checking, inactive, active }
 
@@ -39,6 +40,7 @@ class UserAccessController extends GetxController with WidgetsBindingObserver {
     AppRouter.splash,
     AppRouter.logInScreen,
     AppRouter.registerScreen,
+    AppRouter.registrationPendingScreen,
     AppRouter.forgotPassword,
     AppRouter.verifyCode,
     AppRouter.resetPassword,
@@ -47,14 +49,15 @@ class UserAccessController extends GetxController with WidgetsBindingObserver {
 
   bool get isAuthenticated => authController.isAuthenticated.value;
 
+  /// السماح بالاستخدام من البيانات المحلية ما لم يُؤكَّد إلغاء التفعيل.
   bool get canUseProtectedFeatures =>
-      isAuthenticated && state.value == UserAccessState.active;
-
-  bool get shouldBlockProtectedRoutes =>
       isAuthenticated &&
-      (state.value == UserAccessState.requiresRefresh ||
-          state.value == UserAccessState.checking ||
-          state.value == UserAccessState.inactive);
+      state.value != UserAccessState.inactive &&
+      state.value != UserAccessState.idle;
+
+  /// الحجب فقط عند إلغاء تفعيل الحساب (ليس عند انقطاع الإنترنت أو فشل مزامنة الحالة).
+  bool get shouldBlockProtectedRoutes =>
+      isAuthenticated && state.value == UserAccessState.inactive;
 
   bool get isOnProtectedRoute => !_publicRoutes.contains(currentRoute.value);
 
@@ -123,21 +126,25 @@ class UserAccessController extends GetxController with WidgetsBindingObserver {
   Future<StartupAccessResult> resolveStartupAccess() async {
     final localUser = authController.user.value ?? AuthService.currentUser;
 
+    if (RegistrationApprovalService.shouldHoldRegistrationApproval(localUser)) {
+      return StartupAccessResult.unauthenticated;
+    }
+
     if (!isAuthenticated || localUser == null) {
       _setIdleState();
       return StartupAccessResult.unauthenticated;
     }
 
     if (!networkManager.isOnline.value) {
-      state.value = localUser.isActive
-          ? UserAccessState.requiresRefresh
-          : UserAccessState.inactive;
-      AuthService.isInactiveAccountHandling =
-          state.value == UserAccessState.inactive;
+      if (!localUser.isActive) {
+        state.value = UserAccessState.inactive;
+        AuthService.isInactiveAccountHandling = true;
+        return StartupAccessResult.inactive;
+      }
 
-      return localUser.isActive
-          ? StartupAccessResult.requiresRefresh
-          : StartupAccessResult.inactive;
+      state.value = UserAccessState.active;
+      AuthService.isInactiveAccountHandling = false;
+      return StartupAccessResult.active;
     }
 
     final refreshed = await _refreshUserStatus(
@@ -160,6 +167,8 @@ class UserAccessController extends GetxController with WidgetsBindingObserver {
   }
 
   Future<bool> refreshStatus() async {
+    if (!InternetGuard.ensureOnline()) return false;
+
     return _refreshUserStatus(
       allowBackgroundFailure: false,
       logServerUser: false,
@@ -167,9 +176,40 @@ class UserAccessController extends GetxController with WidgetsBindingObserver {
     );
   }
 
+  /// تسجيل خروج من شاشة الحساب غير المفعّل للانتقال إلى تسجيل الدخول.
+  Future<void> logoutToLoginScreen() async {
+    if (AuthService.isLoggingOut || AuthService.isSessionExpiredHandling) {
+      return;
+    }
+
+    AuthService.isLoggingOut = true;
+    AuthService.isInactiveAccountHandling = false;
+
+    try {
+      AppSnackBars.hideSnackBar();
+      try {
+        await _authRepo.logout();
+      } catch (_) {}
+
+      await AuthService.logout();
+      authController.user.value = null;
+      authController.isAuthenticated.value = false;
+      _setIdleState();
+      Get.offAllNamed(AppRouter.logInScreen);
+    } finally {
+      AuthService.isLoggingOut = false;
+    }
+  }
+
   Future<void> preparePostLoginAccess() async {
     if (!isAuthenticated) {
       _setIdleState();
+      return;
+    }
+
+    if (RegistrationApprovalService.shouldHoldRegistrationApproval(
+      authController.user.value ?? AuthService.currentUser,
+    )) {
       return;
     }
 
@@ -183,7 +223,8 @@ class UserAccessController extends GetxController with WidgetsBindingObserver {
       if (!localUser.isActive) {
         await markAccountInactive(source: 'login-local');
       } else {
-        requireRefreshBeforeUse(source: 'login-offline');
+        state.value = UserAccessState.active;
+        AuthService.isInactiveAccountHandling = false;
       }
       return;
     }
@@ -219,6 +260,12 @@ class UserAccessController extends GetxController with WidgetsBindingObserver {
   }) async {
     if (!isAuthenticated) {
       _setIdleState();
+      return false;
+    }
+
+    if (RegistrationApprovalService.shouldHoldRegistrationApproval(
+      authController.user.value ?? AuthService.currentUser,
+    )) {
       return false;
     }
 
@@ -275,6 +322,10 @@ class UserAccessController extends GetxController with WidgetsBindingObserver {
       return;
     }
 
+    if (RegistrationApprovalService.shouldHoldRegistrationApproval(user)) {
+      return;
+    }
+
     if (!user.isActive) {
       AuthService.isInactiveAccountHandling = true;
       state.value = UserAccessState.inactive;
@@ -284,7 +335,10 @@ class UserAccessController extends GetxController with WidgetsBindingObserver {
 
     AuthService.isInactiveAccountHandling = false;
     if (state.value == UserAccessState.idle) {
-      state.value = UserAccessState.requiresRefresh;
+      state.value = UserAccessState.active;
+      if (networkManager.isOnline.value) {
+        _refreshInBackground();
+      }
     }
   }
 
@@ -294,6 +348,11 @@ class UserAccessController extends GetxController with WidgetsBindingObserver {
   }
 
   Future<void> _refreshInBackground() async {
+    if (RegistrationApprovalService.shouldHoldRegistrationApproval(
+      authController.user.value ?? AuthService.currentUser,
+    )) {
+      return;
+    }
     if (!canUseProtectedFeatures || !networkManager.isOnline.value) return;
 
     await _refreshUserStatus(
