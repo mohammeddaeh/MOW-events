@@ -11,6 +11,7 @@ import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
 import 'package:mow_events/core/alarm/android_alarm_permissions.dart';
 import 'package:mow_events/core/utils/local_storage/app_local_storage.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:mow_events/firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +28,9 @@ void main() async {
   DateLocalizationHelper.init();
   DateLocalizationHelper.startTodayUpdater();
 
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   runApp(const App());

@@ -56,7 +56,6 @@ class DefaultFirebaseOptions {
     projectId: 'mowevents-4b73f',
     storageBucket: 'mowevents-4b73f.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyC-mS-q4JfjtwyRet2M4BaU5wrVJMrPOLM',
     appId: '1:359088255037:ios:6732762024a9599e217a54',

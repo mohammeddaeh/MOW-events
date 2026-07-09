@@ -57,6 +57,7 @@ dependencies:
 
   # android_alarm_manager_plus: ^5.0.0
   timezone: ^0.10.1
+  upgrader: ^11.4.0
 
 dev_dependencies:
   flutter_test:
