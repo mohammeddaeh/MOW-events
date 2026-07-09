@@ -18,6 +18,7 @@ class AlarmActivity : Activity() {
     private var requestCode: Int = 0
     private var eventId: String = ""
     private var eventStartTime: Long = 0L
+    private var snoozeMinutes: Int = 10
     private val SNOOZE_MINUTES = 5L
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,6 +32,7 @@ class AlarmActivity : Activity() {
         eventId = intent.getStringExtra("eventId") ?: ""
         requestCode = intent.getIntExtra("requestCode", 0)
         eventStartTime = intent.getLongExtra("eventStartTime", 0L)
+        snoozeMinutes = intent.getIntExtra("snoozeMinutes", 10)
 
          findViewById<TextView>(R.id.txtEventTitle).text = eventTitle
         findViewById<TextView>(R.id.txtEventLocation).text = eventLocation
@@ -104,7 +106,8 @@ class AlarmActivity : Activity() {
 eventStartTime,
     findViewById<TextView>(R.id.txtEventTitle).text.toString(),
     findViewById<TextView>(R.id.txtEventLocation).text.toString(),
-    findViewById<TextView>(R.id.txtEventStartTime).text.toString()
+    findViewById<TextView>(R.id.txtEventStartTime).text.toString(),
+    snoozeMinutes
         )
 
         stopAlarm()

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/alarm/android_alarm_permissions.dart';
+import 'package:mow_events/core/alarm/ios_alarm_notifications.dart';
 import 'package:mow_events/features/event/data/models/event_model.dart';
 import 'package:mow_events/features/event/presentation/controller/home_controller.dart';
 
@@ -27,8 +28,15 @@ class EventAlarmService extends GetxService {
   bool get _nativeAvailable =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
+  bool get _iosAvailable =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+
   /// مزامنة كاملة: يلغي المنبّهات غير المطلوبة ويجدول المفعّلة في المستقبل.
   Future<void> syncFromEvents(List<EventModel> events) async {
+    if (_iosAvailable) {
+      await _syncFromEventsIos(events);
+      return;
+    }
     if (!_nativeAvailable) return;
 
     final now = DateTime.now();
@@ -78,6 +86,35 @@ class EventAlarmService extends GetxService {
     } catch (_) {}
   }
 
+  /// مزامنة عبر إشعارات iOS المحلية المجدولة — بلا لقطة تخزين أصلية؛ نظام
+  /// iOS يحتفظ بالإشعارات المجدولة عبر عمليات إعادة التشغيل بمفرده.
+  Future<void> _syncFromEventsIos(List<EventModel> events) async {
+    final now = DateTime.now();
+    final nextCodes = <int>{};
+
+    for (final e in events) {
+      if (!e.isAlarmEnabled) continue;
+      final at = e.effectiveNativeAlarmTime;
+      if (at == null || !at.isAfter(now)) continue;
+
+      final rc = requestCodeForEvent(e.id);
+      nextCodes.add(rc);
+
+      try {
+        await IosEventAlarmNotifications.scheduleForEvent(e, at);
+      } catch (_) {}
+    }
+
+    for (final old in _trackedRequestCodes.difference(nextCodes)) {
+      try {
+        await IosEventAlarmNotifications.cancel(old);
+      } catch (_) {}
+    }
+    _trackedRequestCodes
+      ..clear()
+      ..addAll(nextCodes);
+  }
+
   /// دمج الحدث مع قائمة [HomeController] عند توفرها ليبقى لقطة التخزين متسقة.
   Future<void> scheduleEvent(EventModel e) async {
     if (Get.isRegistered<HomeController>()) {
@@ -93,8 +130,17 @@ class EventAlarmService extends GetxService {
   }
 
   Future<void> cancelForEventId(int eventId) async {
-    if (!_nativeAvailable) return;
     final rc = requestCodeForEvent(eventId);
+
+    if (_iosAvailable) {
+      _trackedRequestCodes.remove(rc);
+      try {
+        await IosEventAlarmNotifications.cancel(rc);
+      } catch (_) {}
+      return;
+    }
+
+    if (!_nativeAvailable) return;
     _trackedRequestCodes.remove(rc);
     try {
       await _channel.invokeMethod<void>('cancelAlarm', {'requestCode': rc});

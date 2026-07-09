@@ -5,6 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
+import 'package:mow_events/core/alarm/alarm_pending_action_store.dart';
 import 'package:mow_events/core/app_router/app_router.dart';
 import 'package:mow_events/core/shared/snack_bar/app_snack_bars.dart';
 import 'package:mow_events/core/utils/error/api_exceptions.dart';
@@ -84,6 +85,9 @@ class NotificationsController extends GetxController {
   void onInit() {
     super.onInit();
     _initLocalNotifications();
+    if (AlarmPendingActionStore.read() != null) {
+      _openAlarmScreenFromPending();
+    }
     ensurePushSetup().then((_) async {
       final holdRegistration =
           RegistrationApprovalService.isAwaitingApproval ||
@@ -335,6 +339,11 @@ class NotificationsController extends GetxController {
 
     const InitializationSettings settings = InitializationSettings(
       android: androidSettings,
+      iOS: DarwinInitializationSettings(
+        requestAlertPermission: false,
+        requestBadgePermission: false,
+        requestSoundPermission: false,
+      ),
     );
 
     await _flutterLocalNotificationsPlugin.initialize(
@@ -344,6 +353,13 @@ class NotificationsController extends GetxController {
 
         try {
           final data = jsonDecode(response.payload!) as Map<String, dynamic>;
+
+          if (data['kind'] == 'event_alarm') {
+            await AlarmPendingActionStore.save(data);
+            _openAlarmScreenFromPending();
+            return;
+          }
+
           final eventId =
               int.tryParse(data['event_id']?.toString() ?? '0') ?? 0;
           final reference = _buildNotificationFromPayload(data);
@@ -365,6 +381,13 @@ class NotificationsController extends GetxController {
         }
       },
     );
+  }
+
+  void _openAlarmScreenFromPending() {
+    final payload = AlarmPendingActionStore.read();
+    if (payload == null) return;
+    AlarmPendingActionStore.clear();
+    Get.toNamed(AppRouter.alarmRinging, arguments: payload);
   }
 
   Future<void> _syncEvent(int eventId) async {

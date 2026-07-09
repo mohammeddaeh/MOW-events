@@ -3,7 +3,7 @@ description: "A new Flutter project."
 
 publish_to: "none"
 
-version: 1.0.1+2
+version: 1.0.3+4
 
 environment:
   sdk: ^3.8.1
@@ -58,6 +58,7 @@ dependencies:
   # android_alarm_manager_plus: ^5.0.0
   timezone: ^0.10.1
   upgrader: ^11.4.0
+  audioplayers: ^6.1.0
 
 dev_dependencies:
   flutter_test:
@@ -77,6 +78,7 @@ flutter:
     - assets/images/content/
     - assets/images/logo/
     - assets/images/icons/
+    - assets/sounds/
 
   #--------------- LOCAL FONTS ------------------#
   fonts:
