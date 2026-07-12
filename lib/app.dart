@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
-import 'package:upgrader/upgrader.dart';
 import 'package:mow_events/core/app_router/app_router.dart';
+import 'package:mow_events/core/app_update/presentation/app_update_guard.dart';
+import 'package:mow_events/core/app_update/presentation/app_version_controller.dart';
 import 'package:mow_events/core/general/bindings.dart';
 import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
@@ -65,17 +66,16 @@ class App extends StatelessWidget {
               routing?.current,
             );
           }
+          if (routing?.current == AppRouter.homeScreen &&
+              Get.isRegistered<AppVersionController>()) {
+            Get.find<AppVersionController>().markHomeReached();
+          }
         },
         builder: (context, child) {
           return DefaultTextStyle(
             style: AppTypography.base(context),
             child: UserAccessGuard(
-              child: UpgradeAlert(
-                upgrader: Upgrader(
-                  durationUntilAlertAgain: const Duration(days: 1),
-                  debugLogging: true,
-                  debugDisplayAlways: true,
-                ),
+              child: AppUpdateGuard(
                 child: child ?? const SizedBox.shrink(),
               ),
             ),

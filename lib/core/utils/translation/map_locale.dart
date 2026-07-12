@@ -47,6 +47,16 @@ class AppLocale implements Translations {
       'settingsUsername': 'Username',
       'version': 'Version',
 
+      // App Update
+      'updateRequiredTitle': 'Update Required',
+      'updateRequiredDescription':
+          'A new version of the app is available. Please update to continue using the app.',
+      'updateAvailableTitle': 'Update Available',
+      'updateAvailableDescription':
+          'A new version of the app is available. Would you like to update now?',
+      'updateNow': 'Update Now',
+      'later': 'Later',
+
       // Auth
       'email': 'Email',
       'emailIsRequired': 'Email is required',
@@ -752,6 +762,16 @@ class AppLocale implements Translations {
       // Settings & Version
       'settingsUsername': 'اسم المستخدم',
       'version': 'الإصدار',
+
+      // App Update
+      'updateRequiredTitle': 'يوجد تحديث مطلوب',
+      'updateRequiredDescription':
+          'يتوفر إصدار جديد من التطبيق. الرجاء التحديث للمتابعة.',
+      'updateAvailableTitle': 'يتوفر تحديث',
+      'updateAvailableDescription':
+          'يتوفر إصدار جديد من التطبيق. هل تريد التحديث الآن؟',
+      'updateNow': 'تحديث الآن',
+      'later': 'لاحقًا',
 
       // Auth
       'email': 'البريد الإلكتروني',

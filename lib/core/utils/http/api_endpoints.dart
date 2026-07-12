@@ -52,4 +52,6 @@ class ApiEndpoints {
   static String categoriesUpdate(int id) =>
       '$dashboardBase/categories/update/$id';
   static const String categoriesDelete = '$dashboardBase/categories/delete';
+
+  static const String showSettings = '$dashboardBase/show/settings';
 }

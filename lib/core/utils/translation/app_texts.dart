@@ -35,6 +35,15 @@ class AppTexts {
   static String get settingsUsername => "settingsUsername".tr;
   static String get version => "version".tr;
 
+  static String get updateRequiredTitle => "updateRequiredTitle".tr;
+  static String get updateRequiredDescription =>
+      "updateRequiredDescription".tr;
+  static String get updateAvailableTitle => "updateAvailableTitle".tr;
+  static String get updateAvailableDescription =>
+      "updateAvailableDescription".tr;
+  static String get updateNow => "updateNow".tr;
+  static String get later => "later".tr;
+
   static String get email => 'email'.tr;
   static String get emailIsRequired => 'emailIsRequired'.tr;
   static String get password => 'password'.tr;

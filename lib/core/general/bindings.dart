@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:mow_events/core/alarm/event_alarm_service.dart';
+import 'package:mow_events/core/app_update/presentation/app_version_controller.dart';
 import 'package:mow_events/core/utils/network/network_manager.dart';
 import 'package:mow_events/core/utils/local_storage/app_local_storage.dart';
 import 'package:mow_events/features/auth/data/data_sources/back_end_laravel.dart';
@@ -13,6 +14,7 @@ class GeneralBindings extends Bindings {
   void dependencies() {
     Get.put(NetworkManager(), permanent: true);
     Get.put(AppLocalStorage(), permanent: true);
+    Get.put(AppVersionController(), permanent: true);
 
     Get.lazyPut<BackEndLaravel>(() => BackEndLaravel());
     Get.lazyPut<AuthRepository>(() => AuthRepositoryImpl(backend: Get.find()));
