@@ -148,7 +148,7 @@ class RegisterController extends GetxController {
   }
 
   void goToLogin() {
-    Get.back();
+    Get.offAllNamed(AppRouter.logInScreen);
   }
 
   void _openLoginAfterPendingEmailConflict() {

@@ -15,6 +15,7 @@ import 'package:mow_events/features/event/presentation/controller/year_controlle
 import 'package:mow_events/features/notifications/data/data_sources/notifications_backend.dart';
 import 'package:mow_events/features/notifications/data/repsitories_impl/notifications_repository_impl.dart';
 import 'package:mow_events/features/notifications/presentation/controller/notifications_controller.dart';
+import 'package:mow_events/features/orders/presentation/orders_controller.dart';
 
 class HomeBinding extends Bindings {
   @override
@@ -33,6 +34,7 @@ class HomeBinding extends Bindings {
       Get.put<CategoriesController>(
         CategoriesController(repository: Get.find()),
       );
+      Get.put<OrdersController>(OrdersController());
     }
     if (!Get.isRegistered<NotificationsController>()) {
       Get.put<NotificationsController>(

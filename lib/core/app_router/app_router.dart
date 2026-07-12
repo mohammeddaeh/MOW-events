@@ -25,6 +25,7 @@ import 'package:mow_events/features/event/presentation/screens/add_event_screen.
 import 'package:mow_events/features/event/presentation/screens/edit_event_screen.dart';
 import 'package:mow_events/features/event/presentation/screens/home_screen.dart';
 import 'package:mow_events/features/notifications/presentation/screens/notifications_screen.dart';
+import 'package:mow_events/features/orders/presentation/screens/orders_page.dart';
 import 'package:mow_events/features/event/presentation/screens/settings_screen.dart';
 import 'package:mow_events/features/alarm/presentation/alarm_screen.dart';
 import 'package:mow_events/features/alarm/presentation/bindings/alarm_ringing_binding.dart';
@@ -46,6 +47,7 @@ class AppRouter {
   static const String changePassword = '/changePassword';
   static const String editEvent = '/editEvent';
   static const String categoriesPage = '/categoriesPage';
+  static const String ordersPage = '/ordersPage';
   static const String notifications = '/notifications';
   /// منبّه ملء الشاشة (يُفتح من [FullScreenAlarmActivity] عبر defaultRouteName).
   static const String alarmRinging = '/alarm';
@@ -118,6 +120,7 @@ class AppRouter {
       binding: EditEventBinding(),
     ),
     GetPage(name: AppRouter.categoriesPage, page: () => CategoriesPage()),
+    GetPage(name: AppRouter.ordersPage, page: () => const OrdersPage()),
     GetPage(name: AppRouter.notifications, page: () => NotificationsScreen()),
     GetPage(
       name: AppRouter.alarmRinging,

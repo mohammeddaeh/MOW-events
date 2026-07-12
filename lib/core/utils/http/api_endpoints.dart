@@ -54,4 +54,25 @@ class ApiEndpoints {
   static const String categoriesDelete = '$dashboardBase/categories/delete';
 
   static const String showSettings = '$dashboardBase/show/settings';
+
+  static const String usersOrders = '$dashboardBase/users/orders';
+  static String changeOrderStatus({
+    required int orderId,
+    required String status,
+    String? description,
+  }) {
+    final params = <String, String>{
+      'order_id': '$orderId',
+      'status': status,
+      if (description != null && description.isNotEmpty)
+        'description': description,
+    };
+    final query = params.entries
+        .map(
+          (e) =>
+              '${e.key}=${Uri.encodeQueryComponent(e.value)}',
+        )
+        .join('&');
+    return '$dashboardBase/users/change-status/order?$query';
+  }
 }

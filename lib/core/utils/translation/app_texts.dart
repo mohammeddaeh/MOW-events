@@ -44,6 +44,11 @@ class AppTexts {
   static String get updateNow => "updateNow".tr;
   static String get later => "later".tr;
 
+  static String get joinRequests => "joinRequests".tr;
+  static String get noJoinRequests => "noJoinRequests".tr;
+  static String get acceptRequest => "acceptRequest".tr;
+  static String get rejectRequest => "rejectRequest".tr;
+
   static String get email => 'email'.tr;
   static String get emailIsRequired => 'emailIsRequired'.tr;
   static String get password => 'password'.tr;

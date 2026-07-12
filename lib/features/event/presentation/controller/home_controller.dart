@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mow_events/core/app_update/presentation/app_version_controller.dart';
 import 'package:mow_events/core/shared/widgets/dialoge/app_dialog.dart';
 import 'package:mow_events/core/utils/local_storage/UserStorage/user_storage.dart';
 import 'package:mow_events/core/utils/local_storage/app_local_storage.dart';
@@ -647,6 +648,9 @@ class HomeController extends GetxController
   void changeBottomIndex(int index) {
     unfocusSearch();
     currentIndex.value = index;
+    if (index == 1 && Get.isRegistered<AppVersionController>()) {
+      Get.find<AppVersionController>().markSettingsBadgeSeen();
+    }
   }
 
   /// الرجوع إلى التبويب اليومي (لزر الرجوع من أسبوع/شهر/سنة)

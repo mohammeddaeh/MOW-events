@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:mow_events/core/app_router/app_router.dart';
+import 'package:mow_events/core/app_update/presentation/app_version_controller.dart';
 import 'package:mow_events/core/utils/constants/app_colors.dart';
 import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
@@ -11,6 +13,7 @@ import 'package:mow_events/features/auth/presentation/controller/auth_controller
 import 'package:mow_events/features/auth/services/auth_service.dart';
 import 'package:mow_events/features/event/presentation/widgets/custom_card_setting.dart';
 import 'package:mow_events/features/event/presentation/screens/add_reminders_screen.dart';
+import 'package:mow_events/features/orders/presentation/orders_controller.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -45,7 +48,7 @@ class SettingsScreen extends StatelessWidget {
                       SizedBox(width: 8),
                       Icon(
                         Icons.arrow_forward_ios,
-                        size: 18,
+                        size: 16,
                         color: AppThemeHelper.whiteBlack(context),
                       ),
                     ],
@@ -53,18 +56,20 @@ class SettingsScreen extends StatelessWidget {
                   onTap: () => Get.toNamed(AppRouter.profile),
                 ),
                 if (currentUser.isAdmin == true ||
-                    currentUser.department?.isManager == true)
+                    currentUser.department?.isManager == true) ...[
                   CustomCardSetting(
                     title: AppTexts.manageCategories,
                     trailing: Icon(
                       Icons.arrow_forward_ios,
-                      size: 18,
+                      size: 16,
                       color: AppThemeHelper.whiteBlack(context),
                     ),
                     onTap: () {
                       Get.toNamed(AppRouter.categoriesPage);
                     },
                   ),
+                  const _JoinRequestsSettingTile(),
+                ],
 
                 const _DateTimeFormatSettingTile(),
                 Obx(() {
@@ -99,7 +104,7 @@ class SettingsScreen extends StatelessWidget {
                   subtitle: AppTexts.alarmReminderSettingsSubtitle,
                   trailing: Icon(
                     Icons.arrow_forward_ios,
-                    size: 18,
+                    size: 16,
                     color: AppThemeHelper.whiteBlack(context),
                   ),
                   onTap: () {
@@ -107,10 +112,8 @@ class SettingsScreen extends StatelessWidget {
                   },
                 ),
 
-                const SizedBox(height: 20),
-
-                const Text('v2.0.0', style: TextStyle(color: Colors.grey)),
-                const SizedBox(height: 30),
+                const _AppVersionTile(),
+                const SizedBox(height: 24),
 
                 OutlinedButton.icon(
                   icon: Icon(
@@ -149,6 +152,83 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
+class _JoinRequestsSettingTile extends StatelessWidget {
+  const _JoinRequestsSettingTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.find<OrdersController>();
+
+    return Obx(() {
+      final hasRequests = controller.orders.isNotEmpty;
+
+      return CustomCardSetting(
+        title: AppTexts.joinRequests,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (hasRequests) ...[
+              Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: AppColors.errorPrimary,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: AppThemeHelper.whiteBlack(context),
+            ),
+          ],
+        ),
+        onTap: () => Get.toNamed(AppRouter.ordersPage),
+      );
+    });
+  }
+}
+
+class _AppVersionTile extends StatelessWidget {
+  const _AppVersionTile();
+
+  Future<void> _openAppUrl(AppVersionController controller) async {
+    final url = controller.appUrl.value;
+    if (url.isEmpty) return;
+    final uri = Uri.tryParse(url);
+    if (uri == null) return;
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.find<AppVersionController>();
+
+    return Obx(() {
+      final hasUpdate = controller.hasOptionalUpdate;
+      final version = controller.currentVersion.value;
+
+      return CustomCardSetting(
+        title: hasUpdate ? AppTexts.updateAvailableTitle : 'v$version',
+        subtitle: hasUpdate ? AppTexts.updateNow : null,
+        trailing: hasUpdate
+            ? Container(
+                width: 10,
+                height: 10,
+                decoration: const BoxDecoration(
+                  color: AppColors.errorPrimary,
+                  shape: BoxShape.circle,
+                ),
+              )
+            : null,
+        onTap: hasUpdate ? () => _openAppUrl(controller) : null,
+      );
+    });
+  }
+}
+
 class _DateTimeFormatSettingTile extends StatelessWidget {
   const _DateTimeFormatSettingTile();
 
@@ -182,7 +262,7 @@ class _DateTimeFormatSettingTile extends StatelessWidget {
             const SizedBox(width: 8),
             Icon(
               Icons.arrow_forward_ios,
-              size: 18,
+              size: 16,
               color: AppThemeHelper.whiteBlack(context),
             ),
           ],
@@ -264,7 +344,7 @@ class _FormatBottomSheetOption extends StatelessWidget {
               const SizedBox(width: 10),
               Icon(
                 selected ? Icons.check_circle_rounded : Icons.circle_outlined,
-                size: 20,
+                size: 16,
                 color: selected
                     ? selectedTextColor
                     : AppThemeHelper.textSecondary(context),

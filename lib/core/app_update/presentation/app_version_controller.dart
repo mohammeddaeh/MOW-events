@@ -15,8 +15,16 @@ class AppVersionController extends GetxController {
 
   final Rx<AppUpdateState> updateState = AppUpdateState.none.obs;
   final RxString appUrl = ''.obs;
+  final RxString latestVersion = ''.obs;
+  final RxString currentVersion = ''.obs;
   final RxBool optionalUpdateDismissed = false.obs;
   final RxBool hasReachedHome = false.obs;
+
+  /// يصبح true بمجرد أن يفتح المستخدم صفحة الإعدادات مرة واحدة —
+  /// يُخفي البادج الحمراء عن أيقونة الإعدادات في الـ nav بشكل نهائي.
+  final RxBool settingsBadgeSeen = false.obs;
+
+  bool get hasOptionalUpdate => updateState.value == AppUpdateState.optional;
 
   @override
   void onInit() {
@@ -32,8 +40,10 @@ class AppVersionController extends GetxController {
 
   Future<void> checkForUpdate() async {
     try {
-      final settings = await _backend.showSettings();
       final packageInfo = await PackageInfo.fromPlatform();
+      currentVersion.value = packageInfo.version;
+
+      final settings = await _backend.showSettings();
 
       if (!VersionComparator.isNewer(settings.version, packageInfo.version)) {
         updateState.value = AppUpdateState.none;
@@ -41,6 +51,7 @@ class AppVersionController extends GetxController {
       }
 
       appUrl.value = settings.appUrl;
+      latestVersion.value = settings.version;
       updateState.value = settings.isVersionRequired
           ? AppUpdateState.required
           : AppUpdateState.optional;
@@ -51,5 +62,11 @@ class AppVersionController extends GetxController {
 
   void dismissOptionalUpdate() {
     optionalUpdateDismissed.value = true;
+  }
+
+  void markSettingsBadgeSeen() {
+    if (!settingsBadgeSeen.value) {
+      settingsBadgeSeen.value = true;
+    }
   }
 }

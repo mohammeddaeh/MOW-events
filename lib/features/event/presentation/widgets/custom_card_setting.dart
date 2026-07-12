@@ -37,15 +37,16 @@ class CustomCardSetting extends StatelessWidget {
     final iconColor = AppThemeHelper.buttonPrimary(context);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.only(bottom: 6.0),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          constraints: const BoxConstraints(minHeight: 52),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: cardColor,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(color: borderColor),
             boxShadow: [
               BoxShadow(
@@ -57,17 +58,18 @@ class CustomCardSetting extends StatelessWidget {
           ),
           child: Row(
             children: [
-              if (iconData != null)
+              if (iconData != null) ...[
                 Container(
-                  width: 32,
-                  height: 32,
+                  width: 28,
+                  height: 28,
                   decoration: BoxDecoration(
                     color: iconColor.withValues(alpha: isDark ? 0.14 : 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(iconData, color: iconColor, size: 16),
                 ),
-              if (iconData != null) const SizedBox(width: 8),
+                const SizedBox(width: 8),
+              ],
               Expanded(
                 child: subtitle != null
                     ? Column(

@@ -57,6 +57,12 @@ class AppLocale implements Translations {
       'updateNow': 'Update Now',
       'later': 'Later',
 
+      // Join Requests
+      'joinRequests': 'Join Requests',
+      'noJoinRequests': 'No pending join requests',
+      'acceptRequest': 'Accept',
+      'rejectRequest': 'Reject',
+
       // Auth
       'email': 'Email',
       'emailIsRequired': 'Email is required',
@@ -772,6 +778,12 @@ class AppLocale implements Translations {
           'يتوفر إصدار جديد من التطبيق. هل تريد التحديث الآن؟',
       'updateNow': 'تحديث الآن',
       'later': 'لاحقًا',
+
+      // Join Requests
+      'joinRequests': 'طلبات الانضمام',
+      'noJoinRequests': 'لا توجد طلبات انضمام حالياً',
+      'acceptRequest': 'قبول',
+      'rejectRequest': 'رفض',
 
       // Auth
       'email': 'البريد الإلكتروني',

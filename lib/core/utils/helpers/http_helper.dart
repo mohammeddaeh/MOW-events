@@ -126,10 +126,12 @@ class HttpHelper {
   }) async {
     return _sendRequest(() async {
       final uri = Uri.parse('$_baseUrl/$endpoint');
+      final requestHeaders = getHeaders(withAuth: withAuth)
+        ..remove('Content-Type');
       final request = http.MultipartRequest(
         'POST',
         uri,
-      )..headers.addAll(getHeaders(withAuth: withAuth)..remove('Content-Type'));
+      )..headers.addAll(requestHeaders);
 
       fields.forEach((key, val) => request.fields[key] = val);
 
@@ -141,8 +143,20 @@ class HttpHelper {
         request.files.add(upload);
       }
 
+      // ignore: avoid_print
+      print('[HttpHelper.postMultipart] URL: $uri');
+      // ignore: avoid_print
+      print('[HttpHelper.postMultipart] Headers: $requestHeaders');
+      // ignore: avoid_print
+      print('[HttpHelper.postMultipart] Fields: $fields');
+
       final streamedRes = await request.send();
       final res = await http.Response.fromStream(streamedRes);
+
+      // ignore: avoid_print
+      print('[HttpHelper.postMultipart] Status: ${res.statusCode}');
+      // ignore: avoid_print
+      print('[HttpHelper.postMultipart] Body: ${res.body}');
 
       return _handleResponse(res);
     },

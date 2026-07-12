@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/app_router/app_router.dart';
+import 'package:mow_events/core/app_update/presentation/app_version_controller.dart';
 import 'package:mow_events/core/utils/constants/app_colors.dart';
 import 'package:mow_events/core/utils/constants/app_images.dart';
 import 'package:mow_events/core/utils/constants/app_size.dart';
@@ -64,11 +65,14 @@ class CustomBottomNav extends StatelessWidget {
             const SizedBox(width: 12),
 
             Expanded(
-              child: _buildNavItem(
-                icon: AppImages.settings,
-                isSelected: currentIndex == 1,
-                label: AppTexts.settings,
-                onTap: () => onTap(1),
+              child: Obx(
+                () => _buildNavItem(
+                  icon: AppImages.settings,
+                  isSelected: currentIndex == 1,
+                  label: AppTexts.settings,
+                  showBadge: _showSettingsBadge,
+                  onTap: () => onTap(1),
+                ),
               ),
             ),
           ],
@@ -77,11 +81,18 @@ class CustomBottomNav extends StatelessWidget {
     );
   }
 
+  bool get _showSettingsBadge {
+    if (!Get.isRegistered<AppVersionController>()) return false;
+    final controller = Get.find<AppVersionController>();
+    return controller.hasOptionalUpdate && !controller.settingsBadgeSeen.value;
+  }
+
   Widget _buildNavItem({
     required String icon,
     required String label,
     required bool isSelected,
     required VoidCallback onTap,
+    bool showBadge = false,
   }) {
     return StatefulBuilder(
       builder: (context, setState) {
@@ -102,16 +113,38 @@ class CustomBottomNav extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SvgPicture.asset(
-                  icon,
-                  width: 24,
-                  height: 24,
-                  colorFilter: ColorFilter.mode(
-                    isSelected
-                        ? AppThemeHelper.whitePrimary(context)
-                        : AppColors.textGray,
-                    BlendMode.srcIn,
-                  ),
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    SvgPicture.asset(
+                      icon,
+                      width: 24,
+                      height: 24,
+                      colorFilter: ColorFilter.mode(
+                        isSelected
+                            ? AppThemeHelper.whitePrimary(context)
+                            : AppColors.textGray,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    if (showBadge)
+                      Positioned(
+                        top: -2,
+                        right: -2,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: AppColors.errorPrimary,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppThemeHelper.bottomNav(context),
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 6),
                 AnimatedDefaultTextStyle(
