@@ -58,11 +58,17 @@ class RegistrationPendingController extends GetxController
     super.onReady();
     _syncPendingStateFromUser();
 
-    if (isRejected) return;
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      unawaited(NotificationsFcmService.processPendingBackgroundAction());
+      unawaited(_checkStatusOnEntry());
     });
+  }
+
+  /// فحص تلقائي وصامت لحالة الطلب الفعلية عند دخول الشاشة (بدون loader أو
+  /// رسائل خطأ) — يصحح أي حالة محلية قديمة (مثال: تم رفض الطلب أو قبوله
+  /// أثناء إغلاق التطبيق) دون انتظار ضغط المستخدم على زر التحديث.
+  Future<void> _checkStatusOnEntry() async {
+    await NotificationsFcmService.processPendingBackgroundAction();
+    await refreshSubmittedData(showErrors: false);
   }
 
   @override
@@ -105,7 +111,9 @@ class RegistrationPendingController extends GetxController
     user.value = authController.user.value ?? AuthService.currentUser;
   }
 
-  /// إعادة فحص حالة الطلب (إشعار FCM مؤجل + قائمة الإشعارات) ثم البيانات المحفوظة محلياً.
+  /// إعادة فحص حالة الطلب — الملف الشخصي (`register_status`) هو المصدر الوحيد
+  /// للحقيقة. لا نثق بقائمة إشعارات الخادم هنا لأنها سجلّ تاريخي: بعد إعادة
+  /// تقديم الطلب يبقى آخر إشعار رفض كما هو رغم أن الحالة الفعلية أصبحت pending.
   Future<void> refreshSubmittedData({required bool showErrors}) async {
     if (!InternetGuard.ensureOnline(showMessage: showErrors)) {
       return;
@@ -114,10 +122,7 @@ class RegistrationPendingController extends GetxController
 
     isRefreshing.value = true;
     try {
-      final outcome =
-          await NotificationsFcmService.recheckRegistrationRequestStatus();
-
-      if (outcome == RegistrationRecheckOutcome.handled) return;
+      await NotificationsFcmService.processPendingBackgroundAction();
 
       try {
         final profile = await authRepo.getProfile();
@@ -140,21 +145,10 @@ class RegistrationPendingController extends GetxController
       }
 
       if (showErrors) {
-        final message = outcome == RegistrationRecheckOutcome.failed
-            ? AppTexts.registrationRecheckFailed
-            : AppTexts.registrationStillUnderReview;
-
-        if (outcome == RegistrationRecheckOutcome.failed) {
-          AppSnackBars.warningSnackBar(
-            title: AppTexts.warningTitle,
-            message: message,
-          );
-        } else {
-          AppSnackBars.successSnackBar(
-            title: AppTexts.registrationPendingBadge,
-            message: message,
-          );
-        }
+        AppSnackBars.warningSnackBar(
+          title: AppTexts.warningTitle,
+          message: AppTexts.registrationRecheckFailed,
+        );
       }
     } finally {
       isRefreshing.value = false;
@@ -190,7 +184,8 @@ class RegistrationPendingController extends GetxController
     }
 
     if (reg.isRejected) {
-      final reason = reg.displayRejectionReason ??
+      final reason =
+          reg.displayRejectionReason ??
           displayRejectionReason ??
           AppTexts.registrationRejectedDefaultReason;
       await applyRejection(reason, showSnackBar: showFeedback);
@@ -209,8 +204,8 @@ class RegistrationPendingController extends GetxController
     String reason, {
     bool showSnackBar = false,
   }) async {
-    final cleanReason = UserRegistrationData.normalizeReasonText(reason) ??
-        reason.trim();
+    final cleanReason =
+        UserRegistrationData.normalizeReasonText(reason) ?? reason.trim();
     final effectiveReason = cleanReason.isEmpty
         ? AppTexts.registrationRejectedDefaultReason
         : cleanReason;
@@ -235,7 +230,8 @@ class RegistrationPendingController extends GetxController
 
     syncFromStorage();
 
-    if (showSnackBar && Get.currentRoute != AppRouter.registrationPendingScreen) {
+    if (showSnackBar &&
+        Get.currentRoute != AppRouter.registrationPendingScreen) {
       AppSnackBars.errorSnackBar(
         title: AppTexts.registrationRejectedTitle,
         message:

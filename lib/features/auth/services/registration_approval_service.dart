@@ -5,6 +5,7 @@ import 'package:mow_events/features/auth/data/models/registration_submission_sna
 import 'package:mow_events/features/auth/data/models/user_model.dart';
 import 'package:mow_events/features/auth/data/models/user_registration_data.dart';
 import 'package:mow_events/features/auth/domin/entities/registration_approval_status.dart';
+import 'package:mow_events/features/notifications/fcm/fcm_pending_action_store.dart';
 
 class RegistrationApprovalService {
   static final AppLocalStorage _storage = Get.find<AppLocalStorage>();
@@ -72,8 +73,15 @@ class RegistrationApprovalService {
     final reg = user.registrationData;
     final localStatus = status;
 
+    // إن كانت الحالة المحفوظة محلياً "مرفوض" وحالة الملف الشخصي الفعلية ليست
+    // مرفوضة ولا محدَّدة بوضوح (لا pending ولا approved) — نفترض أن البيانات
+    // غير مكتملة (مثال: استجابة دخول مختصرة) ولا نمسح حالة الرفض المحفوظة كي
+    // لا نفقدها بالخطأ. لكن إن كانت الحالة صراحة pending أو approved، فهذه
+    // إشارة موثوقة يجب تطبيقها فوراً (مثال: بعد إعادة تقديم الطلب).
     if (localStatus == RegistrationApprovalStatus.rejected &&
-        !reg.isRejected) {
+        !reg.isRejected &&
+        !reg.isPending &&
+        !reg.isApproved) {
       await _storage.write(
         StorageKeys.registrationSubmissionSnapshot,
         submission.toJson(),
@@ -131,6 +139,9 @@ class RegistrationApprovalService {
       StorageKeys.registrationSubmissionSnapshot,
       submission.toJson(),
     );
+    // إزالة أي إشعار قبول/رفض مؤجَّل من قبل إعادة التقديم — وإلا فقد يُعاد
+    // تطبيقه لاحقاً ويقلب الشاشة لحالة قديمة رغم أن الطلب أصبح pending فعلاً.
+    await FcmPendingActionStore.clear();
   }
 
   static Future<void> markRejected(String reason) async {

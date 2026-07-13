@@ -400,7 +400,12 @@ class UserRegistrationData {
       normalizedStatus == 'approved' || normalizedStatus == 'accept';
 
   /// سبب الرفض للعرض (يتجاهل JSON كامل إن وُجد بالخطأ في الحقل).
+  /// الباك لا يمسح `register_description_status` عند إعادة التقديم — فقد يبقى
+  /// سبب رفض قديم رغم أن `register_status` أصبح `pending`. لذلك لا نُرجع
+  /// سبباً إلا إذا كانت الحالة الفعلية "مرفوض".
   String? get displayRejectionReason {
+    if (!isRejected) return null;
+
     final raw = registerDescriptionStatus?.trim();
     if (raw == null || raw.isEmpty) return null;
 

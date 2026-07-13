@@ -26,12 +26,13 @@ class OrdersBackend {
   }) async {
     assert(status == 'accept' || status == 'reject');
 
-    final res = await HttpHelper.get(
+    final res = await HttpHelper.put(
       ApiEndpoints.changeOrderStatus(
         orderId: orderId,
         status: status,
         description: description,
       ),
+      null,
       suppressErrorSnackBar: true,
     );
 

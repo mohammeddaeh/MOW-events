@@ -532,23 +532,6 @@ class NotificationsController extends GetxController {
     }
   }
 
-  /// أحدث إشعار قبول/رفض تسجيل من الخادم (لإعادة فحص حالة الطلب).
-  Future<NotificationModel?> fetchLatestRegistrationDecision() async {
-    try {
-      final res = await repository.getAllNotifications(page: 1);
-      final decisions = res.items
-          .where((n) => n.resolvedType.isRegistrationApproval)
-          .toList();
-      if (decisions.isEmpty) return null;
-
-      decisions.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      return decisions.first;
-    } catch (e, stackTrace) {
-      _reportSyncError('fetch registration decision failed', e, stackTrace);
-      return null;
-    }
-  }
-
   Future<void> markAsRead(String id) async {
     if (!accessController.canUseProtectedFeatures) return;
 

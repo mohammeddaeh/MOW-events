@@ -141,19 +141,95 @@ class AppUpdateGuard extends GetView<AppVersionController> {
     controller.dismissOptionalUpdate();
 
     Get.dialog(
-      AlertDialog(
-        title: Text(AppTexts.updateAvailableTitle),
-        content: Text(AppTexts.updateAvailableDescription),
-        actions: [
-          TextButton(onPressed: () => Get.back(), child: Text(AppTexts.later)),
-          ElevatedButton(
-            onPressed: () {
-              Get.back();
-              _openAppUrl();
-            },
-            child: Text(AppTexts.updateNow),
-          ),
-        ],
+      Builder(
+        builder: (context) {
+          final cardColor = AppThemeHelper.blackWhite(context);
+          final iconColor = AppThemeHelper.buttonPrimary(context);
+          final titleColor = AppThemeHelper.whiteBlack(context);
+          final descriptionColor = AppThemeHelper.textSecondary(context);
+          final borderColor = AppThemeHelper.border(context);
+
+          return Dialog(
+            backgroundColor: cardColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: iconColor.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.system_update_rounded,
+                      color: iconColor,
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    AppTexts.updateAvailableTitle,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: titleColor,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    AppTexts.updateAvailableDescription,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      height: 1.6,
+                      color: descriptionColor,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Get.back();
+                        _openAppUrl();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppThemeHelper.buttonPrimary(context),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: Text(AppTexts.updateNow),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () => Get.back(),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: descriptionColor,
+                        side: BorderSide(color: borderColor),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: Text(AppTexts.later),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

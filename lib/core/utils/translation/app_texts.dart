@@ -46,8 +46,15 @@ class AppTexts {
 
   static String get joinRequests => "joinRequests".tr;
   static String get noJoinRequests => "noJoinRequests".tr;
+  static String get noRejectedJoinRequests => "noRejectedJoinRequests".tr;
   static String get acceptRequest => "acceptRequest".tr;
   static String get rejectRequest => "rejectRequest".tr;
+  static String get joinRequestsOfflineTitle =>
+      "joinRequestsOfflineTitle".tr;
+  static String get joinRequestsOfflineDescription =>
+      "joinRequestsOfflineDescription".tr;
+  static String get retry => "retry".tr;
+  static String get orderActionFailed => "orderActionFailed".tr;
 
   static String get email => 'email'.tr;
   static String get emailIsRequired => 'emailIsRequired'.tr;

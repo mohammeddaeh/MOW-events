@@ -84,18 +84,22 @@ class HttpHelper {
     dynamic data, {
     bool showLoader = true,
     bool withAuth = true,
+    bool suppressErrorSnackBar = false,
   }) async {
     return _sendRequest(() async {
       final res = await http
           .put(
             Uri.parse('$_baseUrl/$endpoint'),
             headers: getHeaders(withAuth: withAuth),
-            body: json.encode(data),
+            body: data == null ? null : json.encode(data),
           )
           .timeout(const Duration(seconds: 15));
 
       return _handleResponse(res);
-    }, withAuth: withAuth);
+    },
+      withAuth: withAuth,
+      suppressErrorSnackBar: suppressErrorSnackBar,
+    );
   }
 
   static Future<Json> delete(

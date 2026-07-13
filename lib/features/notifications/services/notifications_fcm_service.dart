@@ -1,7 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import 'package:mow_events/core/app_router/app_router.dart';
 import 'package:mow_events/features/auth/data/models/user_model.dart';
 import 'package:mow_events/features/auth/services/auth_service.dart';
 import 'package:mow_events/features/auth/services/registration_approval_service.dart';
@@ -10,8 +9,6 @@ import 'package:mow_events/features/notifications/data/repsitories_impl/notifica
 import 'package:mow_events/features/notifications/fcm/fcm_pending_action_store.dart';
 import 'package:mow_events/features/notifications/handlers/registration_approval_notification_handler.dart';
 import 'package:mow_events/features/notifications/presentation/controller/notifications_controller.dart';
-
-enum RegistrationRecheckOutcome { handled, stillPending, failed }
 
 /// واجهة موحّدة لـ FCM: تسجيل التوكن، معالجة الإشعارات المؤجلة، والتكامل مع الباكند.
 class NotificationsFcmService {
@@ -112,35 +109,6 @@ class NotificationsFcmService {
       body: pending['body']?.toString(),
       foreground: false,
     );
-  }
-
-  /// إعادة فحص حالة طلب التسجيل (FCM مؤجل + إشعارات الخادم) — وليس الملف الشخصي.
-  static Future<RegistrationRecheckOutcome>
-  recheckRegistrationRequestStatus() async {
-    ensureController();
-    await _controller.ensurePushSetup();
-    await processPendingBackgroundAction();
-
-    if (Get.currentRoute != AppRouter.registrationPendingScreen) {
-      return RegistrationRecheckOutcome.handled;
-    }
-
-    try {
-      final notification = await _controller.fetchLatestRegistrationDecision();
-      if (notification == null) {
-        return RegistrationRecheckOutcome.stillPending;
-      }
-
-      await RegistrationApprovalNotificationHandler.handlePayload(
-        data: notification.data,
-        title: notification.title,
-        body: notification.body,
-        foreground: true,
-      );
-      return RegistrationRecheckOutcome.handled;
-    } catch (_) {
-      return RegistrationRecheckOutcome.failed;
-    }
   }
 
   static bool get _canRegisterPushToken {

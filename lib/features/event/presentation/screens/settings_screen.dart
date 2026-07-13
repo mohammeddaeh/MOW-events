@@ -112,7 +112,6 @@ class SettingsScreen extends StatelessWidget {
                   },
                 ),
 
-                const _AppVersionTile(),
                 const SizedBox(height: 24),
 
                 OutlinedButton.icon(
@@ -143,6 +142,9 @@ class SettingsScreen extends StatelessWidget {
                   iconAlignment: IconAlignment.start,
                   onPressed: authController.logout,
                 ),
+                const SizedBox(height: 20),
+                const _AppVersionFooter(),
+                const SizedBox(height: 16),
               ],
             ),
           ),
@@ -160,7 +162,7 @@ class _JoinRequestsSettingTile extends StatelessWidget {
     final controller = Get.find<OrdersController>();
 
     return Obx(() {
-      final hasRequests = controller.orders.isNotEmpty;
+      final hasRequests = controller.pendingOrders.isNotEmpty;
 
       return CustomCardSetting(
         title: AppTexts.joinRequests,
@@ -191,8 +193,8 @@ class _JoinRequestsSettingTile extends StatelessWidget {
   }
 }
 
-class _AppVersionTile extends StatelessWidget {
-  const _AppVersionTile();
+class _AppVersionFooter extends StatelessWidget {
+  const _AppVersionFooter();
 
   Future<void> _openAppUrl(AppVersionController controller) async {
     final url = controller.appUrl.value;
@@ -209,21 +211,41 @@ class _AppVersionTile extends StatelessWidget {
     return Obx(() {
       final hasUpdate = controller.hasOptionalUpdate;
       final version = controller.currentVersion.value;
+      final silver = AppThemeHelper.textSecondary(context);
+      final accent = AppThemeHelper.buttonPrimary(context);
 
-      return CustomCardSetting(
-        title: hasUpdate ? AppTexts.updateAvailableTitle : 'v$version',
-        subtitle: hasUpdate ? AppTexts.updateNow : null,
-        trailing: hasUpdate
-            ? Container(
-                width: 10,
-                height: 10,
-                decoration: const BoxDecoration(
-                  color: AppColors.errorPrimary,
-                  shape: BoxShape.circle,
+      return Center(
+        child: InkWell(
+          onTap: hasUpdate ? () => _openAppUrl(controller) : null,
+          borderRadius: BorderRadius.circular(10),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 6,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (hasUpdate) ...[
+                  Icon(
+                    Icons.system_update_rounded,
+                    size: 14,
+                    color: accent,
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                Text(
+                  hasUpdate ? AppTexts.updateAvailableTitle : 'v$version',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: hasUpdate ? FontWeight.w600 : FontWeight.w500,
+                    color: hasUpdate ? accent : silver,
+                  ),
                 ),
-              )
-            : null,
-        onTap: hasUpdate ? () => _openAppUrl(controller) : null,
+              ],
+            ),
+          ),
+        ),
       );
     });
   }

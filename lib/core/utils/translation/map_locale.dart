@@ -60,8 +60,15 @@ class AppLocale implements Translations {
       // Join Requests
       'joinRequests': 'Join Requests',
       'noJoinRequests': 'No pending join requests',
+      'noRejectedJoinRequests': 'No rejected join requests',
       'acceptRequest': 'Accept',
       'rejectRequest': 'Reject',
+      'joinRequestsOfflineTitle': 'No internet connection',
+      'joinRequestsOfflineDescription':
+          'Connect to the internet to load join requests.',
+      'retry': 'Retry',
+      'orderActionFailed':
+          'The request could not be completed. Please try again.',
 
       // Auth
       'email': 'Email',
@@ -782,8 +789,14 @@ class AppLocale implements Translations {
       // Join Requests
       'joinRequests': 'طلبات الانضمام',
       'noJoinRequests': 'لا توجد طلبات انضمام حالياً',
+      'noRejectedJoinRequests': 'لا توجد طلبات انضمام مرفوضة',
       'acceptRequest': 'قبول',
       'rejectRequest': 'رفض',
+      'joinRequestsOfflineTitle': 'لا يوجد اتصال بالإنترنت',
+      'joinRequestsOfflineDescription':
+          'اتصل بالإنترنت لتحميل طلبات الانضمام.',
+      'retry': 'إعادة المحاولة',
+      'orderActionFailed': 'تعذر إتمام العملية. الرجاء المحاولة مرة أخرى.',
 
       // Auth
       'email': 'البريد الإلكتروني',
