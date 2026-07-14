@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:mow_events/core/alarm/event_alarm_service.dart';
 import 'package:mow_events/core/utils/local_storage/AuthStorage/auth_storage.dart';
 import 'package:mow_events/core/utils/local_storage/UserStorage/user_storage.dart';
 import 'package:mow_events/features/auth/data/models/user_model.dart';
@@ -49,6 +50,10 @@ class AuthService {
 
     if (Get.isRegistered<ReminderController>()) {
       await ReminderController.to.clearUserScopedState();
+    }
+
+    if (Get.isRegistered<EventAlarmService>()) {
+      await EventAlarmService.to.cancelAll();
     }
 
     if (user != null) {

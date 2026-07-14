@@ -137,6 +137,7 @@ object NotificationHelper {
         val manager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         manager.notify(requestCode, notification)
+        Log.d(TAG, "[NOTIFY] requestCode=$requestCode eventId=$eventId تم نشر الإشعار فعلياً")
 
         // إعادة محاولة قصيرة بعد نشر الإشعار لبعض الأجهزة التي تؤخر قبول الإطلاق المباشر.
         Handler(Looper.getMainLooper()).postDelayed(

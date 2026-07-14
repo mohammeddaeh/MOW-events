@@ -70,11 +70,16 @@ class EventAlarmService extends GetxService {
       } catch (_) {}
     }
 
-    for (final old in _trackedRequestCodes.difference(nextCodes)) {
+    final toCancel = _trackedRequestCodes.difference(nextCodes);
+    for (final old in toCancel) {
       try {
         await _channel.invokeMethod<void>('cancelAlarm', {'requestCode': old});
       } catch (_) {}
     }
+    debugPrint(
+      '[AlarmSync][Dart] قبل=${_trackedRequestCodes.length} بعد=${nextCodes.length} '
+      'مُضاف=${nextCodes.difference(_trackedRequestCodes)} مُلغى=$toCancel',
+    );
     _trackedRequestCodes
       ..clear()
       ..addAll(nextCodes);
@@ -83,6 +88,10 @@ class EventAlarmService extends GetxService {
       await _channel.invokeMethod<void>('setAlarmScheduleSnapshot', {
         'json': jsonEncode(entries),
       });
+      debugPrint(
+        '[AlarmSync][Dart] تم إرسال اللقطة الجديدة (${entries.length} منبّه): '
+        '${entries.map((e) => 'rc=${e['requestCode']} eventId=${e['eventId']} time=${e['time']}').join(', ')}',
+      );
     } catch (_) {}
   }
 
@@ -105,14 +114,20 @@ class EventAlarmService extends GetxService {
       } catch (_) {}
     }
 
-    for (final old in _trackedRequestCodes.difference(nextCodes)) {
+    final toCancel = _trackedRequestCodes.difference(nextCodes);
+    for (final old in toCancel) {
       try {
         await IosEventAlarmNotifications.cancel(old);
       } catch (_) {}
     }
+    debugPrint(
+      '[AlarmSync][iOS] قبل=${_trackedRequestCodes.length} بعد=${nextCodes.length} '
+      'مُضاف=${nextCodes.difference(_trackedRequestCodes)} مُلغى=$toCancel',
+    );
     _trackedRequestCodes
       ..clear()
       ..addAll(nextCodes);
+    await IosEventAlarmNotifications.logPendingNotifications('AFTER_SYNC');
   }
 
   /// دمج الحدث مع قائمة [HomeController] عند توفرها ليبقى لقطة التخزين متسقة.
@@ -131,11 +146,16 @@ class EventAlarmService extends GetxService {
 
   Future<void> cancelForEventId(int eventId) async {
     final rc = requestCodeForEvent(eventId);
+    debugPrint(
+      '[AlarmCancel][Dart] طلب حذف eventId=$eventId requestCode=$rc '
+      '(كان متتبَّعاً=${_trackedRequestCodes.contains(rc)})',
+    );
 
     if (_iosAvailable) {
       _trackedRequestCodes.remove(rc);
       try {
         await IosEventAlarmNotifications.cancel(rc);
+        debugPrint('[AlarmCancel][Dart] تم إلغاء requestCode=$rc على iOS');
       } catch (_) {}
       return;
     }
@@ -144,12 +164,38 @@ class EventAlarmService extends GetxService {
     _trackedRequestCodes.remove(rc);
     try {
       await _channel.invokeMethod<void>('cancelAlarm', {'requestCode': rc});
+      debugPrint(
+        '[AlarmCancel][Dart] تم إرسال cancelAlarm لـ requestCode=$rc '
+        '(متبقٍّ متتبَّع=${_trackedRequestCodes.length})',
+      );
     } catch (_) {}
   }
 
   /// إعادة جدولة كل الأحداث المحمّلة (مثلاً بعد تغيير المنطقة الزمنية يدوياً).
   Future<void> rescheduleAll(List<EventModel> events) async {
     await syncFromEvents(events);
+  }
+
+  /// يلغي كل منبّهات الأحداث المتتبَّعة فوراً (مثلاً عند تسجيل الخروج) بحيث لا يبقى
+  /// أي منبّه تابع للمستخدم السابق شغّالاً على مستوى النظام.
+  Future<void> cancelAll() async {
+    if (_iosAvailable) {
+      for (final rc in _trackedRequestCodes) {
+        try {
+          await IosEventAlarmNotifications.cancel(rc);
+        } catch (_) {}
+      }
+      _trackedRequestCodes.clear();
+      debugPrint('[AlarmCancel][iOS] تم إلغاء كل المنبّهات المتتبَّعة');
+      return;
+    }
+
+    if (!_nativeAvailable) return;
+    try {
+      await _channel.invokeMethod<void>('cancelAllAlarms');
+      debugPrint('[AlarmCancel][Dart] تم إلغاء كل المنبّهات المتتبَّعة وتفريغ اللقطة');
+    } catch (_) {}
+    _trackedRequestCodes.clear();
   }
 
   // --- وقت التشغيل: صلاحيات المنبّه (أندرويد) ---

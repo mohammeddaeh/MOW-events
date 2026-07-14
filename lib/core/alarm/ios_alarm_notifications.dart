@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:mow_events/core/alarm/event_alarm_service.dart';
 import 'package:mow_events/features/event/data/models/event_model.dart';
@@ -59,6 +60,9 @@ class IosEventAlarmNotifications {
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       payload: jsonEncode(payload),
     );
+    debugPrint(
+      '[AlarmSync][iOS] تمت جدولة requestCode=$requestCode title=$title at=$at',
+    );
   }
 
   static Future<void> scheduleForEvent(EventModel e, DateTime at) async {
@@ -98,5 +102,17 @@ class IosEventAlarmNotifications {
 
   static Future<void> cancel(int requestCode) async {
     await _plugin.cancel(requestCode);
+    debugPrint('[AlarmCancel][iOS] تم إلغاء requestCode=$requestCode');
+  }
+
+  /// يطبع كل الإشعارات المجدولة حالياً على iOS (للتحقق من التزامن).
+  static Future<void> logPendingNotifications(String tag) async {
+    final pending = await _plugin.pendingNotificationRequests();
+    debugPrint('[AlarmSnapshot][iOS][$tag] عدد المجدولة: ${pending.length}');
+    for (final p in pending) {
+      debugPrint(
+        '[AlarmSnapshot][iOS][$tag]  - id=${p.id} title=${p.title} payload=${p.payload}',
+      );
+    }
   }
 }

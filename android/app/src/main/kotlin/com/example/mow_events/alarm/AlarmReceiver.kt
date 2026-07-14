@@ -23,9 +23,23 @@ class AlarmReceiver : BroadcastReceiver() {
         val startTime = intent.getStringExtra("startTime") ?: ""
         val snoozeMinutes = intent.getIntExtra("snoozeMinutes", 10)
 
-        if (Log.isLoggable(TAG, Log.DEBUG)) {
-            Log.d(TAG, "onReceive requestCode=$requestCode eventId=$eventId")
+        Log.d(TAG, "===== إطلاق منبّه: requestCode=$requestCode eventId=$eventId title=$title =====")
+
+        // مقارنة: هل هذا المنبّه المُطلَق لا يزال ضمن اللقطة المجدولة من الطرف Dart؟
+        // إن ظهر هنا رغم حذفه، فهناك عدم تزامن بين cancelForEventId والجدولة الفعلية.
+        val snapshotJson = AlarmBootstrapStore.loadJson(appContext)
+        val stillInSnapshot = try {
+            val arr = org.json.JSONArray(snapshotJson)
+            (0 until arr.length()).any { i -> arr.getJSONObject(i).optInt("requestCode") == requestCode }
+        } catch (_: Exception) {
+            false
         }
+        Log.d(
+            TAG,
+            "requestCode=$requestCode " +
+                if (stillInSnapshot) "موجود في اللقطة الحالية (متوقّع)" else "غير موجود في اللقطة الحالية (قد يكون مُلغى/قديم ولم يُلغَ من AlarmManager فعلياً)",
+        )
+        AlarmBootstrapStore.logCurrentSnapshot(appContext, "ON_RECEIVE requestCode=$requestCode")
 
         val pm = appContext.getSystemService(Context.POWER_SERVICE) as PowerManager
         @Suppress("DEPRECATION")

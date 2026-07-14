@@ -57,13 +57,22 @@ object AlarmMethodChannel {
 
                     "cancelAlarm" -> {
                         val requestCode = call.argument<Int>("requestCode")!!
+                        android.util.Log.d("AlarmSnapshot", "[CANCEL] طلب إلغاء requestCode=$requestCode (AlarmManager فقط؛ اللقطة تُحدَّث لاحقاً عبر setAlarmScheduleSnapshot)")
                         AlarmScheduler.cancel(context, requestCode)
+                        result.success(null)
+                    }
+
+                    "cancelAllAlarms" -> {
+                        AlarmScheduler.cancelAllTracked(context)
                         result.success(null)
                     }
 
                     "setAlarmScheduleSnapshot" -> {
                         val json = call.argument<String>("json") ?: "[]"
+                        val previousJson = AlarmBootstrapStore.loadJson(context)
+                        AlarmBootstrapStore.logCurrentSnapshot(context, "SYNC_BEFORE")
                         AlarmBootstrapStore.save(context, json)
+                        logSnapshotDiff(previousJson, json)
                         result.success(null)
                     }
 
@@ -178,6 +187,35 @@ object AlarmMethodChannel {
                     else -> result.notImplemented()
                 }
             }
+    }
+
+    /** يقارن اللقطة القديمة بالجديدة ويطبع الفروقات (requestCode المضافة/المحذوفة). */
+    private fun logSnapshotDiff(previousJson: String, newJson: String) {
+        fun codesOf(json: String): Set<Int> {
+            return try {
+                val arr = org.json.JSONArray(json)
+                (0 until arr.length()).map { i -> arr.getJSONObject(i).optInt("requestCode") }.toSet()
+            } catch (_: Exception) {
+                emptySet()
+            }
+        }
+
+        val oldCodes = codesOf(previousJson)
+        val newCodes = codesOf(newJson)
+        val added = newCodes - oldCodes
+        val removed = oldCodes - newCodes
+
+        android.util.Log.d(
+            "AlarmSnapshot",
+            "[SYNC_DIFF] قبل=${oldCodes.size} بعد=${newCodes.size} " +
+                "مُضاف=$added مُلغى=$removed",
+        )
+        if (removed.isNotEmpty()) {
+            android.util.Log.d(
+                "AlarmSnapshot",
+                "[SYNC_DIFF] تحقّق: يجب أن تكون requestCode التالية قد أُلغيت فعلياً من AlarmManager عبر cancelAlarm: $removed",
+            )
+        }
     }
 
     private fun canScheduleExactAlarmsCompat(context: Context): Boolean {

@@ -53,7 +53,7 @@ class _NotificationItemState extends State<NotificationItem>
   @override
   Widget build(BuildContext context) {
     final notification = widget.notification;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = AppThemeHelper.currentBrightness(context) == Brightness.dark;
     final notificationType = notification.resolvedType;
     final typeColor = _resolvedTypeColor(notificationType, isDark: isDark);
     final eventTitle = _eventTitle(notification);
@@ -63,12 +63,12 @@ class _NotificationItemState extends State<NotificationItem>
         : _buildTimeDisplay(createdAt);
 
     final backgroundColor = notification.isRead
-        ? (isDark ? Colors.grey[900]! : Colors.grey[100]!)
-        : typeColor.withValues(alpha: isDark ? 0.24 : 0.11);
+        ? AppThemeHelper.blackWhite(context)
+        : typeColor.withValues(alpha: isDark ? 0.12 : 0.05);
 
     final borderColor = notification.isRead
-        ? (isDark ? Colors.grey[700]! : Colors.grey[300]!)
-        : typeColor.withValues(alpha: isDark ? 0.78 : 0.42);
+        ? AppThemeHelper.border(context)
+        : typeColor.withValues(alpha: isDark ? 0.45 : 0.22);
 
     return AnimatedBuilder(
       animation: _blinkAnimation,
@@ -83,7 +83,9 @@ class _NotificationItemState extends State<NotificationItem>
             boxShadow: [
               if (highlightOpacity > 0)
                 BoxShadow(
-                  color: Colors.amber.withValues(alpha: highlightOpacity),
+                  color: AppThemeHelper.buttonPrimary(
+                    context,
+                  ).withValues(alpha: highlightOpacity),
                   blurRadius: 12,
                   spreadRadius: 2,
                 ),
@@ -102,7 +104,7 @@ class _NotificationItemState extends State<NotificationItem>
           boxShadow: [
             if (!notification.isRead)
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: Colors.black.withValues(alpha: isDark ? 0.12 : 0.05),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
@@ -133,14 +135,16 @@ class _NotificationItemState extends State<NotificationItem>
                           ),
                           decoration: BoxDecoration(
                             color: typeColor.withValues(
-                              alpha: isDark ? 0.28 : 0.14,
+                              alpha: isDark ? 0.18 : 0.09,
                             ),
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(
                             _notificationTypeLabel(notificationType),
                             style: TextStyle(
-                              color: typeColor,
+                              color: typeColor.withValues(
+                                alpha: isDark ? 0.92 : 0.85,
+                              ),
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                             ),
@@ -151,9 +155,7 @@ class _NotificationItemState extends State<NotificationItem>
                           Text(
                             timeDisplay.cornerText!,
                             style: TextStyle(
-                              color: isDark
-                                  ? Colors.grey[500]
-                                  : Colors.grey[600],
+                              color: AppThemeHelper.textSecondary(context),
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
@@ -170,7 +172,7 @@ class _NotificationItemState extends State<NotificationItem>
                             : FontWeight.bold,
                         fontSize: 15,
                         height: 1.35,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color: AppThemeHelper.whiteBlack(context),
                       ),
                     ),
                     if (timeDisplay.footerLines.isNotEmpty) ...[
@@ -289,13 +291,13 @@ class _NotificationItemState extends State<NotificationItem>
       case NotificationType.eventInvitation:
         return isDark ? AppColors.accent : AppColors.primary;
       case NotificationType.updateEvent:
-        return isDark ? const Color(0xFFE5C06C) : AppColors.gold;
+        return AppColors.gold;
       case NotificationType.deleteEvent:
-        return isDark ? const Color(0xFFFF7A70) : AppColors.errorPrimary;
+        return isDark ? AppColors.errorSecondary : AppColors.errorPrimary;
       case NotificationType.acceptUserRegistration:
-        return isDark ? AppColors.accent : AppColors.primary;
+        return AppColors.success;
       case NotificationType.rejectUserRegistration:
-        return isDark ? const Color(0xFFFF7A70) : AppColors.errorPrimary;
+        return isDark ? AppColors.errorSecondary : AppColors.errorPrimary;
     }
   }
 }
@@ -327,9 +329,9 @@ class _NotificationIcon extends StatelessWidget {
     final iconColor = isInvitation && isDark ? Colors.white : baseColor;
     final backgroundColor = isInvitation
         ? (isDark
-              ? baseColor.withValues(alpha: 0.95)
-              : baseColor.withValues(alpha: 0.18))
-        : baseColor.withValues(alpha: isDark ? 0.34 : 0.18);
+              ? baseColor.withValues(alpha: 0.85)
+              : baseColor.withValues(alpha: 0.12))
+        : baseColor.withValues(alpha: isDark ? 0.22 : 0.12);
 
     return CircleAvatar(
       radius: 20,
@@ -344,15 +346,16 @@ class EmptyNotifications extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final secondary = AppThemeHelper.textSecondary(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.notifications_off, size: 64, color: Colors.grey),
+          Icon(Icons.notifications_off, size: 64, color: secondary),
           const SizedBox(height: 12),
           Text(
             AppTexts.thereAreNoNotificationsAtTheMoment,
-            style: const TextStyle(color: Colors.grey),
+            style: TextStyle(color: secondary),
           ),
         ],
       ),

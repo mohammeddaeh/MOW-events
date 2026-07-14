@@ -51,6 +51,10 @@ object AlarmScheduler {
             } else {
                 alarmManager.setExact(AlarmManager.RTC_WAKEUP, reminderTime, pendingIntent)
             }
+            Log.d(
+                "AlarmScheduler",
+                "[SCHEDULE] requestCode=$requestCode eventId=$eventId time=$reminderTime title=$title",
+            )
         } catch (e: SecurityException) {
             Log.e("AlarmScheduler", "Cannot schedule exact alarm — check SCHEDULE_EXACT_ALARM", e)
         }
@@ -66,6 +70,29 @@ object AlarmScheduler {
         )
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         alarmManager.cancel(pendingIntent)
+        Log.d("AlarmScheduler", "[CANCEL] requestCode=$requestCode أُلغي فعلياً من AlarmManager")
+    }
+
+    /**
+     * يلغي كل المنبّهات المتتبَّعة حالياً عبر لقطة [AlarmBootstrapStore] (مثلاً عند تسجيل الخروج)
+     * ثم يفرغ اللقطة حتى لا تُستعاد هذه المنبّهات بعد إعادة تشغيل الجهاز.
+     */
+    fun cancelAllTracked(context: Context) {
+        val json = AlarmBootstrapStore.loadJson(context)
+        val requestCodes = try {
+            val arr = org.json.JSONArray(json)
+            (0 until arr.length()).map { i -> arr.getJSONObject(i).optInt("requestCode") }
+        } catch (e: Exception) {
+            Log.e("AlarmScheduler", "[CANCEL_ALL] تعذّرت قراءة اللقطة: $json", e)
+            emptyList()
+        }
+
+        for (requestCode in requestCodes) {
+            cancel(context, requestCode)
+        }
+
+        AlarmBootstrapStore.save(context, "[]")
+        Log.d("AlarmScheduler", "[CANCEL_ALL] تم إلغاء ${requestCodes.size} منبّه وتفريغ اللقطة")
     }
 
     fun snooze(
