@@ -49,8 +49,9 @@ class IosEventAlarmNotifications {
       location.isNotEmpty ? location : null,
       tz.TZDateTime.from(at, tz.local),
       const NotificationDetails(
+        // لا يوجد ملف صوت مخصّص (.caf/.wav) مُضاف لمشروع Xcode بعد؛ نعتمد الصوت
+        // الافتراضي لنظام iOS حتى تتوفر أداة تحويل الصوت وتضاف عبر Xcode لاحقاً.
         iOS: DarwinNotificationDetails(
-          sound: 'alarm_sound.caf',
           presentAlert: true,
           presentBadge: true,
           presentSound: true,

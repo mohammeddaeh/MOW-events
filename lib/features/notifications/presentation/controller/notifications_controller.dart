@@ -348,39 +348,48 @@ class NotificationsController extends GetxController {
 
     await _flutterLocalNotificationsPlugin.initialize(
       settings,
-      onDidReceiveNotificationResponse: (response) async {
-        if (response.payload == null || response.payload!.isEmpty) return;
-
-        try {
-          final data = jsonDecode(response.payload!) as Map<String, dynamic>;
-
-          if (data['kind'] == 'event_alarm') {
-            await AlarmPendingActionStore.save(data);
-            _openAlarmScreenFromPending();
-            return;
-          }
-
-          final eventId =
-              int.tryParse(data['event_id']?.toString() ?? '0') ?? 0;
-          final reference = _buildNotificationFromPayload(data);
-          await fetchNotifications();
-          final highlightId = _resolveNotificationIdForNavigation(reference);
-          Get.toNamed(
-            AppRouter.notifications,
-            arguments: {
-              if (highlightId != null) 'highlightId': highlightId,
-              if (eventId > 0) 'eventId': eventId,
-            },
-          );
-        } catch (e, stackTrace) {
-          _reportSyncError(
-            'local notification response handling failed',
-            e,
-            stackTrace,
-          );
-        }
-      },
+      onDidReceiveNotificationResponse: _onDidReceiveNotificationResponse,
     );
+
+    await _flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >()
+        ?.requestPermissions(alert: true, badge: true, sound: true);
+  }
+
+  Future<void> _onDidReceiveNotificationResponse(
+    NotificationResponse response,
+  ) async {
+    if (response.payload == null || response.payload!.isEmpty) return;
+
+    try {
+      final data = jsonDecode(response.payload!) as Map<String, dynamic>;
+
+      if (data['kind'] == 'event_alarm') {
+        await AlarmPendingActionStore.save(data);
+        _openAlarmScreenFromPending();
+        return;
+      }
+
+      final eventId = int.tryParse(data['event_id']?.toString() ?? '0') ?? 0;
+      final reference = _buildNotificationFromPayload(data);
+      await fetchNotifications();
+      final highlightId = _resolveNotificationIdForNavigation(reference);
+      Get.toNamed(
+        AppRouter.notifications,
+        arguments: {
+          if (highlightId != null) 'highlightId': highlightId,
+          if (eventId > 0) 'eventId': eventId,
+        },
+      );
+    } catch (e, stackTrace) {
+      _reportSyncError(
+        'local notification response handling failed',
+        e,
+        stackTrace,
+      );
+    }
   }
 
   void _openAlarmScreenFromPending() {

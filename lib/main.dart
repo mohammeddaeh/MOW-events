@@ -28,10 +28,6 @@ void main() async {
 
   GeneralBindings().dependencies();
 
-  if (_isIos) {
-    await _requestIosAlarmNotificationPermission();
-  }
-
   await requestNotificationPermission();
   await requestAndroidAlarmReliabilityEnhancements();
   await initializeDateFormatting('en', null);
@@ -55,15 +51,6 @@ Future<void> requestNotificationPermission() async {
   if (await Permission.notification.isDenied) {
     await Permission.notification.request();
   }
-}
-
-/// طلب صلاحية الإشعارات على iOS صراحة (لا تُطلب تلقائياً عند `.initialize()`).
-Future<void> _requestIosAlarmNotificationPermission() async {
-  await FlutterLocalNotificationsPlugin()
-      .resolvePlatformSpecificImplementation<
-        IOSFlutterLocalNotificationsPlugin
-      >()
-      ?.requestPermissions(alert: true, badge: true, sound: true);
 }
 
 /// يحفظ حمولة منبّه iOS عند إطلاق التطبيق بالضغط على إشعار وهو مغلق تماماً؛
