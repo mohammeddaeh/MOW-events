@@ -141,6 +141,14 @@ class ProfileScreen extends GetView<ProfileController> {
                       label: AppTexts.section,
                       value: user?.department?.name,
                     ),
+                    if (user != null)
+                      ProfileInfoTile(
+                        label: AppTexts.role,
+                        value: AppTexts.userRoleLabel(
+                          isManager: user.isManager,
+                          department: user.department?.name,
+                        ),
+                      ),
                   ],
                 ),
                 const SizedBox(height: 14),

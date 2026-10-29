@@ -7,9 +7,11 @@ import '../../../../core/utils/helpers/http_helper.dart';
 
 class NotificationsBackend {
   Future<void> setFcmToken(String token) async {
+    // تسجيل التوكن يتم بالخلفية عند كل تشغيل — لا نعرض أخطاءه للمستخدم.
     final res = await HttpHelper.post(
       ApiEndpoints.fcmSetToken,
       {'device_token': token},
+      suppressErrorSnackBar: true,
     );
 
     if (res['status'] == false) {

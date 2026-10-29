@@ -87,8 +87,12 @@ class BackEndLaravel {
     );
   }
 
-  Future<Json> logout() async {
-    return await HttpHelper.delete(ApiEndpoints.logout, withAuth: true);
+  /// [deviceToken]: توكن FCM للجهاز حتى يفصله الباك عن هذا الحساب.
+  Future<Json> logout({String? deviceToken}) async {
+    final endpoint = deviceToken == null || deviceToken.isEmpty
+        ? ApiEndpoints.logout
+        : '${ApiEndpoints.logout}?device_token=${Uri.encodeQueryComponent(deviceToken)}';
+    return await HttpHelper.delete(endpoint, withAuth: true);
   }
 
   Future<Json> sendResetCode(String email) async {

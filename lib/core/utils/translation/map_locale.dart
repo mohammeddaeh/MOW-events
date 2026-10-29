@@ -100,7 +100,7 @@ class AppLocale implements Translations {
           'Unable to load departments. Check your connection and try again.',
       'noDepartmentsAvailable': 'No departments are available right now.',
       'tapDepartmentToRetry': 'Tap the department field to retry loading.',
-      'registerAsManager': 'Register as department manager',
+      'registerAsManager': 'Register as manager',
       'registrationSubmittedMessage':
           'Your registration request has been sent and is awaiting admin approval.',
       'registrationPendingTitle': 'Awaiting approval',
@@ -202,6 +202,8 @@ class AppLocale implements Translations {
       'noEvents': 'No events found',
       'manager': 'Manager',
       'managerOfDepartment': 'Manager of %s',
+      'userManagerOf': 'Manager of %s',
+      'userEmployeeOf': 'Employee at %s',
       'addNewEvent': 'Add new event',
       'eventName': 'Event name',
       'eventUntitled': 'Untitled event',
@@ -407,6 +409,8 @@ class AppLocale implements Translations {
       'searchResults': 'Search results',
       'finishSearch': 'Finish search',
       'selectedMembers': 'Selected members',
+      'showAllCount': 'Show all (%s)',
+      'showLess': 'Show less',
       'noSelectedMembersYet': 'No members selected yet',
       'memberSearchGuideTitle': 'How member search works',
       'memberSearchGuideSearchTip':
@@ -520,6 +524,13 @@ class AppLocale implements Translations {
           "A reminder with the same unit and value already exists for this event.",
       "reminderAtStartReserved":
           "0 minutes is reserved for the event start reminder.",
+      "reminderTimeInPast":
+          "This reminder time has already passed. Choose a smaller value.",
+      "reminderAlreadyPassed":
+          "This reminder has already passed and can't be edited.",
+      "remindersInPastForEvent":
+          "These reminders fall in the past for the event's start time and will never ring: %s. Delete or edit them.",
+      "reminderTimePassedShort": "Passed",
       "reminderAtEventTime": "At event time",
       "alarmRingingTitle": "Alarm",
       "alarmSnoozeFailed": "Could not snooze the alarm. Try again.",
@@ -663,6 +674,8 @@ class AppLocale implements Translations {
       'acceptance': 'موافقة',
       'manager': 'المدير',
       'managerOfDepartment': 'مدير قسم %s',
+      'userManagerOf': 'مدير %s',
+      'userEmployeeOf': 'موظف في %s',
       'sortOptions': 'خيارات الفرز',
       'startTime': 'وقت البدء',
       'name': 'الاسم',
@@ -828,7 +841,7 @@ class AppLocale implements Translations {
           'تعذر تحميل الأقسام. تحقق من الاتصال وحاول مرة أخرى.',
       'noDepartmentsAvailable': 'لا توجد أقسام متاحة حالياً.',
       'tapDepartmentToRetry': 'اضغط على حقل القسم لإعادة المحاولة.',
-      'registerAsManager': 'التسجيل كمدير قسم',
+      'registerAsManager': 'التسجيل كمدير',
       'registrationSubmittedMessage':
           'تم إرسال طلب التسجيل بنجاح وهو بانتظار موافقة الإدارة.',
       'registrationPendingTitle': 'بانتظار الموافقة',
@@ -1048,6 +1061,8 @@ class AppLocale implements Translations {
       'searchResults': 'نتائج البحث',
       'finishSearch': 'إنهاء البحث',
       'selectedMembers': 'الأعضاء المحددون',
+      'showAllCount': 'عرض الكل (%s)',
+      'showLess': 'عرض أقل',
       'noSelectedMembersYet': 'لم يتم اختيار أعضاء بعد',
       'memberSearchGuideTitle': 'كيفية البحث واختيار الأعضاء',
       'memberSearchGuideSearchTip':
@@ -1114,6 +1129,11 @@ class AppLocale implements Translations {
       "reminderAlreadyExists":
           "يوجد تذكير بنفس الوحدة والقيمة لهذا الحدث بالفعل.",
       "reminderAtStartReserved": "القيمة 0 دقيقة محجوزة لتذكير بداية الحدث.",
+      "reminderTimeInPast": "وقت هذا التذكير قد مضى. اختر قيمة أقل.",
+      "reminderAlreadyPassed": "انتهى وقت هذا التذكير ولا يمكن تعديله.",
+      "remindersInPastForEvent":
+          "هذه التذكيرات صار وقتها في الماضي بالنسبة لموعد الحدث ولن ترن: %s. احذفها أو عدّلها.",
+      "reminderTimePassedShort": "مضى وقته",
       "reminderAtEventTime": "موعد الحدث",
       "alarmRingingTitle": "تنبيه",
       "alarmSnoozeFailed": "تعذّر تأجيل المنبّه. حاول مرة أخرى.",

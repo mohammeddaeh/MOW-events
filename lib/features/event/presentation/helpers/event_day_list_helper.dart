@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:mow_events/features/event/data/models/event_model.dart';
 import 'package:mow_events/features/event/presentation/helpers/event_display_helper.dart';
+import 'package:mow_events/features/event/presentation/widgets/card_event.dart';
 
 enum EventDayTimeline { ended, upcoming, ongoing }
 
@@ -51,4 +53,19 @@ class EventDayListHelper {
     if (sb == null) return -1;
     return sa.compareTo(sb);
   }
+
+  /// ترتيب زمني بحت حسب وقت البداية (لنقاط الأحداث في التقويم).
+  static int compareByStart(EventModel a, EventModel b) {
+    final sa = a.startDateTimeSafe;
+    final sb = b.startDateTimeSafe;
+    if (sa == null && sb == null) return 0;
+    if (sa == null) return 1;
+    if (sb == null) return -1;
+    return sa.compareTo(sb);
+  }
+
+  /// ألوان نقاط أحداث اليوم مرتبة حسب وقت البداية.
+  static List<Color> dotColorsByStart(List<EventModel> events) => ([
+    ...events,
+  ]..sort(compareByStart)).map(CardEvent.categoryColorForEvent).toList();
 }

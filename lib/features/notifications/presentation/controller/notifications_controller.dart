@@ -20,6 +20,7 @@ import 'package:mow_events/features/notifications/data/models/notification_model
 import 'package:mow_events/features/notifications/domin/repositories/notifications_repository.dart';
 import 'package:mow_events/features/notifications/fcm/fcm_token_sync_guard.dart';
 import 'package:mow_events/features/notifications/utils/registration_notification_display.dart';
+import 'package:mow_events/features/orders/presentation/orders_controller.dart';
 
 class NotificationsController extends GetxController {
   final NotificationsRepository repository;
@@ -278,9 +279,31 @@ class NotificationsController extends GetxController {
     bool foreground = false,
     bool clicked = false,
   }) async {
+    // أي إشعار قد يكون طلب انضمام جديد — حدّث بادج طلبات الانضمام بصمت
+    if (Get.isRegistered<OrdersController>()) {
+      unawaited(Get.find<OrdersController>().fetchOrders(silent: true));
+    }
     try {
       final model = _buildNotificationFromRemoteMessage(message);
       final type = model.resolvedType;
+
+      if (accessController.canUseProtectedFeatures &&
+          type.isRegistrationApproval) {
+        // مستخدم فعّال (غالباً مدير وصله طلب انضمام): اعرض الإشعار بنصه الأصلي
+        // بدل تحويله لنص "تم قبول/رفض تسجيلك".
+        if (foreground) {
+          await _showLocalNotification(
+            model.copyWith(
+              title: message.notification?.title ?? model.title,
+              body: message.notification?.body ?? model.body,
+            ),
+            useRawText: true,
+          );
+        }
+        await fetchNotifications();
+        if (clicked) Get.toNamed(AppRouter.notifications);
+        return;
+      }
 
       if (RegistrationApprovalNotificationHandler.canHandle(message.data) ||
           type.isRegistrationApproval) {
@@ -440,7 +463,10 @@ class NotificationsController extends GetxController {
     }
   }
 
-  Future<void> _showLocalNotification(NotificationModel model) async {
+  Future<void> _showLocalNotification(
+    NotificationModel model, {
+    bool useRawText = false,
+  }) async {
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
           'fcm_channel_id',
@@ -465,12 +491,10 @@ class NotificationsController extends GetxController {
       'notification_type': model.resolvedType.wireValue,
     };
 
-    final showTitle = model.resolvedType.isRegistrationApproval
-        ? model.displayTitle
-        : model.title;
-    final showBody = model.resolvedType.isRegistrationApproval
-        ? model.displayBody
-        : model.body;
+    final useDisplayText =
+        !useRawText && model.resolvedType.isRegistrationApproval;
+    final showTitle = useDisplayText ? model.displayTitle : model.title;
+    final showBody = useDisplayText ? model.displayBody : model.body;
 
     await _flutterLocalNotificationsPlugin.show(
       model.id.hashCode,

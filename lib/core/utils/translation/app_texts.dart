@@ -161,6 +161,10 @@ class AppTexts {
   static String get home => 'home'.tr;
   static String get search => 'search'.tr;
   static String get viewmore => 'viewMore'.tr;
+
+  /// "Show all (%s)" — استبدل %s بالعدد الكلي
+  static String get showAllCount => 'showAllCount'.tr;
+  static String get showLess => 'showLess'.tr;
   static String get loadingMoreEvents => 'loadingMoreEvents'.tr;
   static String get loadingMoreNotifications => 'loadingMoreNotifications'.tr;
   static String get allEventsLoaded => 'allEventsLoaded'.tr;
@@ -371,6 +375,16 @@ class AppTexts {
 
   /// "Manager of %s" — استبدل %s باسم القسم
   static String get managerOfDepartment => 'managerOfDepartment'.tr;
+
+  /// صفة المستخدم: "مدير X" أو "موظف في X" (أو مدير / موظف فقط بدون قسم)
+  static String userRoleLabel({required bool isManager, String? department}) {
+    final dept = department?.trim() ?? '';
+    if (dept.isEmpty) return isManager ? manager : employee;
+    return (isManager ? 'userManagerOf' : 'userEmployeeOf').tr.replaceFirst(
+      '%s',
+      dept,
+    );
+  }
   static String get startTime => 'startTime'.tr;
   static String get name => 'name'.tr;
   static String get ascending => 'ascending'.tr;
@@ -527,6 +541,12 @@ class AppTexts {
       'reminderPreviewDescription'.tr;
   static String get reminderAlreadyExists => 'reminderAlreadyExists'.tr;
   static String get reminderAtStartReserved => 'reminderAtStartReserved'.tr;
+  static String get reminderTimeInPast => 'reminderTimeInPast'.tr;
+  static String get reminderAlreadyPassed => 'reminderAlreadyPassed'.tr;
+
+  /// "%s" — قائمة التذكيرات التي وقتها في الماضي
+  static String get remindersInPastForEvent => 'remindersInPastForEvent'.tr;
+  static String get reminderTimePassedShort => 'reminderTimePassedShort'.tr;
   static String get reminderAtEventTime => 'reminderAtEventTime'.tr;
   static String get alarmRingingTitle => 'alarmRingingTitle'.tr;
   static String get alarmSnoozeFailed => 'alarmSnoozeFailed'.tr;

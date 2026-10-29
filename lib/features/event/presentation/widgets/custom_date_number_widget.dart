@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mow_events/core/utils/constants/app_colors.dart';
 import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
 import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
 
@@ -29,8 +30,9 @@ class CustomDateNumberWidget extends StatelessWidget {
     final type = DateLocalizationHelper.userCalendar.value;
     final model = DateLocalizationHelper.display(date);
 
+    // isInMonth هنا = اليوم فوق كارد الاختيار الأبيض
     final gregorianColor = isInMonth
-        ? Colors.black
+        ? AppColors.black
         : AppThemeHelper.whiteBlack(context);
 
     final hijriColor = isInMonth

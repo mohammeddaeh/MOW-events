@@ -12,6 +12,7 @@ import 'package:mow_events/features/auth/data/models/user_model.dart';
 import 'package:mow_events/features/auth/domin/repositories/auth_repository.dart';
 import 'package:mow_events/features/auth/presentation/controller/auth_controller.dart';
 import 'package:mow_events/features/auth/services/auth_service.dart';
+import 'package:mow_events/features/notifications/fcm/fcm_token_sync_guard.dart';
 import 'package:mow_events/features/auth/services/registration_approval_service.dart';
 
 enum UserAccessState { idle, requiresRefresh, checking, inactive, active }
@@ -188,8 +189,11 @@ class UserAccessController extends GetxController with WidgetsBindingObserver {
     try {
       AppSnackBars.hideSnackBar();
       try {
-        await _authRepo.logout();
+        await _authRepo.logout(
+          deviceToken: await FcmTokenSyncGuard.currentDeviceToken(),
+        );
       } catch (_) {}
+      await FcmTokenSyncGuard.clearDeviceToken();
 
       await AuthService.logout();
       authController.user.value = null;

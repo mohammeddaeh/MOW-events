@@ -71,3 +71,5 @@ Future<void> _captureIosAlarmColdStartTap() async {
     }
   } catch (_) {}
 }
+
+// في الايفون عند الضغط على الاشعار مافي انتقال  تم التجريب عند رفضض طلب الانضمام

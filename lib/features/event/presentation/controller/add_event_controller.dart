@@ -15,6 +15,7 @@ import 'package:mow_events/features/event/domin/entities/reminder_entity.dart';
 
 import 'package:mow_events/features/event/presentation/controller/home_controller.dart';
 import 'package:mow_events/features/event/presentation/helpers/member_search_helper.dart';
+import 'package:mow_events/features/event/presentation/widgets/reminder_dialog_helpers.dart';
 import 'package:mow_events/features/event/presentation/role/admin_event_role.dart';
 import 'package:mow_events/features/event/presentation/role/event_role.dart';
 import 'package:mow_events/features/event/presentation/role/manager_event_role.dart';
@@ -283,10 +284,11 @@ class EventFormController extends GetxController {
     );
   }
 
+  // ArgumentError (لا Exception) حتى تظهر الرسالة نفسها بدل "حدث خطأ غير متوقع"
   void addReminder({required ReminderType type, required int value}) {
     final start = eventStartDateTimeForReminders;
     if (start == null) {
-      throw Exception(AppTexts.pleaseSelectAStartAndEndDateAndTime);
+      throw ArgumentError(AppTexts.pleaseSelectAStartAndEndDateAndTime);
     }
     final reminder = ReminderEntity.createCustom(
       'new',
@@ -296,6 +298,7 @@ class EventFormController extends GetxController {
       existingReminders: reminders,
     );
     reminders.add(reminder);
+    remindersError.value = null;
     _sortReminders();
   }
 
@@ -306,15 +309,17 @@ class EventFormController extends GetxController {
   }) {
     final start = eventStartDateTimeForReminders;
     if (start == null) {
-      throw Exception(AppTexts.pleaseSelectAStartAndEndDateAndTime);
+      throw ArgumentError(AppTexts.pleaseSelectAStartAndEndDateAndTime);
     }
     ReminderEntity.validateCustom(
       type: type,
       value: value,
       existingReminders: reminders,
       editingReminderId: original.id,
+      eventStart: start,
     );
     final updated = original.copyWith(
+      id: ReminderEntity.customId(original.eventId, type, value),
       type: type,
       value: value,
       reminderTime: ReminderEntity.calculateTime(start, type, value),
@@ -322,12 +327,14 @@ class EventFormController extends GetxController {
     final index = reminders.indexWhere((r) => r.id == original.id);
     if (index != -1) {
       reminders[index] = updated;
+      remindersError.value = null;
       _sortReminders();
     }
   }
 
   void removeReminder(ReminderEntity reminder) {
     reminders.removeWhere((r) => r.id == reminder.id);
+    remindersError.value = null;
     reminders.refresh();
   }
 
@@ -428,7 +435,61 @@ class EventFormController extends GetxController {
       return false;
     }
 
+    final reminderError = _validateRemindersTiming();
+    if (reminderError != null) {
+      remindersError.value = reminderError;
+      firstErrorSection.value = AddEventFormSection.reminders;
+      return false;
+    }
+
     return true;
+  }
+
+  /// تذكير وقته في الماضي لن يرن أبداً. نرفض الحفظ فقط إذا كان التذكير جديداً/معدّلاً
+  /// أو تغيّر موعد الحدث — حتى لا يُمنع تعديل حدث قديم بسبب تذكيرات انتهت طبيعياً.
+  String? _validateRemindersTiming() {
+    if (!canManageEventReminders || reminders.isEmpty) return null;
+    final start = eventStartDateTimeForReminders;
+    final now = DateTime.now();
+    // حدث بدأ أو انتهى: التذكيرات لم تعد ذات معنى
+    if (start == null || !start.isAfter(now)) return null;
+
+    final startChanged =
+        _initialSnapshot['startDate'] !=
+            selectedStartDate.value?.toIso8601String() ||
+        _initialSnapshot['startTime'] !=
+            '${selectedStartTime.value?.hour}:${selectedStartTime.value?.minute}';
+    final initialKeys = (_initialSnapshot['reminders'] as String? ?? '')
+        .split('|')
+        .toSet();
+
+    final pastLabels = reminders
+        .where(
+          (r) =>
+              startChanged ||
+              !initialKeys.contains('${r.type.name}:${r.value}'),
+        )
+        .where(isReminderInPast)
+        .map((r) => formatReminderDisplayLabel(r.type, r.value))
+        .toList();
+
+    if (pastLabels.isEmpty) return null;
+    return AppTexts.remindersInPastForEvent.replaceFirst(
+      '%s',
+      pastLabels.join('، '),
+    );
+  }
+
+  /// وقت التذكير محسوباً من موعد البداية الحالي في الفورم (لا المحفوظ داخل التذكير).
+  DateTime? reminderTimeFor(ReminderEntity reminder) {
+    final start = eventStartDateTimeForReminders;
+    if (start == null) return null;
+    return ReminderEntity.calculateTime(start, reminder.type, reminder.value);
+  }
+
+  bool isReminderInPast(ReminderEntity reminder) {
+    final time = reminderTimeFor(reminder);
+    return time != null && !time.isAfter(DateTime.now());
   }
 
   String? _validateCommonFields({

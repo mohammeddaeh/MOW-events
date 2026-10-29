@@ -26,8 +26,8 @@ class SettingsScreen extends StatelessWidget {
     final authController = Get.find<AuthController>();
 
     return Obx(() {
-      final userFullName =
-          '${authController.user.value?.firstName} ${authController.user.value?.lastName}';
+      final user = authController.user.value;
+      final userFullName = '${user?.firstName} ${user?.lastName}';
       return Scaffold(
         body: SafeArea(
           child: SingleChildScrollView(
@@ -42,6 +42,12 @@ class SettingsScreen extends StatelessWidget {
 
                 CustomCardSetting(
                   title: userFullName,
+                  subtitle: user == null
+                      ? null
+                      : AppTexts.userRoleLabel(
+                          isManager: user.isManager,
+                          department: user.department?.name,
+                        ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

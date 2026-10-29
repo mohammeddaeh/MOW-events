@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/shared/widgets/adaptive_form_field.dart';
+import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
 import 'package:mow_events/core/utils/date_time/app_date_picker.dart';
 import 'package:mow_events/core/utils/helpers/app_theme_helper.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
@@ -686,18 +687,40 @@ class _RemindersSection extends GetView<EventFormController> {
                 style: TextStyle(color: AppThemeHelper.textSecondary(context)),
               )
             else
-              ...reminders.map(
-                (r) => Padding(
+              ...reminders.map((r) {
+                // الوقت محسوب من موعد البداية الحالي في الفورم — يتحدث فوراً عند تغييره
+                final time = controller.reminderTimeFor(r);
+                final isPast = controller.isReminderInPast(r);
+                return Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          formatReminderDisplayLabel(r.type, r.value),
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: AppThemeHelper.whiteBlack(context),
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              formatReminderDisplayLabel(r.type, r.value),
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: AppThemeHelper.whiteBlack(context),
+                              ),
+                            ),
+                            if (time != null)
+                              Text(
+                                isPast
+                                    ? '${DateLocalizationHelper.formatCompactDateTime(time)} • ${AppTexts.reminderTimePassedShort}'
+                                    : DateLocalizationHelper.formatCompactDateTime(
+                                        time,
+                                      ),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isPast
+                                      ? AppThemeHelper.red(context)
+                                      : AppThemeHelper.textSecondary(context),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                       IconButton(
@@ -717,8 +740,19 @@ class _RemindersSection extends GetView<EventFormController> {
                       ),
                     ],
                   ),
+                );
+              }),
+            if (controller.remindersError.value != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                controller.remindersError.value!,
+                style: TextStyle(
+                  color: AppThemeHelper.red(context),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
+            ],
             const SizedBox(height: 8),
             SizedBox(
               width: double.infinity,
@@ -947,36 +981,40 @@ class MembersSectionWidget extends GetView<EventFormController> {
                   user.isManager == true || user.department?.isManager == true,
             )
           else
-            ...grouped.entries.map((entry) {
-              final deptName = entry.key;
-              final users = entry.value;
-              return Obx(
-                () => ExpandableDepartmentMembersCard(
-                  department: deptName,
-                  users: users,
-                  isExpanded: controller.deptExpandedRx(deptName).value,
-                  allSelected: controller.isDepartmentFullySelected(
-                    deptName,
-                    useFiltered: controller.hasMemberSearch,
+            CollapsibleItemsList(
+              itemCount: grouped.length,
+              itemBuilder: (context, index) {
+                final entry = grouped.entries.elementAt(index);
+                final deptName = entry.key;
+                final users = entry.value;
+                return Obx(
+                  () => ExpandableDepartmentMembersCard(
+                    department: deptName,
+                    users: users,
+                    isExpanded: controller.deptExpandedRx(deptName).value,
+                    allSelected: controller.isDepartmentFullySelected(
+                      deptName,
+                      useFiltered: controller.hasMemberSearch,
+                    ),
+                    showUsers:
+                        controller.hasMemberSearch ||
+                        controller.deptExpandedRx(deptName).value,
+                    selectedIds: controller.members.toSet(),
+                    onToggleExpanded: () =>
+                        controller.toggleDeptExpanded(deptName),
+                    onToggleDepartment: () =>
+                        controller.toggleDepartmentSelection(
+                          deptName,
+                          useFiltered: controller.hasMemberSearch,
+                        ),
+                    onToggleMember: controller.toggleMember,
+                    isManagerUser: (user) =>
+                        user.isManager == true ||
+                        user.department?.isManager == true,
                   ),
-                  showUsers:
-                      controller.hasMemberSearch ||
-                      controller.deptExpandedRx(deptName).value,
-                  selectedIds: controller.members.toSet(),
-                  onToggleExpanded: () =>
-                      controller.toggleDeptExpanded(deptName),
-                  onToggleDepartment: () =>
-                      controller.toggleDepartmentSelection(
-                        deptName,
-                        useFiltered: controller.hasMemberSearch,
-                      ),
-                  onToggleMember: controller.toggleMember,
-                  isManagerUser: (user) =>
-                      user.isManager == true ||
-                      user.department?.isManager == true,
-                ),
-              );
-            }),
+                );
+              },
+            ),
           Obx(() {
             final error = controller.membersError.value;
             if (error == null || error.isEmpty) return const SizedBox.shrink();

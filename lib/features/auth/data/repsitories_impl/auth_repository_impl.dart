@@ -1,6 +1,7 @@
 import 'dart:io';
 
-import 'package:mow_events/core/utils/error/api_exceptions.dart' show ApiException;
+import 'package:mow_events/core/utils/error/api_exceptions.dart'
+    show ApiException;
 import 'package:mow_events/core/utils/error/api_message_localizer.dart';
 import 'package:mow_events/core/utils/translation/app_texts.dart';
 import 'package:mow_events/features/auth/data/data_sources/back_end_laravel.dart';
@@ -144,9 +145,9 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> logout() async {
+  Future<void> logout({String? deviceToken}) async {
     try {
-      await backend.logout();
+      await backend.logout(deviceToken: deviceToken);
     } catch (_) {}
   }
 

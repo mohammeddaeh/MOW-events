@@ -1,3 +1,4 @@
+import 'package:mow_events/features/event/presentation/helpers/event_day_list_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/shared/widgets/calendar_grid_view.dart';
@@ -52,6 +53,9 @@ class YearScreen extends StatelessWidget {
 
                       hasEvents: controller.hasEventOnDay,
                       eventCount: controller.countEventsOnDay,
+                      eventColors: (day) => EventDayListHelper.dotColorsByStart(
+                        controller.eventsOnDay(day),
+                      ),
 
                       onMonthTap: (selectedMonth) {
                         final monthEvents = controller.getEventsForMonth(

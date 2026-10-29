@@ -306,6 +306,13 @@ class EventRemindersSheet extends StatelessWidget {
 
   void _editReminder(BuildContext context, ReminderEntity r) {
     if (!r.canEdit) return;
+    if (!r.reminderTime.isAfter(DateTime.now())) {
+      AppSnackBars.warningSnackBar(
+        title: AppTexts.warningTitle,
+        message: AppTexts.reminderAlreadyPassed,
+      );
+      return;
+    }
     final eventStart = event.startDateTimeSafe;
     if (eventStart == null) {
       AppSnackBars.warningSnackBar(
@@ -384,6 +391,7 @@ class EventRemindersSheet extends StatelessWidget {
                         event.id.toString(),
                       ),
                       editingReminderId: r.id,
+                      eventStart: eventStart,
                     );
                   } catch (error) {
                     _showValidationError(error);
@@ -391,6 +399,11 @@ class EventRemindersSheet extends StatelessWidget {
                   }
 
                   final updated = r.copyWith(
+                    id: ReminderEntity.customId(
+                      event.id.toString(),
+                      type,
+                      value,
+                    ),
                     type: type,
                     value: value,
                     reminderTime: ReminderEntity.calculateTime(
@@ -406,6 +419,7 @@ class EventRemindersSheet extends StatelessWidget {
                         action: ReminderAction.update,
                         eventId: event.id.toString(),
                         reminder: updated,
+                        previousId: r.id,
                       );
                       if (Get.context != null && Get.context!.mounted) {
                         AppSnackBars.successSnackBar(
@@ -656,7 +670,8 @@ class _ReminderCard extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (reminder.canEdit)
+        // تذكير انتهى وقته لا يُعدَّل (يمكن حذفه فقط)
+        if (reminder.canEdit && reminder.reminderTime.isAfter(DateTime.now()))
           IconButton(
             icon: Icon(
               Icons.edit_outlined,

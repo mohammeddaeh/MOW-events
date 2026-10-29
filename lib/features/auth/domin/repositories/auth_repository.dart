@@ -27,7 +27,7 @@ abstract class AuthRepository {
     required String identifier,
     required String password,
   });
-  Future<void> logout();
+  Future<void> logout({String? deviceToken});
   Future<void> sendResetCode(String email);
   Future<void> verifyResetCode(String email, String code);
   Future<void> resetPassword(String email, String code, String newPassword);

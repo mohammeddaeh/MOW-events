@@ -115,6 +115,11 @@ class MonthlyController extends GetxController {
     return groupedEvents[key]?.length ?? 0;
   }
 
+  List<EventModel> eventsOnDay(DateTime day) {
+    final key = DateFormat('yyyy-MM-dd').format(day);
+    return groupedEvents[key] ?? const [];
+  }
+
   void goToPreviousMonth() {
     currentMonth.value = DateTime(
       currentMonth.value.year,

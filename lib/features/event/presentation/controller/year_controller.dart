@@ -92,6 +92,10 @@ class YearController extends GetxController {
     return eventsByDay[_dayKey(day)]?.length ?? 0;
   }
 
+  List<EventModel> eventsOnDay(DateTime day) {
+    return eventsByDay[_dayKey(day)] ?? const [];
+  }
+
   String _dayKey(DateTime dt) => '${dt.year}-${dt.month}-${dt.day}';
 
   void nextYear() {

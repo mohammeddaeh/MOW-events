@@ -10,7 +10,6 @@ import 'package:mow_events/features/auth/data/models/user_model.dart';
 import 'package:mow_events/features/auth/domin/repositories/auth_repository.dart';
 import 'package:mow_events/features/auth/presentation/controller/login_controller.dart';
 import 'package:mow_events/features/auth/presentation/controller/profile_controller.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:mow_events/features/notifications/fcm/fcm_token_sync_guard.dart';
 import 'package:mow_events/features/auth/services/auth_service.dart';
 import 'package:mow_events/features/category/presentation/controller/categories_controller.dart';
@@ -186,15 +185,13 @@ class AuthController extends GetxController {
   }) async {
     if (callServerLogout) {
       try {
-        await _authRepo.logout();
+        await _authRepo.logout(
+          deviceToken: await FcmTokenSyncGuard.currentDeviceToken(),
+        );
       } catch (_) {}
     }
 
-    try {
-      await FirebaseMessaging.instance.deleteToken();
-    } catch (_) {}
-
-    FcmTokenSyncGuard.reset();
+    await FcmTokenSyncGuard.clearDeviceToken();
 
     await AuthService.logout();
     user.value = null;

@@ -73,10 +73,11 @@ class ReminderEntity {
       type: type,
       value: value,
       existingReminders: existingReminders,
+      eventStart: eventStart,
     );
     final reminderTime = calculateTime(eventStart, type, value);
     return ReminderEntity(
-      id: 'custom_${eventId}_${type.name}_$value',
+      id: customId(eventId, type, value),
       eventId: eventId,
       source: ReminderSource.custom,
       type: type,
@@ -89,11 +90,18 @@ class ReminderEntity {
   static bool isReservedAtStartReminder(ReminderType type, int value) =>
       type == ReminderType.minute && value == 0;
 
+  /// المعرّف مبني من الوحدة والقيمة — يجب إعادة توليده عند التعديل وإلا
+  /// يتصادم مع تذكير جديد بنفس الوحدة والقيمة القديمتين.
+  static String customId(String eventId, ReminderType type, int value) =>
+      'custom_${eventId}_${type.name}_$value';
+
+  /// [eventStart]: عند تمريره يُرفض التذكير الذي يقع وقته في الماضي (لن يرن أبداً).
   static void validateCustom({
     required ReminderType type,
     required int value,
     Iterable<ReminderEntity> existingReminders = const [],
     String? editingReminderId,
+    DateTime? eventStart,
   }) {
     if (value < 0) {
       throw ArgumentError(AppTexts.reminderValueCannotBeNegative);
@@ -120,6 +128,11 @@ class ReminderEntity {
 
     if (hasDuplicate) {
       throw ArgumentError(AppTexts.reminderAlreadyExists);
+    }
+
+    if (eventStart != null &&
+        !calculateTime(eventStart, type, value).isAfter(DateTime.now())) {
+      throw ArgumentError(AppTexts.reminderTimeInPast);
     }
   }
 

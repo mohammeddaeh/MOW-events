@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:mow_events/core/shared/snack_bar/app_snack_bars.dart';
 import 'package:mow_events/core/utils/error/api_message_localizer.dart';
@@ -8,7 +11,7 @@ import 'package:mow_events/core/utils/translation/app_texts.dart';
 import 'package:mow_events/features/auth/data/models/user_model.dart';
 import 'package:mow_events/features/orders/data/orders_backend.dart';
 
-class OrdersController extends GetxController {
+class OrdersController extends GetxController with WidgetsBindingObserver {
   final OrdersBackend _backend;
 
   OrdersController({OrdersBackend? backend})
@@ -28,28 +31,55 @@ class OrdersController extends GetxController {
   List<UserModel> get rejectedOrders =>
       _allOrders.where((o) => o.registrationData.isRejected).toList();
 
+  /// فحص دوري لطلبات الانضمام حتى يظهر البادج حتى لو لم يصل الإشعار.
+  static const Duration _pollInterval = Duration(minutes: 2);
+  Timer? _pollTimer;
+
   @override
   void onInit() {
     super.onInit();
+    WidgetsBinding.instance.addObserver(this);
     fetchOrders();
+    _pollTimer = Timer.periodic(
+      _pollInterval,
+      (_) => fetchOrders(silent: true),
+    );
   }
 
-  Future<void> fetchOrders() async {
+  @override
+  void onClose() {
+    _pollTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.onClose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      fetchOrders(silent: true);
+    }
+  }
+
+  /// [silent]: تحديث بالخلفية بلا مؤشر تحميل ولا رسائل خطأ.
+  Future<void> fetchOrders({bool silent = false}) async {
     if (!InternetGuard.ensureOnline(showMessage: false)) {
       return;
     }
+    if (silent && isLoading.value) return;
 
-    isLoading.value = true;
+    if (!silent) isLoading.value = true;
     try {
       final result = await _backend.fetchOrders();
       _allOrders.value = result;
     } catch (e) {
-      AppSnackBars.errorSnackBar(
-        title: AppTexts.warningTitle,
-        message: _errorMessage(e),
-      );
+      if (!silent) {
+        AppSnackBars.errorSnackBar(
+          title: AppTexts.warningTitle,
+          message: _errorMessage(e),
+        );
+      }
     } finally {
-      isLoading.value = false;
+      if (!silent) isLoading.value = false;
     }
   }
 

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:get/get_state_manager/get_state_manager.dart';
 import 'package:mow_events/core/shared/widgets/calendar_header.dart';
+import 'package:mow_events/core/shared/widgets/event_day_dots.dart';
 import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
 
 enum CalendarMode { month, year }
@@ -13,6 +14,9 @@ class UniversalCalendarGrid extends StatelessWidget {
   final bool showWeekHeader;
   final bool Function(DateTime day)? hasEvents;
   final int Function(DateTime day)? eventCount;
+
+  /// ألوان أحداث اليوم (نقطة لكل حدث)؛ عند غيابها تُرسم نقاط بلون افتراضي.
+  final List<Color> Function(DateTime day)? eventColors;
   final DateTime? selectedDay;
   final bool isYearMode;
   final CalendarMode mode;
@@ -26,6 +30,7 @@ class UniversalCalendarGrid extends StatelessWidget {
     this.showWeekHeader = false,
     this.hasEvents,
     this.eventCount,
+    this.eventColors,
     this.selectedDay,
     this.isYearMode = false,
     required this.mode,
@@ -63,7 +68,7 @@ class UniversalCalendarGrid extends StatelessWidget {
         final fontDay = scale * 0.7;
         final fontHijri = scale * 0.35;
         final todayCircle = scale * 1.1;
-        final eventDot = scale * 0.2;
+        final eventDot = max(scale * 0.2, isYearMode ? 2.5 : 5.0);
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,21 +191,20 @@ class UniversalCalendarGrid extends StatelessWidget {
 
                                 if (hasEv)
                                   Padding(
-                                    padding: const EdgeInsets.only(top: 2),
-                                    child: Wrap(
-                                      spacing: 2,
-                                      alignment: WrapAlignment.center,
-                                      children: List.generate(
-                                        min(evCount, 3),
-                                        (i) => Container(
-                                          width: eventDot,
-                                          height: eventDot,
-                                          decoration: const BoxDecoration(
-                                            color: Colors.amber,
-                                            shape: BoxShape.circle,
-                                          ),
-                                        ),
-                                      ),
+                                    padding: const EdgeInsets.fromLTRB(
+                                      3,
+                                      2,
+                                      3,
+                                      0,
+                                    ),
+                                    child: EventDayDots(
+                                      colors:
+                                          eventColors?.call(day) ??
+                                          List.filled(evCount, Colors.amber),
+                                      dotSize: eventDot,
+                                      spacing: isYearMode ? 1 : 2,
+                                      maxRows: isYearMode ? 1 : 2,
+                                      showOverflowCount: !isYearMode,
                                     ),
                                   ),
                               ],

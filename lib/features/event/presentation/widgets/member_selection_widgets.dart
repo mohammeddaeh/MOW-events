@@ -440,32 +440,24 @@ class ExpandableDepartmentMembersCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: border.withOpacity(0.4)),
                       ),
-                      child: Column(
-                        children: [
-                          for (
-                            int index = 0;
-                            index < users.length;
-                            index++
-                          ) ...[
-                            if (index > 0)
-                              Divider(
-                                height: 10,
-                                thickness: 0.7,
-                                color: border.withOpacity(0.35),
-                              ),
-                            _MemberUserTile(
-                              user: users[index],
-                              isSelected: selectedIds.contains(users[index].id),
-                              isManager: isManagerUser(users[index]),
-                              onTap: () => onToggleMember(users[index].id),
-                              onLongPress: () => showMemberDetailsBottomSheet(
-                                context,
-                                user: users[index],
-                                isManager: isManagerUser(users[index]),
-                              ),
-                            ),
-                          ],
-                        ],
+                      child: CollapsibleItemsList(
+                        itemCount: users.length,
+                        separatorBuilder: (_, __) => Divider(
+                          height: 10,
+                          thickness: 0.7,
+                          color: border.withOpacity(0.35),
+                        ),
+                        itemBuilder: (context, index) => _MemberUserTile(
+                          user: users[index],
+                          isSelected: selectedIds.contains(users[index].id),
+                          isManager: isManagerUser(users[index]),
+                          onTap: () => onToggleMember(users[index].id),
+                          onLongPress: () => showMemberDetailsBottomSheet(
+                            context,
+                            user: users[index],
+                            isManager: isManagerUser(users[index]),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -473,6 +465,94 @@ class ExpandableDepartmentMembersCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// قائمة طويلة تُطوى بعد [collapsedCount] عنصراً مع زر "عرض الكل / عرض أقل".
+class CollapsibleItemsList extends StatefulWidget {
+  final int itemCount;
+  final IndexedWidgetBuilder itemBuilder;
+  final IndexedWidgetBuilder? separatorBuilder;
+  final int collapsedCount;
+
+  const CollapsibleItemsList({
+    super.key,
+    required this.itemCount,
+    required this.itemBuilder,
+    this.separatorBuilder,
+    this.collapsedCount = 5,
+  });
+
+  @override
+  State<CollapsibleItemsList> createState() => _CollapsibleItemsListState();
+}
+
+class _CollapsibleItemsListState extends State<CollapsibleItemsList> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = AppThemeHelper.buttonPrimary(context);
+    // لا داعي للطي إذا كان المخفي عنصراً واحداً فقط
+    final collapsible = widget.itemCount > widget.collapsedCount + 1;
+    final visibleCount = !collapsible || _expanded
+        ? widget.itemCount
+        : widget.collapsedCount;
+
+    // بدون AnimatedSize: تقلّص القائمة تدريجياً كان يترك فراغاً في الشاشة أثناء الطي.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (int index = 0; index < visibleCount; index++) ...[
+          if (index > 0 && widget.separatorBuilder != null)
+            widget.separatorBuilder!(context, index),
+          widget.itemBuilder(context, index),
+        ],
+        if (collapsible)
+          Center(
+            child: TextButton.icon(
+              onPressed: _toggle,
+              style: TextButton.styleFrom(
+                foregroundColor: primary,
+                visualDensity: VisualDensity.compact,
+              ),
+              icon: Icon(
+                _expanded
+                    ? Icons.expand_less_rounded
+                    : Icons.expand_more_rounded,
+                size: 20,
+              ),
+              label: Text(
+                _expanded
+                    ? AppTexts.showLess
+                    : AppTexts.showAllCount.replaceFirst(
+                        '%s',
+                        '${widget.itemCount}',
+                      ),
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  void _toggle() {
+    final collapsing = _expanded;
+    setState(() => _expanded = !_expanded);
+    if (!collapsing) return;
+
+    // بعد الطي يبقى موضع السكرول في الأسفل فيظهر فراغ/قسم لاحق —
+    // نرجع لبداية القائمة إذا صارت فوق الشاشة.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart,
+      );
+    });
   }
 }
 
@@ -755,23 +835,22 @@ Future<void> showSelectedMembersBottomSheet(
                                                 ).withOpacity(0.4),
                                               ),
                                             ),
-                                            child: Column(
-                                              children: [
-                                                for (
-                                                  int userIndex = 0;
-                                                  userIndex < users.length;
-                                                  userIndex++
-                                                ) ...[
-                                                  if (userIndex > 0)
-                                                    Divider(
-                                                      height: 10,
-                                                      thickness: 0.7,
-                                                      color:
-                                                          AppThemeHelper.border(
-                                                            sheetContext,
-                                                          ).withOpacity(0.35),
-                                                    ),
-                                                  _MemberUserTile(
+                                            child: CollapsibleItemsList(
+                                              itemCount: users.length,
+                                              separatorBuilder: (_, __) =>
+                                                  Divider(
+                                                    height: 10,
+                                                    thickness: 0.7,
+                                                    color:
+                                                        AppThemeHelper.border(
+                                                          sheetContext,
+                                                        ).withOpacity(0.35),
+                                                  ),
+                                              itemBuilder:
+                                                  (
+                                                    context,
+                                                    userIndex,
+                                                  ) => _MemberUserTile(
                                                     user: users[userIndex],
                                                     isSelected: true,
                                                     isManager: isManagerUser(
@@ -825,8 +904,6 @@ Future<void> showSelectedMembersBottomSheet(
                                                               ),
                                                         ),
                                                   ),
-                                                ],
-                                              ],
                                             ),
                                           ),
                                         ),

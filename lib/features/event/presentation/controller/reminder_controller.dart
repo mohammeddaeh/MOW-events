@@ -126,10 +126,12 @@ class ReminderController extends GetxController {
   static int _toSafeRequestCode(int id) =>
       (id & 0x7FFFFFFF) != 0 ? (id & 0x7FFFFFFF) : 1;
 
+  /// [previousId]: عند التعديل، معرّف التذكير قبل التعديل (المعرّف يتغير مع الوحدة/القيمة).
   Future<void> applyReminderChange({
     required ReminderAction action,
     required String eventId,
     ReminderEntity? reminder,
+    String? previousId,
   }) async {
     if (reminder?.source == ReminderSource.default_) {
       return;
@@ -143,8 +145,13 @@ class ReminderController extends GetxController {
         type: reminder.type,
         value: reminder.value,
         existingReminders: nextList,
-        editingReminderId: action == ReminderAction.update ? reminder.id : null,
+        editingReminderId: action == ReminderAction.update
+            ? (previousId ?? reminder.id)
+            : null,
       );
+      if (!reminder.reminderTime.isAfter(DateTime.now())) {
+        throw ArgumentError(AppTexts.reminderTimeInPast);
+      }
     }
 
     switch (action) {
@@ -158,7 +165,9 @@ class ReminderController extends GetxController {
       case ReminderAction.update:
         if (reminder == null) return;
         final safeReminder = _normalizeReminder(reminder);
-        nextList.removeWhere((r) => r.id == safeReminder.id);
+        nextList.removeWhere(
+          (r) => r.id == safeReminder.id || r.id == previousId,
+        );
         nextList.add(safeReminder);
         break;
 
@@ -535,9 +544,28 @@ class ReminderController extends GetxController {
     required List<ReminderEntity> currentList,
   }) {
     final list = <ReminderEntity>[];
+    // تذكير واحد لكل (وحدة+قيمة): نفس الوقت من أكثر من مصدر كان يُجدول عدة منبهات معاً.
+    // الأولوية: تذكير الحدث (الباك) ثم الشخصي ثم الافتراضي.
+    final usedKeys = <String>{};
+    bool claim(ReminderType type, int value) =>
+        usedKeys.add('${type.name}_$value');
+
+    for (final reminder in event.reminders) {
+      if (!claim(reminder.type, reminder.value)) continue;
+      list.add(
+        _normalizeReminder(
+          _buildBackendReminder(
+            eventId: eventId,
+            eventStart: eventStart,
+            reminder: reminder,
+          ),
+        ),
+      );
+    }
 
     for (final reminder in currentList) {
       if (!reminder.isCustom) continue;
+      if (!claim(reminder.type, reminder.value)) continue;
 
       list.add(
         _normalizeReminder(
@@ -552,21 +580,10 @@ class ReminderController extends GetxController {
       );
     }
 
-    for (final reminder in event.reminders) {
-      list.add(
-        _normalizeReminder(
-          _buildBackendReminder(
-            eventId: eventId,
-            eventStart: eventStart,
-            reminder: reminder,
-          ),
-        ),
-      );
-    }
-
     for (final def in defaultReminders) {
       final key = '${def.type.name}_${def.value}';
       if (ignoredDefaultReminders[eventId]?.contains(key) == true) continue;
+      if (!claim(def.type, def.value)) continue;
 
       list.add(_normalizeReminder(def.toReminderEntity(eventId, eventStart)));
     }

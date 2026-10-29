@@ -18,7 +18,16 @@ import 'package:mow_events/features/notifications/utils/registration_notificatio
 
 /// معالجة إشعارات قبول/رفض التسجيل عبر FCM (`data_registration_user`).
 class RegistrationApprovalNotificationHandler {
+  /// إشعارات قبول/رفض التسجيل تخص صاحب الطلب فقط. المستخدم الفعّال (مدير/أدمن)
+  /// قد يستقبل إشعار "طلب انضمام جديد" بنص يشبهها (مثل "موافقة" + "تسجيل")،
+  /// ولا يجوز معاملته كقبول/رفض لحسابه هو.
+  static bool get _currentUserIsActive =>
+      Get.isRegistered<UserAccessController>() &&
+      Get.find<UserAccessController>().canUseProtectedFeatures;
+
   static bool canHandle(Map<String, dynamic> data) {
+    if (_currentUserIsActive) return false;
+
     final fromRegistrationPayload =
         registrationNotificationTypeFromFcmData(data) != null;
     if (fromRegistrationPayload) return true;
@@ -51,6 +60,7 @@ class RegistrationApprovalNotificationHandler {
     bool foreground = false,
   }) async {
     NotificationsFcmService.ensureController();
+    if (_currentUserIsActive) return;
 
     final data = Map<String, dynamic>.from(message.data);
     final type =

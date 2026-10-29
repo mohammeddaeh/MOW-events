@@ -71,6 +71,9 @@ class MonthScreen extends StatelessWidget {
                 showWeekHeader: true,
                 hasEvents: controller.hasTasks,
                 eventCount: controller.getTasksCount,
+                eventColors: (day) => EventDayListHelper.dotColorsByStart(
+                  controller.eventsOnDay(day),
+                ),
                 onDayTap: (day) {
                   controller.selectDay(day);
                   final display = DateLocalizationHelper.display(day);
@@ -87,51 +90,51 @@ class MonthScreen extends StatelessWidget {
           Expanded(
             flex: 1,
             child: Obx(() {
-            if (controller.selectedDayTasks.isEmpty) {
-              return EmptyStateWidget(
-                lottieAsset: AppImages.noResult,
-                title: AppTexts.noEventsThisDay,
-              );
-            }
+              if (controller.selectedDayTasks.isEmpty) {
+                return EmptyStateWidget(
+                  lottieAsset: AppImages.noResult,
+                  title: AppTexts.noEventsThisDay,
+                );
+              }
 
-            final visibleTasks = controller.visibleSelectedDayTasks;
-            final shouldShowFooter = controller.selectedDayTasks.isNotEmpty;
+              final visibleTasks = controller.visibleSelectedDayTasks;
+              final shouldShowFooter = controller.selectedDayTasks.isNotEmpty;
 
-            return ListView(
-              padding: const EdgeInsets.only(
-                bottom: 20,
-                right: 6,
-                left: 6,
-                top: 8,
-              ),
-              children: [
-                ...visibleTasks.map(
-                  (event) => CardEvent(
-                    event: event,
-                    homeController: homeController,
-                    config: EventCardConfig(
-                      showMultiDaySpanHint:
-                          EventDayListHelper.spansMultipleCalendarDays(event),
+              return ListView(
+                padding: const EdgeInsets.only(
+                  bottom: 20,
+                  right: 6,
+                  left: 6,
+                  top: 8,
+                ),
+                children: [
+                  ...visibleTasks.map(
+                    (event) => CardEvent(
+                      event: event,
+                      homeController: homeController,
+                      config: EventCardConfig(
+                        showMultiDaySpanHint:
+                            EventDayListHelper.spansMultipleCalendarDays(event),
+                      ),
                     ),
                   ),
-                ),
-                if (shouldShowFooter)
-                  PaginationFooter(
-                    isLoadingMore: homeController.isLoadingMoreEvents.value,
-                    hasMore:
-                        controller.canLoadMoreSelectedDayTasks ||
-                        homeController.hasMoreEvents.value,
-                    actionLabel: AppTexts.viewmore,
-                    loadingLabel: AppTexts.loadingMoreEvents,
-                    completedLabel: AppTexts.allEventsLoaded,
-                    onLoadMore: controller.canLoadMoreSelectedDayTasks
-                        ? controller.loadMoreSelectedDayTasks
-                        : homeController.loadMoreEvents,
-                  ),
-              ],
-            );
-          }),
-        ),
+                  if (shouldShowFooter)
+                    PaginationFooter(
+                      isLoadingMore: homeController.isLoadingMoreEvents.value,
+                      hasMore:
+                          controller.canLoadMoreSelectedDayTasks ||
+                          homeController.hasMoreEvents.value,
+                      actionLabel: AppTexts.viewmore,
+                      loadingLabel: AppTexts.loadingMoreEvents,
+                      completedLabel: AppTexts.allEventsLoaded,
+                      onLoadMore: controller.canLoadMoreSelectedDayTasks
+                          ? controller.loadMoreSelectedDayTasks
+                          : homeController.loadMoreEvents,
+                    ),
+                ],
+              );
+            }),
+          ),
         ],
       ),
     );

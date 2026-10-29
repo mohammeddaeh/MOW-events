@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:mow_events/core/shared/widgets/empty_state_widget.dart';
+import 'package:mow_events/core/shared/widgets/event_day_dots.dart';
 import 'package:mow_events/core/shared/widgets/pagination_footer.dart';
 import 'package:mow_events/core/utils/constants/app_colors.dart';
 import 'package:mow_events/core/utils/constants/app_images.dart';
@@ -33,6 +34,7 @@ class _WeeklyDaySliderState extends State<WeeklyDaySlider> {
     final itemWidth = screenWidth / 7;
     final isRTL = DateLocalizationHelper.isArabic;
     final homeController = Get.find<HomeController>();
+    final isDark = AppThemeHelper.currentBrightness(context) == Brightness.dark;
 
     return Column(
       children: [
@@ -49,6 +51,7 @@ class _WeeklyDaySliderState extends State<WeeklyDaySlider> {
           );
 
           return GestureDetector(
+            onHorizontalDragStart: (_) => setState(() => isDragging = true),
             onHorizontalDragUpdate: (details) =>
                 controller.updateDrag(details.primaryDelta ?? 0, isRTL),
             onHorizontalDragEnd: (_) {
@@ -74,12 +77,23 @@ class _WeeklyDaySliderState extends State<WeeklyDaySlider> {
                         width: itemWidth,
                         height: 90,
                         decoration: BoxDecoration(
-                          color: AppColors.white,
+                          // كارد فاتح مخالف للخلفية في الوضعين، والنص فوقه
+                          // داكن ويتبع موقعه أثناء السحب ليبقى مقروءاً.
+                          // في الليلي أبيض مخفف، وفي النهاري رمادي فاتح ليتميز عن الأبيض
+                          color: isDark
+                              ? Color.alphaBlend(
+                                  AppColors.white.withAlpha(215),
+                                  AppColors.darkBottomBar,
+                                )
+                              : AppColors.grey,
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.buttonDisabled.withAlpha(150),
-                              blurRadius: 5,
+                              color: AppColors.black.withAlpha(
+                                isDark ? 70 : 40,
+                              ),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
@@ -88,11 +102,16 @@ class _WeeklyDaySliderState extends State<WeeklyDaySlider> {
                     Obx(() {
                       final weekDaysList = controller.weekDays;
                       controller.groupedEvents.entries.toList(growable: false);
+                      // اليوم الواقع تحت الكارد الآن (يتغير أثناء السحب)
+                      final highlightedIndex =
+                          (controller.selectedIndex.value +
+                                  (controller.dragOffset.value / itemWidth)
+                                      .round())
+                              .clamp(0, weekDaysList.length - 1);
                       return Row(
                         children: List.generate(weekDaysList.length, (index) {
                           final day = weekDaysList[index];
-                          final isSelected =
-                              index == controller.selectedIndex.value;
+                          final isSelected = index == highlightedIndex;
                           final weekDayName =
                               DateLocalizationHelper.getWeekDaysName()[day
                                       .weekday %
@@ -127,7 +146,7 @@ class _WeeklyDaySliderState extends State<WeeklyDaySlider> {
                                           ? FontWeight.w900
                                           : FontWeight.normal,
                                       color: isSelected
-                                          ? AppColors.gold
+                                          ? AppColors.black
                                           : AppThemeHelper.whiteBlack(context),
                                     ),
                                   ),
@@ -137,41 +156,25 @@ class _WeeklyDaySliderState extends State<WeeklyDaySlider> {
                                       final formattedDay = DateFormat(
                                         'yyyy-MM-dd',
                                       ).format(day);
-                                      final eventCount =
+                                      final dayEvents =
                                           controller
-                                              .groupedEvents[formattedDay]
-                                              ?.length ??
-                                          0;
-                                      final dots = eventCount > 3
-                                          ? 3
-                                          : eventCount;
+                                              .groupedEvents[formattedDay] ??
+                                          const [];
 
                                       return AnimatedOpacity(
                                         duration: const Duration(
                                           milliseconds: 250,
                                         ),
-                                        opacity: dots > 0 ? 1 : 0,
+                                        opacity: dayEvents.isNotEmpty ? 1 : 0,
                                         child: SizedBox(
-                                          height: 12,
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: List.generate(dots, (
-                                              dotIndex,
-                                            ) {
-                                              return Container(
-                                                width: 6,
-                                                height: 6,
-                                                margin:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 1,
-                                                    ),
-                                                decoration: const BoxDecoration(
-                                                  color: AppColors.gold,
-                                                  shape: BoxShape.circle,
-                                                ),
-                                              );
-                                            }),
+                                          height: 16,
+                                          child: Center(
+                                            child: EventDayDots(
+                                              colors:
+                                                  EventDayListHelper.dotColorsByStart(
+                                                    dayEvents,
+                                                  ),
+                                            ),
                                           ),
                                         ),
                                       );

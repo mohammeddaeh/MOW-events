@@ -134,15 +134,20 @@ class CardEvent extends StatelessWidget {
 
   bool get canEdit {
     if (event.isPublic == 1) return homeController.isAdmin;
-    if (event.isPrivate == 1) return homeController.isAdmin || CardEvent._isCreator(event);
+    if (event.isPrivate == 1)
+      return homeController.isAdmin || CardEvent._isCreator(event);
     if (event.isPublic == 0 && event.isPrivate == 0) {
-      return homeController.isAdmin || (homeController.isManager && CardEvent._isCreator(event));
+      return homeController.isAdmin ||
+          (homeController.isManager && CardEvent._isCreator(event));
     }
     return false;
   }
 
   bool get canDelete => canEdit;
   Color getCategoryColor() => CardEvent.categoryColorForEvent(event);
+
+  /// منطقة ضغط أزرار الكارد (التذكيرات/الخيارات) — أكبر من الأيقونة نفسها.
+  static const Size _cardActionSize = Size(40, 32);
 
   static Color categoryColorForEvent(EventModel event) {
     if (event.category == null || event.category!.color.isEmpty) {
@@ -183,9 +188,13 @@ class CardEvent extends StatelessWidget {
       Future.microtask(() async {
         if (!InternetGuard.canWrite()) return;
         try {
-          final fresh = await homeController.eventRepo.getEventDetails(event.id);
+          final fresh = await homeController.eventRepo.getEventDetails(
+            event.id,
+          );
           eventNotifier.value = fresh;
-          final idx = homeController.allEvents.indexWhere((e) => e.id == fresh.id);
+          final idx = homeController.allEvents.indexWhere(
+            (e) => e.id == fresh.id,
+          );
           if (idx >= 0) {
             homeController.allEvents[idx] = fresh;
             homeController.applySettings();
@@ -531,6 +540,78 @@ class CardEvent extends StatelessWidget {
       EventDayListHelper.classify(event),
     );
 
+    final showRemindersAction = reminders.isNotEmpty;
+    final showMenuAction = canEdit || canDelete;
+    final actionCount =
+        (showRemindersAction ? 1 : 0) + (showMenuAction ? 1 : 0);
+
+    final actions = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (showRemindersAction)
+          Material(
+            type: MaterialType.transparency,
+            child: InkResponse(
+              onTap: () {
+                ReminderController.to.openEventReminders(context, event);
+              },
+              radius: 20,
+              child: Tooltip(
+                message: AppTexts.reminders,
+                child: SizedBox(
+                  width: _cardActionSize.width,
+                  height: _cardActionSize.height,
+                  child: Icon(
+                    Icons.alarm_rounded,
+                    size: 18,
+                    color: AppThemeHelper.buttonPrimary(context),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        if (showMenuAction)
+          PopupMenuButton<void>(
+            padding: EdgeInsets.zero,
+            menuPadding: const EdgeInsets.symmetric(
+              vertical: 4,
+              horizontal: 16,
+            ),
+            splashRadius: 20,
+            child: SizedBox(
+              width: _cardActionSize.width,
+              height: _cardActionSize.height,
+              child: Icon(
+                Icons.more_horiz_rounded,
+                size: 19,
+                color: AppThemeHelper.whiteBlack(context),
+              ),
+            ),
+            itemBuilder: (context) => [
+              if (canEdit)
+                PopupMenuItem(
+                  child: Text(AppTexts.edit),
+                  onTap: () {
+                    Get.to(
+                      () => const EditEventScreen(),
+                      arguments: event,
+                      binding: EditEventBinding(),
+                    );
+                  },
+                ),
+              if (canDelete)
+                PopupMenuItem(
+                  child: Text(
+                    AppTexts.delete,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                  onTap: () => homeController.confirmDelete(event),
+                ),
+            ],
+          ),
+      ],
+    );
+
     Widget card = GestureDetector(
       onTap: () => _showFullText(context),
       child: Container(
@@ -610,68 +691,11 @@ class CardEvent extends StatelessWidget {
                         ),
                 ),
 
-                if (reminders.isNotEmpty)
-                  IconButton(
-                    tooltip: AppTexts.reminders,
-                    onPressed: () {
-                      ReminderController.to.openEventReminders(context, event);
-                    },
-                    icon: Icon(
-                      Icons.alarm_rounded,
-                      size: 18,
-                      color: AppThemeHelper.buttonPrimary(context),
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                      minWidth: 24,
-                      minHeight: 24,
-                    ),
-                    visualDensity: VisualDensity.compact,
-                    style: IconButton.styleFrom(
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                  ),
-                if (reminders.isNotEmpty && (canEdit || canDelete))
-                  const SizedBox(width: 16),
-
-                if (canEdit || canDelete)
-                  PopupMenuButton<void>(
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                      minWidth: 24,
-                      minHeight: 24,
-                    ),
-                    menuPadding: const EdgeInsets.symmetric(
-                      vertical: 4,
-                      horizontal: 16,
-                    ),
-                    splashRadius: 18,
-                    child: Icon(
-                      Icons.more_horiz_rounded,
-                      size: 19,
-                      color: AppThemeHelper.whiteBlack(context),
-                    ),
-                    itemBuilder: (context) => [
-                      if (canEdit)
-                        PopupMenuItem(
-                          child: Text(AppTexts.edit),
-                          onTap: () {
-                            Get.to(
-                              () => const EditEventScreen(),
-                              arguments: event,
-                              binding: EditEventBinding(),
-                            );
-                          },
-                        ),
-                      if (canDelete)
-                        PopupMenuItem(
-                          child: Text(
-                            AppTexts.delete,
-                            style: const TextStyle(color: Colors.red),
-                          ),
-                          onTap: () => homeController.confirmDelete(event),
-                        ),
-                    ],
+                // مكان محجوز للأزرار — الأزرار نفسها مرسومة فوق الكارد (انظر الـ Stack بالأسفل)
+                if (actionCount > 0)
+                  SizedBox(
+                    width: _cardActionSize.width * actionCount,
+                    height: _cardActionSize.height,
                   ),
               ],
             ),
@@ -767,7 +791,27 @@ class CardEvent extends StatelessWidget {
       ),
     );
 
-    return card;
+    if (actionCount == 0) return card;
+
+    // زاوية الأزرار منطقة محمية: الضغط حول الأزرار أو تحتها لا يفتح التفاصيل.
+    // الحشوة تطابق حشوة الكارد (أعلى 8، جانب 14) حتى تبقى الأزرار بمكانها.
+    return Stack(
+      children: [
+        card,
+        PositionedDirectional(
+          top: 0,
+          end: 0,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {},
+            child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 14, 16),
+              child: actions,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   void _showFullText(BuildContext context) {
@@ -1299,7 +1343,9 @@ class _InvitationResponseBannerState extends State<_InvitationResponseBanner> {
                       backgroundColor: primary,
                       foregroundColor: Colors.white,
                       disabledBackgroundColor: primary.withValues(alpha: 0.30),
-                      disabledForegroundColor: Colors.white.withValues(alpha: 0.45),
+                      disabledForegroundColor: Colors.white.withValues(
+                        alpha: 0.45,
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -1445,7 +1491,8 @@ class _ParticipantsSection extends StatelessWidget {
           eventId: event.id,
           eventRepo: homeController.eventRepo,
           preloadedMembers: preloaded,
-          showGroupedTabs: homeController.isAdmin || CardEvent._isCreator(event),
+          showGroupedTabs:
+              homeController.isAdmin || CardEvent._isCreator(event),
         ),
       ),
     );
@@ -1523,7 +1570,8 @@ class _ParticipantsBottomSheet extends StatelessWidget {
               ],
             ),
           ),
-          if (showGroupedTabs && (pending.isNotEmpty || rejected.isNotEmpty)) ...[
+          if (showGroupedTabs &&
+              (pending.isNotEmpty || rejected.isNotEmpty)) ...[
             // Tab bar — للمنشئ فقط عند وجود معلقين أو مرفوضين
             TabBar(
               isScrollable: true,
@@ -1611,9 +1659,9 @@ class _ParticipantsBottomSheet extends StatelessWidget {
             Icon(
               Icons.people_outline,
               size: 38,
-              color: AppThemeHelper.textSecondary(context).withValues(
-                alpha: 0.4,
-              ),
+              color: AppThemeHelper.textSecondary(
+                context,
+              ).withValues(alpha: 0.4),
             ),
             const SizedBox(height: 10),
             Text(
