@@ -7,7 +7,7 @@ class IosAlarmSoundPlayer {
 
   static Future<void> start() async {
     await _player.setReleaseMode(ReleaseMode.loop);
-    await _player.play(AssetSource('sounds/alarm_sound.mp3'));
+    await _player.play(AssetSource('sounds/event_alarm.m4a'));
   }
 
   static Future<void> stop() async {

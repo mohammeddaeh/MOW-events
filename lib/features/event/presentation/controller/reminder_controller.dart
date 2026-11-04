@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:mow_events/core/alarm/ios_alarm_notifications.dart';
 import 'package:mow_events/core/utils/date_time/date_localization_helper.dart';
 import 'package:mow_events/core/utils/local_storage/UserStorage/user_storage.dart';
 import 'package:mow_events/core/utils/local_storage/app_local_storage.dart';
@@ -773,7 +775,7 @@ class ReminderController extends GetxController {
     }
 
     try {
-      await _channel.invokeMethod('scheduleAlarm', {
+      await _invokeScheduleAlarm({
         'time': reminder.reminderTime.millisecondsSinceEpoch,
         'eventId': reminder.eventId,
         'requestCode': _toSafeRequestCode(reminder.alarmId),
@@ -788,11 +790,31 @@ class ReminderController extends GetxController {
   }
 
   Future<void> cancelAlarmNative(int alarmId) async {
+    final rc = _toSafeRequestCode(alarmId);
     try {
-      await _channel.invokeMethod('cancelAlarm', {
-        'requestCode': _toSafeRequestCode(alarmId),
-      });
+      if (_isIos) {
+        await IosEventAlarmNotifications.cancel(rc);
+        return;
+      }
+      await _channel.invokeMethod('cancelAlarm', {'requestCode': rc});
     } on MissingPluginException catch (_) {}
+  }
+
+  static bool get _isIos =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+
+  /// أندرويد: قناة المنبّه الأصلية. iOS: إشعار محلي مجدول (القناة غير موجودة
+  /// على iOS وترمي MissingPluginException).
+  Future<void> _invokeScheduleAlarm(Map<String, dynamic> map) async {
+    if (_isIos) {
+      try {
+        await IosEventAlarmNotifications.scheduleFromNativeMap(map);
+      } catch (e) {
+        throw PlatformException(code: 'ios_schedule_failed', message: '$e');
+      }
+      return;
+    }
+    await _channel.invokeMethod('scheduleAlarm', map);
   }
 
   /// طلب اختبار التنبيه: جدولة تنبيه واحد بعد [seconds] ثانية (لا يُحفظ مع التذكيرات)
@@ -806,7 +828,7 @@ class ReminderController extends GetxController {
 
     final reminderTime = DateTime.now().add(Duration(seconds: seconds));
     try {
-      await _channel.invokeMethod('scheduleAlarm', {
+      await _invokeScheduleAlarm({
         'time': reminderTime.millisecondsSinceEpoch,
         'eventId': event.id.toString(),
         'requestCode': testAlarmRequestCode,

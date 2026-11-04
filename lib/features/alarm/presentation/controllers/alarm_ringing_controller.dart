@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:mow_events/core/app_router/app_router.dart';
 import 'package:intl/intl.dart';
 import 'package:mow_events/core/alarm/ios_alarm_notifications.dart';
 import 'package:mow_events/core/alarm/ios_alarm_sound_player.dart';
@@ -61,6 +62,8 @@ class AlarmRingingController extends GetxController {
     if (_isIos) {
       final args = Get.arguments;
       payload.value = args is Map ? Map<String, dynamic>.from(args) : {};
+      // الشاشة تكمل الرنين بنفسها؛ نوقف باقي سلسلة الإشعارات.
+      await IosEventAlarmNotifications.stopRinging(requestCode);
       return;
     }
     try {
@@ -93,10 +96,20 @@ class AlarmRingingController extends GetxController {
     } catch (_) {}
   }
 
+  /// إغلاق شاشة المنبّه على iOS: إن كانت أول شاشة في المكدّس (لا شيء تحتها)
+  /// نذهب للرئيسية بدل Get.back الذي يترك شاشة فارغة.
+  void _closeIos() {
+    if (Get.key.currentState?.canPop() ?? false) {
+      Get.back();
+    } else {
+      Get.offAllNamed(AppRouter.homeScreen);
+    }
+  }
+
   Future<void> dismiss() async {
     await stopNativeRinging();
     if (_isIos) {
-      Get.back();
+      _closeIos();
       return;
     }
     try {
@@ -115,7 +128,7 @@ class AlarmRingingController extends GetxController {
           DateTime.now().add(const Duration(minutes: 5)),
         );
       }
-      Get.back();
+      _closeIos();
       return;
     }
     try {

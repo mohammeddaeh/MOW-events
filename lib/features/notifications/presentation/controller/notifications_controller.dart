@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
+import 'package:mow_events/core/alarm/ios_alarm_notifications.dart';
 import 'package:mow_events/core/alarm/alarm_pending_action_store.dart';
 import 'package:mow_events/core/app_router/app_router.dart';
 import 'package:mow_events/core/shared/snack_bar/app_snack_bars.dart';
@@ -88,6 +90,10 @@ class NotificationsController extends GetxController {
     _initLocalNotifications();
     if (AlarmPendingActionStore.read() != null) {
       _openAlarmScreenFromPending();
+    }
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      // iOS < 26: فتح التطبيق أثناء رنين سلسلة المنبّه يوقفها ويفتح شاشة المنبّه.
+      IosEventAlarmNotifications.attachLifecycle(_openAlarmScreen);
     }
     ensurePushSetup().then((_) async {
       final holdRegistration =
@@ -244,6 +250,15 @@ class NotificationsController extends GetxController {
     });
 
     await messaging.requestPermission(alert: true, badge: true, sound: true);
+
+    // iOS: لازم توكن APNs يكون جاهز قبل getToken() وإلا يرمي apns-token-not-set
+    // وما بينرفع توكن FCM للسيرفر => ما بتوصل إشعارات Push.
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      for (var i = 0; i < 10; i++) {
+        if (await messaging.getAPNSToken() != null) break;
+        await Future<void>.delayed(const Duration(seconds: 1));
+      }
+    }
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       _handleFcmMessage(message, foreground: true);
@@ -419,7 +434,36 @@ class NotificationsController extends GetxController {
     final payload = AlarmPendingActionStore.read();
     if (payload == null) return;
     AlarmPendingActionStore.clear();
-    Get.toNamed(AppRouter.alarmRinging, arguments: payload);
+    _openAlarmScreen(payload);
+  }
+
+  int? _lastOpenedAlarmRc;
+  DateTime? _lastOpenedAlarmAt;
+
+  /// يفتح شاشة المنبّه بعد أول إطار للشاشة الحالية.
+  ///
+  /// مهم عند الإطلاق البارد: هذا الكنترولر يُنشأ داخل HomeBinding، فلو دفعنا
+  /// `/alarm` فوراً تُنشأ كنترولرات الرئيسية الكسولة (Day/Week/...) والمسار
+  /// الحالي `/alarm`، فيحذفها GetX عند إغلاق المنبّه => شاشة رمادية.
+  /// ويمنع فتح الشاشة مرتين لنفس المنبّه (ضغط الإشعار + رجوع التطبيق معاً).
+  void _openAlarmScreen(Map<String, dynamic> payload) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // مهلة قصيرة كي تكمل تبويبات الرئيسية بناءها (وإنشاء كنترولراتها).
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      if (Get.currentRoute == AppRouter.alarmRinging) return;
+      final rc = (payload['requestCode'] as num?)?.toInt();
+      final now = DateTime.now();
+      if (rc != null &&
+          rc == _lastOpenedAlarmRc &&
+          _lastOpenedAlarmAt != null &&
+          now.difference(_lastOpenedAlarmAt!) < const Duration(seconds: 15)) {
+        return;
+      }
+      _lastOpenedAlarmRc = rc;
+      _lastOpenedAlarmAt = now;
+      Get.toNamed(AppRouter.alarmRinging, arguments: payload);
+    });
+    WidgetsBinding.instance.ensureVisualUpdate();
   }
 
   Future<void> _syncEvent(int eventId) async {
@@ -479,6 +523,11 @@ class NotificationsController extends GetxController {
 
     const NotificationDetails details = NotificationDetails(
       android: androidDetails,
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
     );
 
     final payload = {

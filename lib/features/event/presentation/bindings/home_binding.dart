@@ -47,9 +47,11 @@ class HomeBinding extends Bindings {
       );
     }
 
-    Get.lazyPut<DayController>(() => DayController());
-    Get.lazyPut<WeekController>(() => WeekController());
-    Get.lazyPut<MonthlyController>(() => MonthlyController());
-    Get.lazyPut<YearController>(() => YearController());
+    // fenix: لو حذفها GetX مع إغلاق شاشة أخرى (مثل شاشة المنبّه عند الإطلاق
+    // البارد) يُعاد إنشاؤها عند أول Get.find بدل أن تفشل تبويبات الرئيسية.
+    Get.lazyPut<DayController>(() => DayController(), fenix: true);
+    Get.lazyPut<WeekController>(() => WeekController(), fenix: true);
+    Get.lazyPut<MonthlyController>(() => MonthlyController(), fenix: true);
+    Get.lazyPut<YearController>(() => YearController(), fenix: true);
   }
 }
